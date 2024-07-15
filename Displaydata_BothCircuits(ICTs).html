@@ -1,0 +1,915 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Monitor Data at both circuits in service</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.4/xlsx.full.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.4/xlsx.full.min.js"></script>
+  <link rel="stylesheet" href="DisplaydataCSS(original).css">
+
+  <style>
+    body {
+    font-family: Arial, sans-serif;
+    background-color: #f4f4f9;
+    margin: 0;
+    padding: 0;
+  }
+
+  .header {
+    background-color: white;
+    color: red;
+    text-decoration:underline 2px;
+    padding: 40px 0;
+    text-align: center;      
+    margin-bottom: 0; 
+  }
+
+  .header h1 {
+    font-size: 35px;
+  }
+
+  .header img {
+    position: absolute; /* Position the image */
+    top: 15px; /* Align the image to the top */
+    left: 25px; /* Align the image to the left */
+    width: 120px;
+    height: 100px;
+  }
+
+  .navbar {
+    overflow: hidden;
+    background-color: #fff;
+  }
+
+  .navbar a {
+    color: #333;
+    text-align: center;
+    padding: 10px 15px;
+    text-decoration: none;
+    margin-left: 10px;
+    border-radius: 5px;
+    transition: background-color 0.3s;
+  }
+
+  .navbar a:hover {
+    background: #ffd000;
+    color: #fff;
+    border-radius: 40px;
+    font-weight: bold;
+  }
+
+  .container {
+      max-width: 600px;
+      margin: 20px auto;
+      padding: 20px;
+      background-color: #fff;
+      box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+      border-radius: 8px;
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+  }
+  
+  .container:hover {
+      transform: translateY(-10px);
+      box-shadow: 0 0 30px rgba(0, 0, 0, 0.2);
+  }
+  
+  h2 {
+      text-align: center;
+      margin-bottom: 20px;
+      color: #333;
+      animation: fadeIn 1s ease-in-out;
+  }
+  
+  @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+  }
+  
+  #selectForm {
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+  }
+  
+  .form-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 10px;
+      animation: slideIn 0.5s ease-in-out;
+  }
+  
+  @keyframes slideIn {
+      from { transform: translateX(-100%); }
+      to { transform: translateX(0); }
+  }
+  
+  .form-item label {
+      flex: 1;
+      margin-right: 10px;
+      font-weight: bold;
+      color: #555;
+  }
+  
+  .form-item select, .form-item input[type="submit"] {
+      flex: 2;
+      padding: 8px;
+      font-size: 15px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      transition: border-color 0.3s ease, box-shadow 0.3s ease;
+  }
+  
+  .form-item select:focus, .form-item input[type="submit"]:focus {
+      border-color: #007BFF;
+      box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
+      outline: none;
+  }
+  
+  .form-item input[type="submit"] {
+      background-color: #007BFF;
+      color: #fff;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+  }
+  
+  .form-item input[type="submit"]:hover {
+      background-color: #0056b3;
+  }
+  
+  .form-item input[type="submit"]:active {
+      background-color: #004494;
+  }
+
+
+  /* Added styles for input4 and input5 */
+  #input4Container {
+    display: flex;
+    align-items: center;
+  }
+
+  #input4Container label {
+    flex: 1;
+    margin-right: 10px;
+    font-weight: bold;
+    color: #555;
+  }
+
+  #input4Container select {
+    flex: 2;
+    padding: 8px;
+    font-size: 15px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+  }
+
+  #input5Container {
+    display: flex;
+    align-items: center;
+  }
+
+  #input5Container label {
+    flex: 1;
+    margin-right: 10px;
+    font-weight: bold;
+    color: #555;
+  }
+
+  #input5Container select {
+    flex: 2;
+    padding: 8px;
+    font-size: 15px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+  }
+
+  /* Keep the animation for input4 and input5 consistent with other form items */
+  @keyframes slideIn {
+    from {
+      transform: translateX(-100%);
+    }
+
+    to {
+      transform: translateX(0);
+    }
+  }
+
+  #uploadedData {
+    margin-top: 20px;
+    margin-bottom: 20px; /* Add margin-bottom to create space */
+  }
+
+  #uploadedData h2 {
+    margin-bottom: 10px;
+  }
+
+  #dataTable {
+    width: 100%;
+    border-collapse: collapse;
+  }
+
+  #dataTable th,
+  #dataTable td {
+    border: 1px solid #ddd;
+    padding: 8px;
+    text-align: left;
+  }
+
+  #dataTable th {
+    background-color: #f2f2f2;
+  }
+
+  #dataTable tr:nth-child(even) {
+    background-color: #f9f9f9;
+  }
+
+  #dataTable tr:hover {
+    background-color: #f1f1f1;
+  }
+
+  /* Add these styles to your existing CSS */
+
+.max-mw-container {
+  margin-top: 20px;
+  padding: 20px;
+  background-color: #f9f9f9;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  text-align: center;
+}
+
+.max-mw-container h2 {
+  color: red; /* Set the title color to red */
+}
+
+.max-mw-container table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.max-mw-container th,
+.max-mw-container td {
+  border: 1px solid #ddd;
+  padding: 8px;
+  text-align: left;
+}
+
+.max-mw-container th {
+  background-color: #f2f2f2;
+}
+
+.max-mw-container tr:nth-child(even) {
+  background-color: #f9f9f9;
+}
+
+.max-mw-container tr:hover {
+  background-color: #f1f1f1;
+}
+
+.matched-date-time-container h2 {
+  color: red; /* Set the title color to red */
+}
+
+.matched-date-time-container table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.matched-date-time-container th,
+.matched-date-time-container td {
+  border: 1px solid #ddd;
+  padding: 8px;
+  text-align: left;
+}
+
+.matched-date-time-container th {
+  background-color: #f2f2f2;
+}
+
+.matched-date-time-container tr:nth-child(even) {
+  background-color: #f9f9f9;
+}
+
+.matched-date-time-container tr:hover {
+  background-color: #f1f1f1;
+}
+
+.buttons {
+  margin-top: 20px;
+  text-align: center;
+}
+
+.buttons button {
+  padding: 10px 20px;
+  margin-right: 10px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.3s ease, transform 0.3s ease, padding 0.3s ease;
+}
+
+.buttons button.print-button {
+  background-color: #db4e4e;
+  color: white;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.buttons button.print-button:hover {
+  background-color: #a70f04;
+  transform: scale(1.05);
+}
+
+.buttons button.excel-button {
+  background-color: #7cda25;
+  color: #333;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.buttons button.excel-button:hover {
+  background-color: #2c8f04;
+  transform: scale(1.05);
+}
+
+@media print {
+.header h1 {
+  font-size: 18px; /* Adjust the font size as needed */
+}
+
+.header img {
+    width: 80px;
+    height: 60px;
+}
+
+@media print {
+  .navbar, /* Hide the navbar */
+  .buttons { /* Hide the print and download Excel buttons */
+    display: none !important;
+  }
+}
+
+}
+
+#matchedData {
+    margin-top: 30px;
+    justify-content: center;
+}
+
+#matchedData h2 {
+    color: #4CAF50;
+}
+
+#matchedTable {
+    border: 2px solid #4CAF50;
+}
+
+#matchedTable th {
+    background-color: #4CAF50;
+    color: white;
+}
+
+#matchedTable tr:hover {
+    background-color: #e0f7e0;
+    transition: background-color 0.3s ease;
+}
+
+#matchedTable td, #matchedTable th {
+    border: 1px solid #ddd;
+    padding: 8px;
+}
+
+.max-mw-row {
+    background-color: #f0f8ff; /* Light blue */
+}
+
+.highlight {
+    background-color: #ffeb3b; /* Light yellow background for highlighted rows */
+    font-weight: bold;
+    transition: background-color 0.3s ease;
+}
+
+.centered-table {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 40vh; /* Adjust height to fit your content */
+}
+
+
+/* CSS for Print and Download Excel buttons */
+.button-container {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 20px; /* Optional: Add some space between buttons and table */
+}
+
+#printButton {
+    background-color: #ec4843; /* Green */
+    border: none;
+    color: white;
+    padding: 10px 20px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 16px;
+    margin: 10px 5px;
+    cursor: pointer;
+    border-radius: 5px;
+    transition: background-color 0.3s ease;
+}
+
+#downloadExcelButton {
+    background-color: #4CAF50; /* Green */
+    border: none;
+    color: white;
+    padding: 10px 20px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 16px;
+    margin: 10px 5px;
+    cursor: pointer;
+    border-radius: 5px;
+    transition: background-color 0.3s ease;
+}
+
+#printButton:hover {
+    background-color: #810606; /* Darker green */
+    }
+
+#downloadExcelButton:hover {
+    background-color: #056109; /* Darker green */
+}
+
+#printButton:focus,
+#downloadExcelButton:focus {
+    outline: none;
+    box-shadow: 0 0 5px rgba(0, 0, 0, 0.3);
+}
+
+@media print {
+    body {
+        font-family: Arial, sans-serif;
+        font-size: 12px;
+    }
+
+    #matchedData {
+        display: block !important; /* Ensure matched data section is visible */
+        margin: 0 auto; /* Center content horizontally */
+        max-width: 100%; /* Ensure content fits within printable area */
+        page-break-after: always; /* Ensure each section starts on a new page */
+    }
+
+    #matchedTable {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 20px; /* Optional: Add space between header and table */
+    }
+
+    #matchedTable th,
+    #matchedTable td {
+        border: 1px solid #ddd;
+        padding: 8px;
+        text-align: center;
+    }
+
+    #matchedTable th {
+        background-color: #f2f2f2;
+    }
+
+    #matchedTable td {
+        background-color: #fff;
+    }
+
+    /* Ensure table headers are repeated on each printed page */
+    #matchedTable thead {
+        display: table-header-group;
+    }
+
+    /* Hide Print and Download buttons on print */
+    .button-container {
+        display: none;
+    }
+}
+
+
+  </style>
+
+</head>
+<body>
+<!-- Header -->
+<div class="header">
+  <img src="logo_new.png" alt="Logo" class="logo" width="130px" height="100px">
+  <h1>𝐓𝐑𝐀𝐍𝐒𝐌𝐈𝐒𝐒𝐈𝐎𝐍 𝐂𝐎𝐑𝐏𝐎𝐑𝐀𝐓𝐈𝐎𝐍 𝐎𝐅 𝐓𝐄𝐋𝐀𝐍𝐆𝐀𝐍𝐀 𝐋𝐈𝐌𝐈𝐓𝐄𝐃</h1>
+</div>
+
+<!-- Navigation bar -->
+<div class="navbar">
+  <a href="index.html">Home</a>
+  <a href="LCbox_retrieve.html" class="active">MRT Schedules</a>
+</div>
+
+  <div class="container">
+    <h2>Loads on Both Feeders/ICT's in Service</h2>
+    <form id="selectForm">
+      <div class="form-item">
+        <label for="input1">Select Voltage Level:</label>
+        <select name="input1" id="input1">
+          <option value="">Select Voltage</option>
+          <option value="400KV">400KV</option>
+          <option value="220KV">220KV</option>
+          <option value="ICTS">ICT'S</option>
+        </select>
+      </div>
+      <div class="form-item" id="input2Container">
+        <label for="input2" id="input2Label">Select First Feeder/ICT:</label>
+        <select name="input2" id="input2">
+          <option value="">Select feeder</option>
+        </select>
+      </div>
+      <div class="form-item" id="input3Container">
+        <label for="input3" id="input3Label">Select Second Feeder/ICT:</label>
+        <select name="input3" id="input3">
+          <option value="">Select feeder</option>
+        </select>
+      </div>
+      <div class="form-item" style="display: none;" id="input4Container">
+        <label for="input4" id="input4Label">Select Third Feeder/ICT:</label>
+        <select name="input4" id="input4">
+          <option value="">Select feeder</option>
+        </select>
+      </div>
+      <div class="form-item" style="display: none;" id="input5Container">
+        <label for="input5" id="input5Label">Select Fourth Feeder/ICT:</label>
+        <select name="input5" id="input5">
+          <option value="">Select feeder</option>
+        </select>
+      </div>
+      <div class="form-item">
+        <label for="year">Select Year:</label>
+        <select name="year" id="year">
+          <option value="">Select Year</option>
+        </select>
+      </div>
+      <div class="form-item">
+        <label for="toYear">To Year:</label>
+        <select name="toYear" id="toYear">
+          <option value="">To Year</option>
+        </select>
+      </div>
+      <div class="form-item">
+        <input type="submit" id="submitBtn" value="Submit">
+      </div>
+    </form>
+  </div>
+
+  <div id="uploadedData" style="display: none;">
+    <h2>Uploaded Data</h2>
+    <table id="dataTable">
+        <thead>
+            <tr>
+                <th>Serial No.</th>
+                <th>Name of the Feeder</th>
+                <th>MW</th>
+                <th>Date</th>
+                <th>Time</th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+</div>
+</div>
+
+<div class="centered-table">
+  <div id="matchedData" style="display: none;">
+    <h2>Loads at same time of Feeders/ICT'S</h2>
+    <table id="matchedTable">
+        <thead>
+            <tr>
+                <th>Date</th>
+                <th>Time</th>
+                <th>Feeder 1</th>
+                <th>MW</th>
+                <th>Feeder 2</th>
+                <th>MW</th>
+                <th>Feeder 3</th>
+                <th>MW</th>
+                <th>Feeder 4</th>
+                <th>MW</th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+    <div class="button-container">
+      <button id="printButton">Print Pdf</button>
+      <button id="downloadExcelButton">Download Excel</button>
+  </div>
+</div>
+
+</div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+  const currentYear = new Date().getFullYear();
+  const yearSelect = document.getElementById('year');
+  const toYearSelect = document.getElementById('toYear');
+
+  for (let year = 2012; year <= currentYear; year++) {
+    const option = document.createElement('option');
+    option.value = year;
+    option.textContent = year;
+    yearSelect.appendChild(option);
+
+    const toYearOption = document.createElement('option');
+    toYearOption.value = year;
+    toYearOption.textContent = year;
+    toYearSelect.appendChild(toYearOption);
+  }
+
+  function addOptions(selectElement, options) {
+    options.forEach(option => {
+      const opt = document.createElement('option');
+      opt.value = option;
+      opt.textContent = option;
+      selectElement.appendChild(opt);
+    });
+  }
+
+  function clearOptions(selectElement) {
+    selectElement.innerHTML = '<option value="">Select feeder</option>';
+  }
+
+  function setupVoltageOptions(voltage, feeders) {
+    const input2 = document.getElementById('input2');
+    const input3 = document.getElementById('input3');
+    const input4 = document.getElementById('input4');
+    const input5 = document.getElementById('input5');
+
+    clearOptions(input2);
+    clearOptions(input3);
+    clearOptions(input4);
+    clearOptions(input5);
+
+    addOptions(input2, feeders);
+    addOptions(input3, feeders);
+    if (voltage === 'ICTS') {
+      addOptions(input4, feeders);
+      addOptions(input5, feeders);
+      document.getElementById('input4Container').style.display = 'flex';
+      document.getElementById('input5Container').style.display = 'flex';
+    } else {
+      document.getElementById('input4Container').style.display = 'none';
+      document.getElementById('input5Container').style.display = 'none';
+    }
+
+    document.getElementById('input2Container').style.display = 'flex';
+    document.getElementById('input3Container').style.display = 'flex';
+  }
+
+  document.getElementById('input1').addEventListener('change', function() {
+    const voltage = this.value;
+
+    if (voltage === '400KV') {
+      setupVoltageOptions(voltage, ['400KV MAHESHWARAM-2', '400KV MAHESHWARAM-1', '400KV NARSAPUR-1', '400KV NARSAPUR-2', '400KV KETHIREDDYPALLY-1', '400KV KETHIREDDYPALLY-2', '400KV NIZAMABAD-1', '400KV NIZAMABAD-2']);
+    } else if (voltage === '220KV') {
+      setupVoltageOptions(voltage, ['220KV PARIGI-1', '220KV PARIGI-2', '220KV TANDUR', '220KV GACHIBOWLI-1', '220KV GACHIBOWLI-2', '220KV KETHIREDDYPALLY', '220KV YEDDUMAILARAM-1', '220KV YEDDUMAILARAM-2', '220KV SADASIVAPET-1', '220KV SADASIVAPET-2']);
+    } else if (voltage === 'ICTS') {
+      setupVoltageOptions(voltage, ['315MVA ICT-1', '315MVA ICT-2', '315MVA ICT-3', '500MVA ICT-4']);
+    } else {
+      document.getElementById('input2Container').style.display = 'none';
+      document.getElementById('input3Container').style.display = 'none';
+      document.getElementById('input4Container').style.display = 'none';
+      document.getElementById('input5Container').style.display = 'none';
+    }
+  });
+
+  document.getElementById('selectForm').addEventListener('submit', function(event) {
+    event.preventDefault(); 
+
+    const voltage = document.getElementById('input1').value;
+    const feeder1 = document.getElementById('input2').value;
+    const feeder2 = document.getElementById('input3').value;
+    const feeder3 = document.getElementById('input4').value;
+    const feeder4 = document.getElementById('input5').value;
+    const year = document.getElementById('year').value;
+    const toYear = document.getElementById('toYear').value;
+    
+    // Check for duplicates based on voltage type
+    if (voltage === '400KV') {
+        if (hasDuplicates([feeder1, feeder2])) {
+            alert('Please select different feeders for each input.');
+            return;
+        }
+    } else if (voltage === '220KV') {
+        if (hasDuplicates([feeder1, feeder2])) {
+            alert('Please select different feeders for each input.');
+            return;
+        }
+    } else if (voltage === 'ICTS') {
+        if (hasDuplicates([feeder1, feeder2, feeder3, feeder4])) {
+            alert('Please select different feeders for each input.');
+            return;
+        }
+    }
+
+    if (!voltage || !feeder1 || !feeder2 || !year || !toYear) {
+      alert('Please select all required fields.');
+      return;
+    }
+
+    const startYear = parseInt(year);
+    const endYear = parseInt(toYear);
+
+    fetchAndDisplayData(voltage, feeder1, feeder2, feeder3, feeder4, startYear, endYear);
+  });
+
+  function hasDuplicates(array) {
+    return (new Set(array)).size !== array.length;
+  }
+
+  async function fetchAndDisplayData(voltage, feeder1, feeder2, feeder3, feeder4, startYear, endYear) {
+    const tableBody = document.querySelector('#dataTable tbody');
+    tableBody.innerHTML = ''; // Clear previous data
+
+    const matchedTableBody = document.querySelector('#matchedTable tbody');
+    matchedTableBody.innerHTML = ''; // Clear previous matched data
+
+    let serialNumber = 1; // Counter for serial numbers
+    let fetchedData = []; // Array to store fetched data
+
+    try {
+        const feeder1Data = await fetchDataForFeeder(feeder1, startYear, endYear);
+        const feeder2Data = await fetchDataForFeeder(feeder2, startYear, endYear);
+        const feeder3Data = voltage === 'ICTS' ? await fetchDataForFeeder(feeder3, startYear, endYear) : [];
+        const feeder4Data = voltage === 'ICTS' ? await fetchDataForFeeder(feeder4, startYear, endYear) : [];
+
+        let matchedRows = [];
+
+        if (voltage !== 'ICTS') {
+            for (let i = 0; i < feeder1Data.length; i++) {
+                const item1 = feeder1Data[i];
+                for (let j = 0; j < feeder2Data.length; j++) {
+                    const item2 = feeder2Data[j];
+                    if (item1.date === item2.date && item1.time === item2.time) {
+                        matchedRows.push({
+                            date: item1.date,
+                            time: item1.time,
+                            feeder1: item1,
+                            feeder2: item2
+                        });
+                    }
+                }
+            }
+        } else {
+            for (let i = 0; i < feeder1Data.length; i++) {
+                const item1 = feeder1Data[i];
+                for (let j = 0; j < feeder2Data.length; j++) {
+                    const item2 = feeder2Data[j];
+                    if (item1.date === item2.date && item1.time === item2.time) {
+                        for (let k = 0; k < feeder3Data.length; k++) {
+                            const item3 = feeder3Data[k];
+                            if (item1.date === item3.date && item1.time === item3.time) {
+                                for (let l = 0; l < feeder4Data.length; l++) {
+                                    const item4 = feeder4Data[l];
+                                    if (item1.date === item4.date && item1.time === item4.time) {
+                                        matchedRows.push({
+                                            date: item1.date,
+                                            time: item1.time,
+                                            feeder1: item1,
+                                            feeder2: item2,
+                                            feeder3: item3,
+                                            feeder4: item4
+                                        });
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        // Highlight the highest MW values in the matched data
+        let maxMW = -Infinity;
+        let maxMWRow = null;
+        matchedRows.forEach(row => {
+            let totalMW = row.feeder1.MW + row.feeder2.MW;
+            if (row.feeder3) totalMW += row.feeder3.MW;
+            if (row.feeder4) totalMW += row.feeder4.MW;
+
+            if (totalMW > maxMW) {
+                maxMW = totalMW;
+                maxMWRow = row;
+            }
+        });
+
+        // Display only the highlighted row in the matched data
+        if (maxMWRow) {
+            const tableRow = document.createElement('tr');
+            tableRow.innerHTML = `
+                <td>${maxMWRow.date}</td>
+                <td>${maxMWRow.time}</td>
+                <td>${feeder1}</td>
+                <td>${maxMWRow.feeder1.MW}</td>
+                <td>${feeder2}</td>
+                <td>${maxMWRow.feeder2.MW}</td>
+                ${feeder3Data.length > 0 ? `<td>${feeder3}</td><td>${maxMWRow.feeder3 ? maxMWRow.feeder3.MW : '-'}</td>` : ''}
+                ${feeder4Data.length > 0 ? `<td>${feeder4}</td><td>${maxMWRow.feeder4 ? maxMWRow.feeder4.MW : '-'}</td>` : ''}
+            `;
+            matchedTableBody.appendChild(tableRow);
+
+            tableRow.classList.add('highlight');
+        }
+
+        // Add print functionality
+        const printButton = document.getElementById('printButton');
+        printButton.addEventListener('click', function() {
+            window.print();
+        });
+
+        // Add Excel download functionality
+        const downloadExcelButton = document.getElementById('downloadExcelButton');
+        downloadExcelButton.addEventListener('click', function() {
+            downloadExcel(matchedRows);
+        });
+
+    } catch (error) {
+        console.error('Error fetching or displaying data:', error);
+    }
+
+    document.getElementById('matchedData').style.display = 'block';
+}
+
+function downloadExcel(data) {
+    const fileName = 'matched_data.xlsx';
+
+    // Prepare data for Excel
+    const worksheet = XLSX.utils.json_to_sheet(data);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Matched Data');
+
+    // Generate Excel file and trigger download
+    XLSX.writeFile(workbook, fileName);
+}
+
+
+async function fetchDataForFeeder(feeder, startYear, endYear) {
+    let fetchedData = [];
+    for (let year = startYear; year <= endYear; year++) {
+        try {
+            const data = await fetch(`http://localhost:5000/data?feeder=${feeder}&year=${year}`).then(response => response.json());
+            fetchedData = fetchedData.concat(data);
+        } catch (error) {
+            console.error('Error fetching data:', error);
+        }
+    }
+    return fetchedData;
+}
+
+function formatDate(dateString) {
+    const date = new Date(dateString);
+    const day = date.getDate().toString().padStart(2, '0');
+    const month = (date.getMonth() + 1).toString().padStart(2, '0');
+    const year = date.getFullYear();
+    return `${day}-${month}-${year}`;
+}
+
+  function filterAndDisplayMatchedData(fetchedData, matchedTableBody) {
+      const groupedData = {};
+
+      fetchedData.forEach(item => {
+          const key = `${item.date}-${item.time}`;
+          if (!groupedData[key]) {
+              groupedData[key] = [];
+          }
+          groupedData[key].push(item);
+      });
+
+      Object.keys(groupedData).forEach(key => {
+          const group = groupedData[key];
+          if (group.length > 1) { // Only consider groups with more than one matching date-time
+              const row = document.createElement('tr');
+              row.innerHTML = `
+                  <td>${formatDate(group[0].date)}</td>
+                  <td>${group[0].time}</td>
+                  <td>${group[0].feeder}</td>
+                  <td>${group[0].MW}</td>
+                  <td>${group[1]?.feeder || ''}</td>
+                  <td>${group[1]?.MW || ''}</td>
+                  <td>${group[2]?.feeder || ''}</td>
+                  <td>${group[2]?.MW || ''}</td>
+                  <td>${group[3]?.feeder || ''}</td>
+                  <td>${group[3]?.MW || ''}</td>
+              `;
+              matchedTableBody.appendChild(row);
+          }
+      });
+  }
+});
+
+</script>
+</body>
+</html>

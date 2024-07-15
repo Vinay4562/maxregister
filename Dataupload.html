@@ -1,0 +1,528 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Upload System</title>
+  <link rel="stylesheet" type="text/css" href="styleMonitor.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.1.3/css/bootstrap.min.css">
+  <style>
+    /* Modal styles */
+    .modal {
+      display: none;
+      position: fixed;
+      z-index: 1;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      overflow: auto;
+      background-color: rgba(0, 0, 0, 0.6); /* Dark overlay with more transparency */
+    }
+
+    .modal-content {
+      background: #ffffff; /* White background */
+      margin: 10% auto; /* Centered vertically and horizontally */
+      padding: 30px;
+      border-radius: 8px;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.2); /* Soft shadow */
+      max-width: 800px; /* Adjust width as needed */
+      width: 90%;
+      position: relative; /* Make position relative for absolute positioning of close button */
+    }
+
+    .close {
+      position: absolute; /* Position close button absolutely */
+      top: 10px;
+      right: 10px;
+      color: #888; /* Greyish */
+      font-size: 24px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: color 0.3s;
+    }
+
+    .close:hover,
+    .close:focus {
+      color: red; 
+      font-size: 30px;/* Darker grey on hover */
+      text-decoration: none;
+    }
+
+    .modal-content .modal-title {
+      text-align: center; /* Center the title text */
+      margin-bottom: 20px; /* Add spacing below the title */
+    }
+
+    .modal-content p {
+      text-align: center; /* Center paragraph text */
+      line-height: 1.6; /* Increase line height for better readability */
+    }
+    
+    /* Table styles */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      justify-items: center;
+      background-color: #f1f1f1;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      border-radius: 10px;
+    }
+
+    th, td {
+      border: 1px solid #ddd;
+      padding: 8px;
+      text-align: center;
+    }
+
+    td {
+      padding: 12px;
+    }
+
+    th {
+      padding-top: 12px;
+      padding-bottom: 12px;
+      text-align: center;
+      background-color: #f2f2f2;
+      border-bottom: 2px solid #ddd;
+      font-weight: bold;
+      text-align: center;
+    }
+
+    tbody tr {
+      transition: background-color 0.1s;
+    }
+
+
+    tr:nth-child(even) {
+      background-color: #fff;
+    }
+
+    tr:hover {
+      background-color: #f1f1f1;
+    }
+
+    .action-btns button {
+      background-color: #007bff;
+      color: white;
+      border: none;
+      padding: 8px 16px;
+      cursor: pointer;
+      border-radius: 5px;
+    }
+
+    .action-btns button:hover {
+      background-color: #0056b3;
+    }
+
+    .btn-primary {
+      background-color: #007bff;
+      border: none;
+    }
+    .btn-primary:hover {
+      background-color: #0056b3;
+    }
+
+  </style>
+</head>
+<body>
+  <!-- Header -->
+  <div class="header">
+    <img src="logo_new.png" alt="Logo" class="logo" width="130" height="100">
+    <h1>𝐓𝐑𝐀𝐍𝐒𝐌𝐈𝐒𝐒𝐈𝐎𝐍 𝐂𝐎𝐑𝐏𝐎𝐑𝐀𝐓𝐈𝐎𝐍 𝐎𝐅 𝐓𝐄𝐋𝐀𝐍𝐆𝐀𝐍𝐀 𝐋𝐈𝐌𝐈𝐓𝐄𝐃</h1>
+  </div>
+
+  <!-- Navigation bar -->
+  <div class="navbar">
+    <a href="services.html" class="back-btn"><i class="fas fa-arrow-left"></i></a>
+    <a href="#" class="logout-btn" onclick="logout(); return false;"><i class="fas fa-sign-out-alt"></i></a>
+  </div>
+
+  <!-- Container -->
+  <div class="container">
+    <h2>All Feeders/ICT'S Data Upload System</h2>
+    <form id="selectForm">
+      <div class="input-group">
+        <label for="input1">Select Voltage Level:</label>
+        <select name="input1" id="input1">
+          <option value="">Select Voltage</option>
+          <option value="400KV">400KV</option>
+          <option value="220KV">220KV</option>
+          <option value="ICTS">ICT'S</option>
+        </select>
+        <label for="input2Container" id="input2Label" style="display: none;">Select Feeder/ICT:</label>
+        <div id="input2Container">
+          <!-- Input 2 options will be dynamically added here -->
+        </div>
+        <label for="year">Select Year:</label>
+        <select name="year" id="year">
+          <option value="">Select Year</option>
+        </select>
+        <input type="submit" id="submitBtn" value="Submit">
+      </div>
+    </form>
+  </div>
+
+  <!-- Data Upload Container -->
+  <div class="data-upload" style="display: none;">
+    <h3 id="dataUploadTitle"></h3>
+    <form id="dataUploadForm">
+      <label for="dataInput1">MW:</label>
+      <input type="number" id="dataInput1" name="dataInput1" min="0">
+      <label for="dataInput2">Date:</label>
+      <input type="date" id="dataInput2" name="dataInput2">
+      <label for="dataInput3">Time:</label>
+      <input type="time" id="dataInput3" name="dataInput3">
+      <input type="submit" value="Upload" id="uploadBtn">
+      <br><br>
+      <div>
+        <label for="excelFileInput">Upload Excel File:</label>
+        <input type="file" id="excelFileInput" accept=".xlsx, .xls">
+      </div>      
+    </form>
+  </div>
+
+  <!-- Uploaded Data Container -->
+  <div id="uploadedData" style="display: none;">
+    <h2 style="text-align: center; margin-top: 10px; font-weight: bold;">Uploaded Data</h2>
+    <table id="dataTable">
+      <thead>
+        <tr>
+          <th>Serial No.</th>
+          <th>Name of the Feeder</th>
+          <th>MW</th>
+          <th>Date</th>
+          <th>Time</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
+
+  <!-- Success Modal -->
+  <div id="successModal" class="modal">
+    <div class="modal-content">
+      <span class="close">&times;</span>
+      <h2>Data Uploaded Successfully</h2>
+    </div>
+  </div>
+
+  <!-- Edit Modal -->
+  <div id="editModal" class="modal">
+    <div class="modal-content">
+      <span class="close">&times;</span>
+      <h2>Edit Data</h2>
+      <form id="editForm">
+        <input type="hidden" id="editId">
+        <label for="editDataInput1">MW:</label>
+        <input type="number" id="editDataInput1" name="editDataInput1" min="0">
+        <label for="editDataInput2">Date:</label>
+        <input type="date" id="editDataInput2" name="editDataInput2">
+        <label for="editDataInput3">Time:</label>
+        <input type="time" id="editDataInput3" name="editDataInput3">
+        <input type="submit" value="Save">
+      </form>
+    </div>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.0/xlsx.full.min.js"></script>
+  <script>
+    document.getElementById('excelFileInput').addEventListener('change', handleFileSelect);
+
+    function handleFileSelect(event) {
+      const file = event.target.files[0];
+      if (!file) {
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        const data = new Uint8Array(e.target.result);
+        const workbook = XLSX.read(data, { type: 'array' });
+
+        const sheetName = workbook.SheetNames[0];
+        const worksheet = workbook.Sheets[sheetName];
+        const jsonData = XLSX.utils.sheet_to_json(worksheet);
+
+        // Process the jsonData and send it to the server
+        jsonData.forEach(row => {
+          const { MW, Date, Time } = row;
+          const feeder = document.querySelector('#input2Container select').value;
+          const year = document.getElementById('year').value;
+          const voltage = document.getElementById('input1').value;
+
+          fetch('http://localhost:5000/upload', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ feeder, year, voltage, MW, date: Date, time: Time })
+          }).then(response => response.json())
+            .then(data => {
+              if (data.error) {
+                alert(data.error);
+              } else {
+                document.getElementById('successModal').style.display = 'block';
+                fetchData();
+
+                // Close the success modal after 0.5 seconds
+                setTimeout(() => {
+                  document.getElementById('successModal').style.display = 'none';
+                }, 500);
+              }
+            });
+        });
+      };
+
+      reader.readAsArrayBuffer(file);
+    }
+
+    document.getElementById('selectForm').addEventListener('submit', function(event) {
+      event.preventDefault(); // Prevent the form from submitting
+
+      const voltage = document.getElementById('input1').value;
+      const feeder = document.querySelector('#input2Container select').value;
+      const year = document.getElementById('year').value;
+
+      if (!voltage || !feeder || !year) {
+        alert('Please select voltage level, feeder/ICT, and year');
+        return;
+      }
+
+      // Set the title for the data upload container
+      const title = `Upload Data for ${voltage} ${feeder}-(${year})`;
+      document.getElementById('dataUploadTitle').textContent = title;
+
+      // Show the data upload container
+      document.querySelector('.data-upload').style.display = 'block';
+      document.getElementById('dataUploadForm').reset(); // Reset form inputs
+
+      // Fetch and display data for the selected feeder and year
+      fetchData(voltage, feeder, year);
+    });
+
+    document.getElementById('dataUploadForm').addEventListener('submit', function(event) {
+      event.preventDefault();
+
+      const MW = document.getElementById('dataInput1').value;
+      const date = document.getElementById('dataInput2').value;
+      const time = document.getElementById('dataInput3').value;
+      const feeder = document.querySelector('#input2Container select').value;
+      const year = document.getElementById('year').value;
+      const voltage = document.getElementById('input1').value;
+
+      const enteredDate = new Date(date);
+      const enteredYear = enteredDate.getFullYear();
+
+      if (year !== enteredYear.toString()) {
+          alert('The entered year does not match the selected year.');
+          return;
+      }
+
+      fetch('http://localhost:5000/upload', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ feeder, year, voltage, MW, date, time })
+      }).then(response => response.json())
+        .then(data => {
+            if (data.error) {
+                alert(data.error);
+            } else {
+                document.getElementById('successModal').style.display = 'block';
+                document.getElementById('dataUploadForm').reset(); // Reset form inputs
+                fetchData();
+
+                // Close the success modal after 0.5 seconds
+                setTimeout(() => {
+                    document.getElementById('successModal').style.display = 'none';
+                }, 500);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('An error occurred while uploading data. Please try again.');
+        });
+  });
+
+  
+    // Function to fetch and display data
+    function fetchData(voltage, feeder, year) {
+      fetchAndDisplayData(voltage, feeder, year, function(data) {
+        displayData(data); // Display the fetched data below the data upload container
+      });
+    }
+
+    function fetchData() {
+      const feeder = document.querySelector('#input2Container select').value;
+      const year = document.getElementById('year').value;
+
+      fetch(`http://localhost:5000/data?feeder=${feeder}&year=${year}`)
+        .then(response => response.json())
+        .then(data => {
+          const tableBody = document.querySelector('#dataTable tbody');
+          tableBody.innerHTML = ''; // Clear previous data
+
+          data.forEach((item, index) => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+              <td>${index + 1}</td>
+              <td>${feeder}</td>
+              <td>${item.MW}</td>
+              <td>${item.date}</td>
+              <td>${item.time}</td>
+              <td class="action-btns">
+                <span class="btn btn-sm btn-primary" onclick="openEditModal('${item._id}', '${item.MW}', '${item.date}', '${item.time}')">Edit</span>
+                <span class="btn btn-sm btn-danger" onclick="deleteData('${item._id}')">Delete</span>
+              </td>
+            `;
+            tableBody.appendChild(row);
+          });
+
+          // Show the uploaded data container
+          document.getElementById('uploadedData').style.display = 'block';
+        });
+    }
+
+    function openEditModal(id, MW, date, time) {
+      document.getElementById('editId').value = id;
+      document.getElementById('editDataInput1').value = MW;
+      document.getElementById('editDataInput2').value = date;
+      document.getElementById('editDataInput3').value = time;
+      document.getElementById('editModal').style.display = 'block';
+    }
+
+    document.querySelector('#editModal .close').onclick = function() {
+      document.getElementById('editModal').style.display = 'none';
+    };
+
+    document.getElementById('editForm').addEventListener('submit', function(event) {
+      event.preventDefault(); // Prevent the form from submitting
+
+      const id = document.getElementById('editId').value;
+      const MW = document.getElementById('editDataInput1').value;
+      const date = document.getElementById('editDataInput2').value;
+      const time = document.getElementById('editDataInput3').value;
+      const feeder = document.querySelector('#input2Container select').value;
+      const year = document.getElementById('year').value;
+
+      fetch(`http://localhost:5000/update?feeder=${feeder}&year=${year}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id, MW, date, time })
+      }).then(response => response.json())
+        .then(data => {
+          if (data.error) {
+            alert(data.error);
+          } else {
+            document.getElementById('editModal').style.display = 'none';
+            fetchData();
+          }
+        });
+    });
+
+    function deleteData(id) {
+      const feeder = document.querySelector('#input2Container select').value;
+      const year = document.getElementById('year').value;
+
+      fetch(`http://localhost:5000/delete/${id}?feeder=${feeder}&year=${year}`, {
+        method: 'DELETE'
+      }).then(response => response.json())
+        .then(data => {
+          if (data.error) {
+            alert(data.error);
+          } else {
+            fetchData();
+          }
+        });
+    }
+
+    function addOptionsToInput2(options) {
+      const input2Container = document.getElementById('input2Container');
+      const select = document.createElement('select');
+      select.name = 'input2';
+      select.id = 'input2';
+      options.forEach(optionText => {
+        const option = document.createElement('option');
+        option.value = optionText;
+        option.textContent = optionText;
+        select.appendChild(option);
+      });
+      input2Container.appendChild(select);
+    }
+
+    window.onclick = function(event) {
+      const modal = document.getElementById('successModal');
+      const editModal = document.getElementById('editModal');
+
+      if (event.target == modal) {
+        modal.style.display = 'none';
+      }
+
+      if (event.target == editModal) {
+        editModal.style.display = 'none';
+      }
+    };
+
+    // Populate year dropdown options
+    const yearSelect = document.getElementById('year');
+    for (let year = 2012; year <= new Date().getFullYear(); year++) {
+      const option = document.createElement('option');
+      option.value = year;
+      option.textContent = year;
+      yearSelect.appendChild(option);
+    }
+
+    document.getElementById('input1').addEventListener('change', function() {
+      const input1Value = this.value;
+      const feederLabel = document.getElementById('input2Label');
+      const input2Container = document.getElementById('input2Container');
+      input2Container.innerHTML = ''; // Clear previous options
+
+      if (input1Value === '400KV') {
+        addOptionsToInput2(['400KV MAHESHWARAM-2', '400KV MAHESHWARAM-1', '400KV NARSAPUR-1', '400KV NARSAPUR-2', '400KV KETHIREDDYPALLY-1', '400KV KETHIREDDYPALLY-2', '400KV NIZAMABAD-1', '400KV NIZAMABAD-2']);
+      } else if (input1Value === '220KV') {
+        addOptionsToInput2(['220KV PARIGI-1', '220KV PARIGI-2', '220KV TANDUR', '220KV GACHIBOWLI-1', '220KV GACHIBOWLI-2', '220KV KETHIREDDYPALLY', '220KV YEDDUMAILARAM-1', '220KV YEDDUMAILARAM-2', '220KV SADASIVAPET-1', '220KV SADASIVAPET-2']);
+      } else if (input1Value === 'ICTS') {
+        addOptionsToInput2(['315MVA ICT-1', '315MVA ICT-2', '315MVA ICT-3', '500MVA ICT-4']);
+      }
+      feederLabel.style.display = 'block';
+    });
+
+    function clearFormInputs() {
+      document.getElementById('dataInput1').value = '';
+      document.getElementById('dataInput2').value = '';
+      document.getElementById('dataInput3').value = '';
+    }
+
+    function logout() {
+            if (confirm("Are you sure you want to logout?")) {
+                localStorage.removeItem('token'); // Clear the token from localStorage or sessionStorage
+                sessionStorage.clear(); // Clear any session-specific data
+                window.location.href = 'login.html'; // Redirect to login page
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const token = localStorage.getItem('token');
+            if (!token) {
+                alert('You must be logged in to view this page.');
+                window.location.href = 'login.html'; // Redirect to login page if token is not found
+            }
+            
+            // Disable back navigation (may not work universally)
+            window.history.pushState(null, '', window.location.href);
+            window.onpopstate = function () {
+                window.history.pushState(null, '', window.location.href);
+            };
+        });
+
+        function preventBack() {
+            window.history.forward();
+        }
+
+        setTimeout("preventBack()", 0);
+        window.onunload = function () { null};
+
+  </script>
+</body>
+</html>

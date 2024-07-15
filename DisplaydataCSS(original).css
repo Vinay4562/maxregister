@@ -1,0 +1,79 @@
+/* Add your CSS styles for the page here */
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #f0f0f0;
+  }
+
+    /* Header styles */
+  .header {
+      background-color: white;
+      color: red;
+      text-decoration:underline 2px;
+      padding: 40px 0;
+      text-align: center;      
+      margin-bottom: 0;  
+  }
+  .header img {
+      position: absolute; /* Position the image */
+      top: 15px; /* Align the image to the top */
+      left: 25px; /* Align the image to the left */
+      width: 95px;
+      height: 80px;
+  }
+
+  .header h1 {
+      margin: 0;
+      font-size: 25px;    
+  }
+
+  /* Updated navbar styles */
+  .navbar {
+      background-color: white;
+      overflow: hidden;
+      display: flex;
+      justify-content: flex-end;
+      align-items: center;
+      font-weight: bold;
+      padding: 10px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      margin-top: 0;
+      padding-top: 5px;
+  }
+
+  .navbar a {
+      color: #333;
+      text-align: center;
+      padding: 10px 15px;
+      text-decoration: none;
+      margin-left: 10px;
+      border-radius: 5px;
+      transition: background-color 0.3s;
+  }
+
+  .navbar a:hover {
+      background: #ffd000;
+      color: #fff;
+      border-radius: 40px;
+      font-weight: bold;
+  }
+
+  .navbar a:last-child {
+      margin-right: 0; /* Remove margin from the last item */
+  }
+
+  
+  button {
+    padding: 0.3rem 0.5rem;
+    border: none;
+    cursor: pointer;
+    background-color: #333;
+    color: white;
+    border-radius: 4px;
+  }
+
+  button:hover {
+    background-color: #555;
+  }
+
