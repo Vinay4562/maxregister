@@ -737,9 +737,6 @@
     const matchedTableBody = document.querySelector('#matchedTable tbody');
     matchedTableBody.innerHTML = ''; // Clear previous matched data
 
-    let serialNumber = 1; // Counter for serial numbers
-    let fetchedData = []; // Array to store fetched data
-
     try {
         const feeder1Data = await fetchDataForFeeder(feeder1, startYear, endYear);
         const feeder2Data = await fetchDataForFeeder(feeder2, startYear, endYear);
@@ -747,49 +744,44 @@
         const feeder4Data = voltage === 'ICTS' ? await fetchDataForFeeder(feeder4, startYear, endYear) : [];
 
         let matchedRows = [];
+        const feeder1Map = new Map();
+        const feeder2Map = new Map();
+        
+        // Create hash maps for quick lookup
+        feeder1Data.forEach(item => feeder1Map.set(`${item.date}_${item.time}`, item));
+        feeder2Data.forEach(item => feeder2Map.set(`${item.date}_${item.time}`, item));
 
         if (voltage !== 'ICTS') {
-            for (let i = 0; i < feeder1Data.length; i++) {
-                const item1 = feeder1Data[i];
-                for (let j = 0; j < feeder2Data.length; j++) {
-                    const item2 = feeder2Data[j];
-                    if (item1.date === item2.date && item1.time === item2.time) {
-                        matchedRows.push({
-                            date: item1.date,
-                            time: item1.time,
-                            feeder1: item1,
-                            feeder2: item2
-                        });
-                    }
+            feeder1Data.forEach(item1 => {
+                const key = `${item1.date}_${item1.time}`;
+                if (feeder2Map.has(key)) {
+                    matchedRows.push({
+                        date: item1.date,
+                        time: item1.time,
+                        feeder1: item1,
+                        feeder2: feeder2Map.get(key)
+                    });
                 }
-            }
+            });
         } else {
-            for (let i = 0; i < feeder1Data.length; i++) {
-                const item1 = feeder1Data[i];
-                for (let j = 0; j < feeder2Data.length; j++) {
-                    const item2 = feeder2Data[j];
-                    if (item1.date === item2.date && item1.time === item2.time) {
-                        for (let k = 0; k < feeder3Data.length; k++) {
-                            const item3 = feeder3Data[k];
-                            if (item1.date === item3.date && item1.time === item3.time) {
-                                for (let l = 0; l < feeder4Data.length; l++) {
-                                    const item4 = feeder4Data[l];
-                                    if (item1.date === item4.date && item1.time === item4.time) {
-                                        matchedRows.push({
-                                            date: item1.date,
-                                            time: item1.time,
-                                            feeder1: item1,
-                                            feeder2: item2,
-                                            feeder3: item3,
-                                            feeder4: item4
-                                        });
-                                    }
-                                }
-                            }
+            feeder1Data.forEach(item1 => {
+                const key = `${item1.date}_${item1.time}`;
+                if (feeder2Map.has(key)) {
+                    feeder3Data.forEach(item3 => {
+                        const key3 = `${item3.date}_${item3.time}`;
+                        if (item1.date === item3.date && item1.time === item3.time && feeder4Data.some(item4 => `${item4.date}_${item4.time}` === key)) {
+                            matchedRows.push({
+                                date: item1.date,
+                                time: item1.time,
+                                feeder1: item1,
+                                feeder2: feeder2Map.get(key),
+                                feeder3: item3,
+                                feeder4: feeder4Data.find(item4 => `${item4.date}_${item4.time}` === key)
+                            });
                         }
-                    }
+                    });
                 }
-            }
+            });
         }
 
         // Highlight the highest MW values in the matched data
@@ -806,7 +798,7 @@
             }
         });
 
-        // Display only the highlighted row in the matched data
+        // Display the highlighted row or "No data available" message
         if (maxMWRow) {
             const tableRow = document.createElement('tr');
             tableRow.innerHTML = `
@@ -820,25 +812,22 @@
                 ${feeder4Data.length > 0 ? `<td>${feeder4}</td><td>${maxMWRow.feeder4 ? maxMWRow.feeder4.MW : '-'}</td>` : ''}
             `;
             matchedTableBody.appendChild(tableRow);
-
             tableRow.classList.add('highlight');
-          } else {
+        } else {
             const noDataRow = document.createElement('tr');
             noDataRow.innerHTML = `
-                <td colspan="${feeder3Data.length > 0 ? (feeder4Data.length > 0 ? 8 : 6) : (feeder4Data.length > 0 ? 4 : 2)}">No data available</td>
+                <td colspan="${(feeder3Data.length > 0 ? (feeder4Data.length > 0 ? 8 : 6) : (feeder4Data.length > 0 ? 4 : 2))}">No data available</td>
             `;
             matchedTableBody.appendChild(noDataRow);
         }
 
         // Add print functionality
-        const printButton = document.getElementById('printButton');
-        printButton.addEventListener('click', function() {
+        document.getElementById('printButton').addEventListener('click', function() {
             window.print();
         });
 
         // Add Excel download functionality
-        const downloadExcelButton = document.getElementById('downloadExcelButton');
-        downloadExcelButton.addEventListener('click', function() {
+        document.getElementById('downloadExcelButton').addEventListener('click', function() {
             downloadExcel(matchedRows);
         });
 
