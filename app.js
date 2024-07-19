@@ -5,6 +5,7 @@ const mongoose = require('mongoose');
 const bodyParser = require('body-parser');
 const cors = require('cors');
 const path = require('path');
+const { check, validationResult } = require('express-validator');
 
 const app = express();
 
@@ -16,9 +17,9 @@ app.use(cors());
 app.use(express.static(path.join(__dirname, 'public')));
 
 // MongoDB connection
-const MONGODB_URI = process.env.MONGODB_URI; // Get MongoDB connection string from environment variables
+const MONGO_URI = process.env.MONGO_URI;
 
-mongoose.connect(MONGODB_URI, {
+mongoose.connect(MONGO_URI, {
   useNewUrlParser: true,
   useUnifiedTopology: true
 }).then(() => {
@@ -35,7 +36,7 @@ const dataSchema = new mongoose.Schema({
   MW: Number,
   date: String,
   time: String
-});
+}, { timestamps: true });
 
 // Store models in a map
 const models = {};
@@ -52,8 +53,7 @@ const getModel = (collectionName) => {
 const checkDataExists = async (feeder, year, voltage, MW, date, time) => {
   const collectionName = `Feeder_${feeder}_Year_${year}`;
   const Model = getModel(collectionName);
-  const exists = await Model.exists({ voltage, feeder, year, MW, date, time });
-  return !!exists;
+  return await Model.exists({ voltage, feeder, year, MW, date, time });
 };
 
 // Function to insert data into the correct collection
@@ -65,30 +65,42 @@ const insertDataIntoCollection = async (feeder, year, data) => {
 };
 
 // POST route to save data
-app.post('/upload', async (req, res) => {
+app.post('/upload', [
+  check('feeder').not().isEmpty(),
+  check('year').not().isEmpty(),
+  check('voltage').not().isEmpty(),
+  check('MW').isNumeric(),
+  check('date').not().isEmpty(),
+  check('time').not().isEmpty()
+], async (req, res) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(400).json({ errors: errors.array() });
+  }
+
   const { feeder, year, voltage, MW, date, time } = req.body;
 
   try {
-    if (!feeder || !year || !voltage || !MW || !date || !time) {
-      throw new Error('Missing required fields');
-    }
-
     const dataExists = await checkDataExists(feeder, year, voltage, MW, date, time);
 
     if (dataExists) {
-      res.json({ error: 'Data already exists in the database.' });
+      return res.status(409).json({ error: 'Data already exists in the database.' });
     } else {
       await insertDataIntoCollection(feeder, year, { voltage, feeder, year, MW, date, time });
       res.status(201).json({ message: 'Data saved successfully' });
     }
   } catch (err) {
-    res.status(400).json({ error: err.message });
+    res.status(500).json({ error: err.message });
   }
 });
 
 // GET route to fetch data based on feeder and year
 app.get('/data', async (req, res) => {
   const { feeder, year } = req.query;
+  if (!feeder || !year) {
+    return res.status(400).json({ error: 'Missing required query parameters' });
+  }
+
   const collectionName = `Feeder_${feeder}_Year_${year}`;
 
   try {
@@ -96,14 +108,28 @@ app.get('/data', async (req, res) => {
     const data = await Model.find();
     res.json(data);
   } catch (err) {
-    res.status(400).json({ error: err.message });
+    res.status(500).json({ error: err.message });
   }
 });
 
 // PUT route to update data
-app.put('/update', async (req, res) => {
+app.put('/update', [
+  check('id').not().isEmpty(),
+  check('MW').isNumeric(),
+  check('date').not().isEmpty(),
+  check('time').not().isEmpty()
+], async (req, res) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(400).json({ errors: errors.array() });
+  }
+
   const { id, MW, date, time } = req.body;
   const { feeder, year } = req.query;
+  if (!feeder || !year) {
+    return res.status(400).json({ error: 'Missing required query parameters' });
+  }
+
   const collectionName = `Feeder_${feeder}_Year_${year}`;
 
   try {
@@ -111,7 +137,7 @@ app.put('/update', async (req, res) => {
     const updatedData = await Model.findByIdAndUpdate(id, { MW, date, time }, { new: true });
     res.json({ message: 'Data updated successfully', data: updatedData });
   } catch (err) {
-    res.status(400).json({ error: err.message });
+    res.status(500).json({ error: err.message });
   }
 });
 
@@ -119,6 +145,10 @@ app.put('/update', async (req, res) => {
 app.delete('/delete/:id', async (req, res) => {
   const { id } = req.params;
   const { feeder, year } = req.query;
+  if (!feeder || !year) {
+    return res.status(400).json({ error: 'Missing required query parameters' });
+  }
+
   const collectionName = `Feeder_${feeder}_Year_${year}`;
 
   try {
@@ -126,13 +156,17 @@ app.delete('/delete/:id', async (req, res) => {
     await Model.findByIdAndDelete(id);
     res.json({ message: 'Data deleted successfully' });
   } catch (err) {
-    res.status(400).json({ error: err.message });
+    res.status(500).json({ error: err.message });
   }
 });
 
 // Combined endpoint to check if data exists
 app.get('/check-existence', async (req, res) => {
   const { feeder, year, date, time } = req.query;
+  if (!feeder || !year || !date || !time) {
+    return res.status(400).json({ error: 'Missing required query parameters' });
+  }
+
   const collectionName = `Feeder_${feeder}_Year_${year}`;
 
   try {
@@ -140,7 +174,7 @@ app.get('/check-existence', async (req, res) => {
     const exists = await Model.exists({ feeder, year, date, time });
     res.json({ exists: !!exists });
   } catch (err) {
-    res.status(400).json({ error: err.message });
+    res.status(500).json({ error: err.message });
   }
 });
 
