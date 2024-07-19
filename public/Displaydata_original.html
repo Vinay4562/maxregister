@@ -460,7 +460,7 @@
     }
 
     for (let year = startYear; year <= endYear; year++) {
-      fetch(`http://localhost:5000/data?feeder=${feeder}&year=${year}`)
+      fetch(`https://maxregister-git-main-vinay-kumars-projects-f1559f4a.vercel.app/data?feeder=${feeder}&year=${year}`)
         .then(response => response.json())
         .then(data => {
           data.forEach(item => {
