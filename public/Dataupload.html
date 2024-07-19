@@ -277,27 +277,31 @@
     reader.readAsArrayBuffer(file);
   }
 
-  document.getElementById('selectForm').addEventListener('submit', function(event) {
-    event.preventDefault();
+    document.getElementById('selectForm').addEventListener('submit', function(event) {
+      event.preventDefault(); // Prevent the form from submitting
 
-    const voltage = document.getElementById('input1').value;
-    const feeder = document.querySelector('#input2Container select').value;
-    const year = document.getElementById('year').value;
+      const voltage = document.getElementById('input1').value;
+      const feeder = document.querySelector('#input2Container select').value;
+      const year = document.getElementById('year').value;
 
-    if (!voltage || !feeder || !year) {
-      alert('Please select voltage level, feeder/ICT, and year');
-      return;
-    }
+      if (!voltage || !feeder || !year) {
+        alert('Please select voltage level, feeder/ICT, and year');
+        return;
+      }
 
-    const title = `Upload Data for ${voltage} ${feeder}-(${year})`;
-    document.getElementById('dataUploadTitle').textContent = title;
-    document.querySelector('.data-upload').style.display = 'block';
-    document.getElementById('dataUploadForm').reset();
+      // Set the title for the data upload container
+      const title = `Upload Data for ${voltage} ${feeder}-(${year})`;
+      document.getElementById('dataUploadTitle').textContent = title;
 
-    fetchData(voltage, feeder, year);
-  });
+      // Show the data upload container
+      document.querySelector('.data-upload').style.display = 'block';
+      document.getElementById('dataUploadForm').reset(); // Reset form inputs
 
-  document.getElementById('dataUploadForm').addEventListener('submit', function(event) {
+      // Fetch and display data for the selected feeder and year
+      fetchData(voltage, feeder, year);
+    });
+
+    document.getElementById('dataUploadForm').addEventListener('submit', function(event) {
     event.preventDefault();
 
     const MW = document.getElementById('dataInput1').value;
@@ -339,14 +343,15 @@
       alert('An error occurred while uploading data. Please try again.');
     });
   });
+  
+    // Function to fetch and display data
+    function fetchData(voltage, feeder, year) {
+      fetchAndDisplayData(voltage, feeder, year, function(data) {
+        displayData(data); // Display the fetched data below the data upload container
+      });
+    }
 
-  function fetchData(voltage, feeder, year) {
-    fetchAndDisplayData(voltage, feeder, year, function(data) {
-      displayData(data);
-    });
-  }
-
-  function fetchData() {
+    function fetchData() {
     const feeder = document.querySelector('#input2Container select').value;
     const year = document.getElementById('year').value;
 
@@ -376,19 +381,19 @@
       });
   }
 
-  function openEditModal(id, MW, date, time) {
-    document.getElementById('editId').value = id;
-    document.getElementById('editDataInput1').value = MW;
-    document.getElementById('editDataInput2').value = date;
-    document.getElementById('editDataInput3').value = time;
-    document.getElementById('editModal').style.display = 'block';
-  }
+    function openEditModal(id, MW, date, time) {
+      document.getElementById('editId').value = id;
+      document.getElementById('editDataInput1').value = MW;
+      document.getElementById('editDataInput2').value = date;
+      document.getElementById('editDataInput3').value = time;
+      document.getElementById('editModal').style.display = 'block';
+    }
 
-  document.querySelector('#editModal .close').onclick = function() {
-    document.getElementById('editModal').style.display = 'none';
-  };
+    document.querySelector('#editModal .close').onclick = function() {
+      document.getElementById('editModal').style.display = 'none';
+    };
 
-  document.getElementById('editForm').addEventListener('submit', function(event) {
+    document.getElementById('editForm').addEventListener('submit', function(event) {
     event.preventDefault();
 
     const id = document.getElementById('editId').value;
@@ -431,32 +436,79 @@
     });
   }
 
-  function addOptionsToInput2(options) {
-    const input2Container = document.getElementById('input2Container');
-    const select = document.createElement('select');
-    select.name = 'input2';
-    select.id = 'input2';
-    options.forEach(optionText => {
+    function addOptionsToInput2(options) {
+      const input2Container = document.getElementById('input2Container');
+      const select = document.createElement('select');
+      select.name = 'input2';
+      select.id = 'input2';
+      options.forEach(optionText => {
+        const option = document.createElement('option');
+        option.value = optionText;
+        option.textContent = optionText;
+        select.appendChild(option);
+      });
+      input2Container.appendChild(select);
+    }
+
+    window.onclick = function(event) {
+      const modal = document.getElementById('successModal');
+      const editModal = document.getElementById('editModal');
+
+      if (event.target == modal) {
+        modal.style.display = 'none';
+      }
+
+      if (event.target == editModal) {
+        editModal.style.display = 'none';
+      }
+    };
+
+    // Populate year dropdown options
+    const yearSelect = document.getElementById('year');
+    for (let year = 2012; year <= new Date().getFullYear(); year++) {
       const option = document.createElement('option');
-      option.value = optionText;
-      option.textContent = optionText;
-      select.appendChild(option);
+      option.value = year;
+      option.textContent = year;
+      yearSelect.appendChild(option);
+    }
+
+    document.getElementById('input1').addEventListener('change', function() {
+      const input1Value = this.value;
+      const feederLabel = document.getElementById('input2Label');
+      const input2Container = document.getElementById('input2Container');
+      input2Container.innerHTML = ''; // Clear previous options
+
+      if (input1Value === '400KV') {
+        addOptionsToInput2(['400KV MAHESHWARAM-2', '400KV MAHESHWARAM-1', '400KV NARSAPUR-1', '400KV NARSAPUR-2', '400KV KETHIREDDYPALLY-1', '400KV KETHIREDDYPALLY-2', '400KV NIZAMABAD-1', '400KV NIZAMABAD-2']);
+      } else if (input1Value === '220KV') {
+        addOptionsToInput2(['220KV PARIGI-1', '220KV PARIGI-2', '220KV TANDUR', '220KV GACHIBOWLI-1', '220KV GACHIBOWLI-2', '220KV KETHIREDDYPALLY', '220KV YEDDUMAILARAM-1', '220KV YEDDUMAILARAM-2', '220KV SADASIVAPET-1', '220KV SADASIVAPET-2']);
+      } else if (input1Value === 'ICTS') {
+        addOptionsToInput2(['315MVA ICT-1', '315MVA ICT-2', '315MVA ICT-3', '500MVA ICT-4']);
+      }
+      feederLabel.style.display = 'block';
     });
-    input2Container.appendChild(select);
-  }
 
-  window.onclick = function(event) {
-    const modal = document.getElementById('successModal');
-    const editModal = document.getElementById('editModal');
-
-    if (event.target === modal) {
-      modal.style.display = 'none';
+    function clearFormInputs() {
+      document.getElementById('dataInput1').value = '';
+      document.getElementById('dataInput2').value = '';
+      document.getElementById('dataInput3').value = '';
     }
 
-    if (event.target === editModal) {
-      editModal.style.display = 'none';
-    }
-  };
-</script>
+    function logout() {
+            if (confirm("Are you sure you want to logout?")) {
+                localStorage.removeItem('token'); // Clear the token from localStorage or sessionStorage
+                sessionStorage.clear(); // Clear any session-specific data
+                window.location.href = 'https://loginpage-git-main-vinay-kumars-projects-f1559f4a.vercel.app/'; // Redirect to login page
+            }
+        }
+
+        function preventBack() {
+            window.history.forward();
+        }
+
+        setTimeout("preventBack()", 0);
+        window.onunload = function () { null};
+
+  </script>
 </body>
 </html>
