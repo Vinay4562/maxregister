@@ -233,33 +233,33 @@
 
   document.getElementById('excelFileInput').addEventListener('change', handleFileSelect);
 
-  function handleFileSelect(event) {
-    const file = event.target.files[0];
-    if (!file) return;
+function handleFileSelect(event) {
+  const file = event.target.files[0];
+  if (!file) return;
 
-    const reader = new FileReader();
-    reader.onload = function(e) {
-      const data = new Uint8Array(e.target.result);
-      const workbook = XLSX.read(data, { type: 'array' });
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    const data = new Uint8Array(e.target.result);
+    const workbook = XLSX.read(data, { type: 'array' });
+    const sheetName = workbook.SheetNames[0];
+    const worksheet = workbook.Sheets[sheetName];
+    const jsonData = XLSX.utils.sheet_to_json(worksheet);
 
-      const sheetName = workbook.SheetNames[0];
-      const worksheet = workbook.Sheets[sheetName];
-      const jsonData = XLSX.utils.sheet_to_json(worksheet);
+    jsonData.forEach(row => {
+      const { MW, Date, Time } = row;
+      const feeder = document.querySelector('#input2Container select').value;
+      const year = document.getElementById('year').value;
+      const voltage = document.getElementById('input1').value;
 
-      // Process jsonData and send to the server
-      jsonData.forEach(row => {
-        const { MW, Date, Time } = row;
-        const feeder = document.querySelector('#input2Container select').value;
-        const year = document.getElementById('year').value;
-        const voltage = document.getElementById('input1').value;
-
-        fetch(`${API_BASE_URL}/upload`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ feeder, year, voltage, MW, date: Date, time: Time })
-        })
-        .then(response => response.json())
-        .then(data => {
+      fetch(`${API_BASE_URL}/upload`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ feeder, year, voltage, MW, date: Date, time: Time })
+      })
+      .then(response => response.text()) // Changed to text() for debugging
+      .then(text => {
+        try {
+          const data = JSON.parse(text);
           if (data.error) {
             alert(data.error);
           } else {
@@ -270,12 +270,19 @@
               document.getElementById('successModal').style.display = 'none';
             }, 500);
           }
-        });
+        } catch (e) {
+          alert('An error occurred: ' + text);
+        }
+      })
+      .catch(error => {
+        console.error('Error:', error);
+        alert('An error occurred while uploading data. Please try again.');
       });
-    };
+    });
+  };
 
-    reader.readAsArrayBuffer(file);
-  }
+  reader.readAsArrayBuffer(file);
+}
 
     document.getElementById('selectForm').addEventListener('submit', function(event) {
       event.preventDefault(); // Prevent the form from submitting
