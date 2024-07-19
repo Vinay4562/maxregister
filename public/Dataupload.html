@@ -253,7 +253,7 @@
           const year = document.getElementById('year').value;
           const voltage = document.getElementById('input1').value;
 
-          fetch('http://localhost:5000/upload', {
+          fetch('/upload', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ feeder, year, voltage, MW, date: Date, time: Time })
@@ -319,7 +319,7 @@
           return;
       }
 
-      fetch('http://localhost:5000/upload', {
+      fetch('/upload', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ feeder, year, voltage, MW, date, time })
@@ -356,7 +356,7 @@
       const feeder = document.querySelector('#input2Container select').value;
       const year = document.getElementById('year').value;
 
-      fetch(`http://localhost:5000/data?feeder=${feeder}&year=${year}`)
+      fetch(`/data?feeder=${feeder}&year=${year}`)
         .then(response => response.json())
         .then(data => {
           const tableBody = document.querySelector('#dataTable tbody');
@@ -405,7 +405,7 @@
       const feeder = document.querySelector('#input2Container select').value;
       const year = document.getElementById('year').value;
 
-      fetch(`http://localhost:5000/update?feeder=${feeder}&year=${year}`, {
+      fetch(`/update?feeder=${feeder}&year=${year}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ id, MW, date, time })
@@ -424,7 +424,7 @@
       const feeder = document.querySelector('#input2Container select').value;
       const year = document.getElementById('year').value;
 
-      fetch(`http://localhost:5000/delete/${id}?feeder=${feeder}&year=${year}`, {
+      fetch(`/delete/${id}?feeder=${feeder}&year=${year}`, {
         method: 'DELETE'
       }).then(response => response.json())
         .then(data => {
