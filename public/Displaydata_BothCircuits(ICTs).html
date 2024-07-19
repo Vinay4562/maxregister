@@ -737,10 +737,8 @@
     const matchedTableBody = document.querySelector('#matchedTable tbody');
     matchedTableBody.innerHTML = ''; // Clear previous matched data
 
-    let serialNumber = 1; // Counter for serial numbers
-    let fetchedData = []; // Array to store fetched data
-
     try {
+        // Fetch data for each feeder
         const feeder1Data = await fetchDataForFeeder(feeder1, startYear, endYear);
         const feeder2Data = await fetchDataForFeeder(feeder2, startYear, endYear);
         const feeder3Data = voltage === 'ICTS' ? await fetchDataForFeeder(feeder3, startYear, endYear) : [];
@@ -748,11 +746,10 @@
 
         let matchedRows = [];
 
+        // Match data based on voltage type
         if (voltage !== 'ICTS') {
-            for (let i = 0; i < feeder1Data.length; i++) {
-                const item1 = feeder1Data[i];
-                for (let j = 0; j < feeder2Data.length; j++) {
-                    const item2 = feeder2Data[j];
+            for (const item1 of feeder1Data) {
+                for (const item2 of feeder2Data) {
                     if (item1.date === item2.date && item1.time === item2.time) {
                         matchedRows.push({
                             date: item1.date,
@@ -764,16 +761,12 @@
                 }
             }
         } else {
-            for (let i = 0; i < feeder1Data.length; i++) {
-                const item1 = feeder1Data[i];
-                for (let j = 0; j < feeder2Data.length; j++) {
-                    const item2 = feeder2Data[j];
+            for (const item1 of feeder1Data) {
+                for (const item2 of feeder2Data) {
                     if (item1.date === item2.date && item1.time === item2.time) {
-                        for (let k = 0; k < feeder3Data.length; k++) {
-                            const item3 = feeder3Data[k];
+                        for (const item3 of feeder3Data) {
                             if (item1.date === item3.date && item1.time === item3.time) {
-                                for (let l = 0; l < feeder4Data.length; l++) {
-                                    const item4 = feeder4Data[l];
+                                for (const item4 of feeder4Data) {
                                     if (item1.date === item4.date && item1.time === item4.time) {
                                         matchedRows.push({
                                             date: item1.date,
@@ -795,7 +788,7 @@
         // Highlight the highest MW values in the matched data
         let maxMW = -Infinity;
         let maxMWRow = null;
-        matchedRows.forEach(row => {
+        for (const row of matchedRows) {
             let totalMW = row.feeder1.MW + row.feeder2.MW;
             if (row.feeder3) totalMW += row.feeder3.MW;
             if (row.feeder4) totalMW += row.feeder4.MW;
@@ -804,9 +797,9 @@
                 maxMW = totalMW;
                 maxMWRow = row;
             }
-        });
+        }
 
-        // Display only the highlighted row in the matched data
+        // Display the highlighted row or "No data available" message
         if (maxMWRow) {
             const tableRow = document.createElement('tr');
             tableRow.innerHTML = `
@@ -820,19 +813,22 @@
                 ${feeder4Data.length > 0 ? `<td>${feeder4}</td><td>${maxMWRow.feeder4 ? maxMWRow.feeder4.MW : '-'}</td>` : ''}
             `;
             matchedTableBody.appendChild(tableRow);
-
             tableRow.classList.add('highlight');
+        } else {
+            const noDataRow = document.createElement('tr');
+            noDataRow.innerHTML = `
+                <td colspan="${feeder3Data.length > 0 ? (feeder4Data.length > 0 ? 8 : 6) : (feeder4Data.length > 0 ? 4 : 2)}">No data available</td>
+            `;
+            matchedTableBody.appendChild(noDataRow);
         }
 
         // Add print functionality
-        const printButton = document.getElementById('printButton');
-        printButton.addEventListener('click', function() {
+        document.getElementById('printButton').addEventListener('click', function() {
             window.print();
         });
 
         // Add Excel download functionality
-        const downloadExcelButton = document.getElementById('downloadExcelButton');
-        downloadExcelButton.addEventListener('click', function() {
+        document.getElementById('downloadExcelButton').addEventListener('click', function() {
             downloadExcel(matchedRows);
         });
 
