@@ -822,13 +822,7 @@
             matchedTableBody.appendChild(tableRow);
 
             tableRow.classList.add('highlight');
-        } else {
-          const noDataRow = document.createElement('tr');
-          noDataRow.innerHTML = `
-              <td colspan="${feeder3Data.length > 0 ? (feeder4Data.length > 0 ? 8 : 6) : (feeder4Data.length > 0 ? 4 : 2)}">No data available</td>
-          `;
-          matchedTableBody.appendChild(noDataRow);
-      }
+        }
 
         // Add print functionality
         const printButton = document.getElementById('printButton');
