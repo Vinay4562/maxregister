@@ -495,6 +495,7 @@
     }
 }
 
+/* Loader styles */
 #loader {
   position: fixed;
   top: 0;
@@ -503,24 +504,30 @@
   height: 100%;
   background: rgba(255, 255, 255, 0.8);
   display: flex;
-  justify-content: center;
   align-items: center;
-  z-index: 1000;
+  justify-content: center;
+  z-index: 9999; /* Ensure loader is on top of other content */
 }
 
 .spinner {
-  border: 8px solid #f3f3f3;
-  border-top: 8px solid #3498db;
+  border: 16px solid #f3f3f3;
+  border-top: 16px solid #3498db;
   border-radius: 50%;
-  width: 50px;
-  height: 50px;
-  animation: spin 1s linear infinite;
+  width: 120px;
+  height: 120px;
+  animation: spin 2s linear infinite;
 }
 
 @keyframes spin {
   0% { transform: rotate(0deg); }
   100% { transform: rotate(360deg); }
 }
+
+#loader p {
+  font-size: 20px;
+  margin-top: 10px;
+}
+
   </style>
 
 </head>
@@ -762,6 +769,9 @@
   }
 
   async function fetchAndDisplayData(voltage, feeder1, feeder2, feeder3, feeder4, startYear, endYear) {
+    // Show the loader
+    document.getElementById('loader').style.display = 'flex';
+
     const tableBody = document.querySelector('#dataTable tbody');
     tableBody.innerHTML = ''; // Clear previous data
 
@@ -771,115 +781,118 @@
     let serialNumber = 1; // Counter for serial numbers
     let fetchedData = []; // Array to store fetched data
 
-    const loader = document.getElementById('loader');
-    loader.style.display = 'flex'; // Show loader
-
     try {
-      const feeder1Data = await fetchDataForFeeder(feeder1, startYear, endYear);
-      const feeder2Data = await fetchDataForFeeder(feeder2, startYear, endYear);
-      const feeder3Data = voltage === 'ICTS' ? await fetchDataForFeeder(feeder3, startYear, endYear) : [];
-      const feeder4Data = voltage === 'ICTS' ? await fetchDataForFeeder(feeder4, startYear, endYear) : [];
+        const feeder1Data = await fetchDataForFeeder(feeder1, startYear, endYear);
+        const feeder2Data = await fetchDataForFeeder(feeder2, startYear, endYear);
+        const feeder3Data = voltage === 'ICTS' ? await fetchDataForFeeder(feeder3, startYear, endYear) : [];
+        const feeder4Data = voltage === 'ICTS' ? await fetchDataForFeeder(feeder4, startYear, endYear) : [];
 
-      let matchedRows = [];
+        let matchedRows = [];
 
-      if (voltage !== 'ICTS') {
-        for (let i = 0; i < feeder1Data.length; i++) {
-          const item1 = feeder1Data[i];
-          for (let j = 0; j < feeder2Data.length; j++) {
-            const item2 = feeder2Data[j];
-            if (item1.date === item2.date && item1.time === item2.time) {
-              matchedRows.push({
-                date: item1.date,
-                time: item1.time,
-                feeder1: item1,
-                feeder2: item2
-              });
-            }
-          }
-        }
-      } else {
-        for (let i = 0; i < feeder1Data.length; i++) {
-          const item1 = feeder1Data[i];
-          for (let j = 0; j < feeder2Data.length; j++) {
-            const item2 = feeder2Data[j];
-            if (item1.date === item2.date && item1.time === item2.time) {
-              for (let k = 0; k < feeder3Data.length; k++) {
-                const item3 = feeder3Data[k];
-                if (item1.date === item3.date && item1.time === item3.time) {
-                  for (let l = 0; l < feeder4Data.length; l++) {
-                    const item4 = feeder4Data[l];
-                    if (item1.date === item4.date && item1.time === item4.time) {
-                      matchedRows.push({
-                        date: item1.date,
-                        time: item1.time,
-                        feeder1: item1,
-                        feeder2: item2,
-                        feeder3: item3,
-                        feeder4: item4
-                      });
+        if (voltage !== 'ICTS') {
+            for (let i = 0; i < feeder1Data.length; i++) {
+                const item1 = feeder1Data[i];
+                for (let j = 0; j < feeder2Data.length; j++) {
+                    const item2 = feeder2Data[j];
+                    if (item1.date === item2.date && item1.time === item2.time) {
+                        matchedRows.push({
+                            date: item1.date,
+                            time: item1.time,
+                            feeder1: item1,
+                            feeder2: item2
+                        });
                     }
-                  }
                 }
-              }
             }
-          }
+        } else {
+            for (let i = 0; i < feeder1Data.length; i++) {
+                const item1 = feeder1Data[i];
+                for (let j = 0; j < feeder2Data.length; j++) {
+                    const item2 = feeder2Data[j];
+                    if (item1.date === item2.date && item1.time === item2.time) {
+                        for (let k = 0; k < feeder3Data.length; k++) {
+                            const item3 = feeder3Data[k];
+                            if (item1.date === item3.date && item1.time === item3.time) {
+                                for (let l = 0; l < feeder4Data.length; l++) {
+                                    const item4 = feeder4Data[l];
+                                    if (item1.date === item4.date && item1.time === item4.time) {
+                                        matchedRows.push({
+                                            date: item1.date,
+                                            time: item1.time,
+                                            feeder1: item1,
+                                            feeder2: item2,
+                                            feeder3: item3,
+                                            feeder4: item4
+                                        });
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
         }
-      }
 
-      // Highlight the highest MW values in the matched data
-      let maxMW = -Infinity;
-      let maxMWRow = null;
-      matchedRows.forEach(row => {
-        let totalMW = row.feeder1.MW + row.feeder2.MW;
-        if (row.feeder3) totalMW += row.feeder3.MW;
-        if (row.feeder4) totalMW += row.feeder4.MW;
+        // Highlight the highest MW values in the matched data
+        let maxMW = -Infinity;
+        let maxMWRow = null;
+        matchedRows.forEach(row => {
+            let totalMW = row.feeder1.MW + row.feeder2.MW;
+            if (row.feeder3) totalMW += row.feeder3.MW;
+            if (row.feeder4) totalMW += row.feeder4.MW;
 
-        if (totalMW > maxMW) {
-          maxMW = totalMW;
-          maxMWRow = row;
+            if (totalMW > maxMW) {
+                maxMW = totalMW;
+                maxMWRow = row;
+            }
+        });
+
+        // Display only the highlighted row in the matched data
+        if (maxMWRow) {
+            const tableRow = document.createElement('tr');
+            tableRow.innerHTML = `
+                <td>${maxMWRow.date}</td>
+                <td>${maxMWRow.time}</td>
+                <td>${feeder1}</td>
+                <td>${maxMWRow.feeder1.MW}</td>
+                <td>${feeder2}</td>
+                <td>${maxMWRow.feeder2.MW}</td>
+                ${feeder3Data.length > 0 ? `<td>${feeder3}</td><td>${maxMWRow.feeder3 ? maxMWRow.feeder3.MW : '-'}</td>` : ''}
+                ${feeder4Data.length > 0 ? `<td>${feeder4}</td><td>${maxMWRow.feeder4 ? maxMWRow.feeder4.MW : '-'}</td>` : ''}
+            `;
+            matchedTableBody.appendChild(tableRow);
+
+            tableRow.classList.add('highlight');
+          } else {
+            alert('No matching data available');
         }
-      });
 
-      // Display only the highlighted row in the matched data
-      if (maxMWRow) {
-        const tableRow = document.createElement('tr');
-        tableRow.innerHTML = `
-          <td>${maxMWRow.date}</td>
-          <td>${maxMWRow.time}</td>
-          <td>${feeder1}</td>
-          <td>${maxMWRow.feeder1.MW}</td>
-          <td>${feeder2}</td>
-          <td>${maxMWRow.feeder2.MW}</td>
-          ${feeder3Data.length > 0 ? `<td>${feeder3}</td><td>${maxMWRow.feeder3 ? maxMWRow.feeder3.MW : '-'}</td>` : ''}
-          ${feeder4Data.length > 0 ? `<td>${feeder4}</td><td>${maxMWRow.feeder4 ? maxMWRow.feeder4.MW : '-'}</td>` : ''}
-        `;
-        matchedTableBody.appendChild(tableRow);
+        // Hide the loader
+        document.getElementById('loader').style.display = 'none';
 
-        tableRow.classList.add('highlight');
-      } else {
-        alert('No matching data available');
-      }
+        // Add print functionality
+        const printButton = document.getElementById('printButton');
+        printButton.addEventListener('click', function() {
+            window.print();
+        });
 
-      // Add print functionality
-      const printButton = document.getElementById('printButton');
-      printButton.addEventListener('click', function() {
-          window.print();
-      });
-
-      // Add Excel download functionality
-      const downloadExcelButton = document.getElementById('downloadExcelButton');
-      downloadExcelButton.addEventListener('click', function() {
-          downloadExcel(matchedRows);
-      });
+        // Add Excel download functionality
+        const downloadExcelButton = document.getElementById('downloadExcelButton');
+        downloadExcelButton.addEventListener('click', function() {
+            const wb = XLSX.utils.table_to_book(document.getElementById('matchedTable'));
+            XLSX.writeFile(wb, 'matched_data.xlsx');
+        });
 
     } catch (error) {
-        console.error('Error fetching or displaying data:', error);
-        loader.style.display = 'none'; // Hide loader
-        alert('Failed to fetch data. Please try again.');
-      }
+        console.error('Error fetching data:', error);
+        alert('Failed to fetch data.');
 
-    document.getElementById('matchedData').style.display = 'block';
-}
+        // Hide the loader
+        document.getElementById('loader').style.display = 'none';
+    }
+
+      document.getElementById('matchedData').style.display = 'block';
+  }
 
 function downloadExcel(data) {
     const fileName = 'matched_data.xlsx';
