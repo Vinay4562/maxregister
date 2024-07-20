@@ -495,38 +495,6 @@
     }
 }
 
-/* Loader styles */
-#loader {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(255, 255, 255, 0.8);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 9999; /* Ensure loader is on top of other content */
-}
-
-.spinner {
-  border: 16px solid #f3f3f3;
-  border-top: 16px solid #3498db;
-  border-radius: 50%;
-  width: 120px;
-  height: 120px;
-  animation: spin 2s linear infinite;
-}
-
-@keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
-}
-
-#loader p {
-  font-size: 20px;
-  margin-top: 10px;
-}
 
   </style>
 
@@ -635,12 +603,6 @@
         </thead>
         <tbody></tbody>
     </table>
-    
-  <div id="loader" style="display: none;">
-    <div class="spinner"></div>
-    <p>Loading...</p>
-  </div>
-
     <div class="button-container">
       <button id="printButton">Print Pdf</button>
       <button id="downloadExcelButton">Download Excel</button>
@@ -769,9 +731,6 @@
   }
 
   async function fetchAndDisplayData(voltage, feeder1, feeder2, feeder3, feeder4, startYear, endYear) {
-    // Show the loader
-    document.getElementById('loader').style.display = 'flex';
-
     const tableBody = document.querySelector('#dataTable tbody');
     tableBody.innerHTML = ''; // Clear previous data
 
@@ -867,9 +826,6 @@
             alert('No matching data available');
         }
 
-        // Hide the loader
-        document.getElementById('loader').style.display = 'none';
-
         // Add print functionality
         const printButton = document.getElementById('printButton');
         printButton.addEventListener('click', function() {
@@ -879,20 +835,15 @@
         // Add Excel download functionality
         const downloadExcelButton = document.getElementById('downloadExcelButton');
         downloadExcelButton.addEventListener('click', function() {
-            const wb = XLSX.utils.table_to_book(document.getElementById('matchedTable'));
-            XLSX.writeFile(wb, 'matched_data.xlsx');
+            downloadExcel(matchedRows);
         });
 
     } catch (error) {
-        console.error('Error fetching data:', error);
-        alert('Failed to fetch data.');
-
-        // Hide the loader
-        document.getElementById('loader').style.display = 'none';
+        console.error('Error fetching or displaying data:', error);
     }
 
-      document.getElementById('matchedData').style.display = 'block';
-  }
+    document.getElementById('matchedData').style.display = 'block';
+}
 
 function downloadExcel(data) {
     const fileName = 'matched_data.xlsx';
