@@ -124,6 +124,21 @@
       background-color: #0056b3;
     }
 
+    .logout-btn {
+    background-color: #FF6347;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    font-size: 16px;
+    cursor: pointer;
+    border-radius: 4px;
+    transition: background-color 0.3s ease;
+}
+
+.logout-btn:hover {
+    background-color: #FF4500;
+}
+
   </style>
 </head>
 <body>
@@ -135,8 +150,9 @@
 
   <!-- Navigation bar -->
   <div class="navbar">
-    <a href="https://loginpage-git-main-vinay-kumars-projects-f1559f4a.vercel.app/services.html" class="back-btn"><i class="fas fa-arrow-left"></i></a>
-    <a href="#" class="logout-btn" onclick="logout(); return false;"><i class="fas fa-sign-out-alt"></i></a>
+    <form id="logoutForm" action="/logout" method="POST">
+      <button type="submit" class="logout-btn">Logout</button>
+  </form>
   </div>
 
   <!-- Container -->
@@ -229,284 +245,276 @@
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.0/xlsx.full.min.js"></script>
 <script>
-  const API_BASE_URL = 'https://maxregister-git-main-vinay-kumars-projects-f1559f4a.vercel.app';
+      const API_BASE_URL = 'https://maxregister-git-main-vinay-kumars-projects-f1559f4a.vercel.app';
 
-  document.getElementById('excelFileInput').addEventListener('change', handleFileSelect);
+      document.getElementById('excelFileInput').addEventListener('change', handleFileSelect);
 
-function handleFileSelect(event) {
-  const file = event.target.files[0];
-  if (!file) return;
+        function handleFileSelect(event) {
+          const file = event.target.files[0];
+          if (!file) return;
 
-  const reader = new FileReader();
-  reader.onload = function(e) {
-    const data = new Uint8Array(e.target.result);
-    const workbook = XLSX.read(data, { type: 'array' });
-    const sheetName = workbook.SheetNames[0];
-    const worksheet = workbook.Sheets[sheetName];
-    const jsonData = XLSX.utils.sheet_to_json(worksheet);
+          const reader = new FileReader();
+          reader.onload = function(e) {
+            const data = new Uint8Array(e.target.result);
+            const workbook = XLSX.read(data, { type: 'array' });
+            const sheetName = workbook.SheetNames[0];
+            const worksheet = workbook.Sheets[sheetName];
+            const jsonData = XLSX.utils.sheet_to_json(worksheet);
 
-    jsonData.forEach(row => {
-      const { MW, Date, Time } = row;
-      const feeder = document.querySelector('#input2Container select').value;
-      const year = document.getElementById('year').value;
-      const voltage = document.getElementById('input1').value;
+            jsonData.forEach(row => {
+              const { MW, Date, Time } = row;
+              const feeder = document.querySelector('#input2Container select').value;
+              const year = document.getElementById('year').value;
+              const voltage = document.getElementById('input1').value;
 
-      fetch(`${API_BASE_URL}/upload`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ feeder, year, voltage, MW, date: Date, time: Time })
-      })
-      .then(response => response.text()) // Changed to text() for debugging
-      .then(text => {
-        try {
-          const data = JSON.parse(text);
-          if (data.error) {
-            alert(data.error);
-          } else {
-            document.getElementById('successModal').style.display = 'block';
-            fetchData();
+              fetch(`${API_BASE_URL}/upload`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ feeder, year, voltage, MW, date: Date, time: Time })
+              })
+              .then(response => response.text()) // Changed to text() for debugging
+              .then(text => {
+                try {
+                  const data = JSON.parse(text);
+                  if (data.error) {
+                    alert(data.error);
+                  } else {
+                    document.getElementById('successModal').style.display = 'block';
+                    fetchData();
 
-            setTimeout(() => {
-              document.getElementById('successModal').style.display = 'none';
-            }, 500);
-          }
-        } catch (e) {
-          alert('An error occurred: ' + text);
+                    setTimeout(() => {
+                      document.getElementById('successModal').style.display = 'none';
+                    }, 500);
+                  }
+                } catch (e) {
+                  alert('An error occurred: ' + text);
+                }
+              })
+              .catch(error => {
+                console.error('Error:', error);
+                alert('An error occurred while uploading data. Please try again.');
+              });
+            });
+          };
+
+          reader.readAsArrayBuffer(file);
         }
-      })
-      .catch(error => {
-        console.error('Error:', error);
-        alert('An error occurred while uploading data. Please try again.');
-      });
-    });
-  };
 
-  reader.readAsArrayBuffer(file);
-}
+        document.getElementById('selectForm').addEventListener('submit', function(event) {
+          event.preventDefault(); // Prevent the form from submitting
 
-    document.getElementById('selectForm').addEventListener('submit', function(event) {
-      event.preventDefault(); // Prevent the form from submitting
+          const voltage = document.getElementById('input1').value;
+          const feeder = document.querySelector('#input2Container select').value;
+          const year = document.getElementById('year').value;
 
-      const voltage = document.getElementById('input1').value;
-      const feeder = document.querySelector('#input2Container select').value;
-      const year = document.getElementById('year').value;
+          if (!voltage || !feeder || !year) {
+            alert('Please select voltage level, feeder/ICT, and year');
+            return;
+          }
 
-      if (!voltage || !feeder || !year) {
-        alert('Please select voltage level, feeder/ICT, and year');
-        return;
-      }
+          // Set the title for the data upload container
+          const title = `Upload Data for ${voltage} ${feeder}-(${year})`;
+          document.getElementById('dataUploadTitle').textContent = title;
 
-      // Set the title for the data upload container
-      const title = `Upload Data for ${voltage} ${feeder}-(${year})`;
-      document.getElementById('dataUploadTitle').textContent = title;
+          // Show the data upload container
+          document.querySelector('.data-upload').style.display = 'block';
+          document.getElementById('dataUploadForm').reset(); // Reset form inputs
 
-      // Show the data upload container
-      document.querySelector('.data-upload').style.display = 'block';
-      document.getElementById('dataUploadForm').reset(); // Reset form inputs
-
-      // Fetch and display data for the selected feeder and year
-      fetchData(voltage, feeder, year);
-    });
-
-    document.getElementById('dataUploadForm').addEventListener('submit', function(event) {
-    event.preventDefault();
-
-    const MW = document.getElementById('dataInput1').value;
-    const date = document.getElementById('dataInput2').value;
-    const time = document.getElementById('dataInput3').value;
-    const feeder = document.querySelector('#input2Container select').value;
-    const year = document.getElementById('year').value;
-    const voltage = document.getElementById('input1').value;
-
-    const enteredDate = new Date(date);
-    const enteredYear = enteredDate.getFullYear();
-
-    if (year !== enteredYear.toString()) {
-      alert('The entered year does not match the selected year.');
-      return;
-    }
-
-    fetch(`${API_BASE_URL}/upload`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ feeder, year, voltage, MW, date, time })
-    })
-    .then(response => response.json())
-    .then(data => {
-      if (data.error) {
-        alert(data.error);
-      } else {
-        document.getElementById('successModal').style.display = 'block';
-        document.getElementById('dataUploadForm').reset();
-        fetchData();
-
-        setTimeout(() => {
-          document.getElementById('successModal').style.display = 'none';
-        }, 500);
-      }
-    })
-    .catch(error => {
-      console.error('Error:', error);
-      alert('An error occurred while uploading data. Please try again.');
-    });
-  });
-  
-    // Function to fetch and display data
-    function fetchData(voltage, feeder, year) {
-      fetchAndDisplayData(voltage, feeder, year, function(data) {
-        displayData(data); // Display the fetched data below the data upload container
-      });
-    }
-
-    function fetchData() {
-    const feeder = document.querySelector('#input2Container select').value;
-    const year = document.getElementById('year').value;
-
-    fetch(`${API_BASE_URL}/data?feeder=${feeder}&year=${year}`)
-      .then(response => response.json())
-      .then(data => {
-        const tableBody = document.querySelector('#dataTable tbody');
-        tableBody.innerHTML = '';
-
-        data.forEach((item, index) => {
-          const row = document.createElement('tr');
-          row.innerHTML = `
-            <td>${index + 1}</td>
-            <td>${feeder}</td>
-            <td>${item.MW}</td>
-            <td>${item.date}</td>
-            <td>${item.time}</td>
-            <td class="action-btns">
-              <span class="btn btn-sm btn-primary" onclick="openEditModal('${item._id}', '${item.MW}', '${item.date}', '${item.time}')">Edit</span>
-              <span class="btn btn-sm btn-danger" onclick="deleteData('${item._id}')">Delete</span>
-            </td>
-          `;
-          tableBody.appendChild(row);
+          // Fetch and display data for the selected feeder and year
+          fetchData(voltage, feeder, year);
         });
 
-        document.getElementById('uploadedData').style.display = 'block';
-      });
-  }
+        document.getElementById('dataUploadForm').addEventListener('submit', function(event) {
+          event.preventDefault();
 
-    function openEditModal(id, MW, date, time) {
-      document.getElementById('editId').value = id;
-      document.getElementById('editDataInput1').value = MW;
-      document.getElementById('editDataInput2').value = date;
-      document.getElementById('editDataInput3').value = time;
-      document.getElementById('editModal').style.display = 'block';
-    }
+          const MW = document.getElementById('dataInput1').value;
+          const date = document.getElementById('dataInput2').value;
+          const time = document.getElementById('dataInput3').value;
+          const feeder = document.querySelector('#input2Container select').value;
+          const year = document.getElementById('year').value;
+          const voltage = document.getElementById('input1').value;
 
-    document.querySelector('#editModal .close').onclick = function() {
-      document.getElementById('editModal').style.display = 'none';
-    };
+          const enteredDate = new Date(date);
+          const enteredYear = enteredDate.getFullYear();
 
-    document.getElementById('editForm').addEventListener('submit', function(event) {
-    event.preventDefault();
+          if (year !== enteredYear.toString()) {
+            alert('The entered year does not match the selected year.');
+            return;
+          }
 
-    const id = document.getElementById('editId').value;
-    const MW = document.getElementById('editDataInput1').value;
-    const date = document.getElementById('editDataInput2').value;
-    const time = document.getElementById('editDataInput3').value;
-    const feeder = document.querySelector('#input2Container select').value;
-    const year = document.getElementById('year').value;
+          fetch(`${API_BASE_URL}/upload`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ feeder, year, voltage, MW, date, time })
+          })
+          .then(response => response.json())
+          .then(data => {
+            if (data.error) {
+              alert(data.error);
+            } else {
+              document.getElementById('successModal').style.display = 'block';
+              document.getElementById('dataUploadForm').reset();
+              fetchData();
 
-    fetch(`${API_BASE_URL}/update?feeder=${feeder}&year=${year}`, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ id, MW, date, time })
-    })
-    .then(response => response.json())
-    .then(data => {
-      if (data.error) {
-        alert(data.error);
-      } else {
-        document.getElementById('editModal').style.display = 'none';
-        fetchData();
-      }
-    });
-  });
-
-  function deleteData(id) {
-    const feeder = document.querySelector('#input2Container select').value;
-    const year = document.getElementById('year').value;
-
-    fetch(`${API_BASE_URL}/delete/${id}?feeder=${feeder}&year=${year}`, {
-      method: 'DELETE'
-    })
-    .then(response => response.json())
-    .then(data => {
-      if (data.error) {
-        alert(data.error);
-      } else {
-        fetchData();
-      }
-    });
-  }
-
-    function addOptionsToInput2(options) {
-      const input2Container = document.getElementById('input2Container');
-      const select = document.createElement('select');
-      select.name = 'input2';
-      select.id = 'input2';
-      options.forEach(optionText => {
-        const option = document.createElement('option');
-        option.value = optionText;
-        option.textContent = optionText;
-        select.appendChild(option);
-      });
-      input2Container.appendChild(select);
-    }
-
-    window.onclick = function(event) {
-      const modal = document.getElementById('successModal');
-      const editModal = document.getElementById('editModal');
-
-      if (event.target == modal) {
-        modal.style.display = 'none';
-      }
-
-      if (event.target == editModal) {
-        editModal.style.display = 'none';
-      }
-    };
-
-    // Populate year dropdown options
-    const yearSelect = document.getElementById('year');
-    for (let year = 2012; year <= new Date().getFullYear(); year++) {
-      const option = document.createElement('option');
-      option.value = year;
-      option.textContent = year;
-      yearSelect.appendChild(option);
-    }
-
-    document.getElementById('input1').addEventListener('change', function() {
-      const input1Value = this.value;
-      const feederLabel = document.getElementById('input2Label');
-      const input2Container = document.getElementById('input2Container');
-      input2Container.innerHTML = ''; // Clear previous options
-
-      if (input1Value === '400KV') {
-        addOptionsToInput2(['400KV MAHESHWARAM-2', '400KV MAHESHWARAM-1', '400KV NARSAPUR-1', '400KV NARSAPUR-2', '400KV KETHIREDDYPALLY-1', '400KV KETHIREDDYPALLY-2', '400KV NIZAMABAD-1', '400KV NIZAMABAD-2']);
-      } else if (input1Value === '220KV') {
-        addOptionsToInput2(['220KV PARIGI-1', '220KV PARIGI-2', '220KV TANDUR', '220KV GACHIBOWLI-1', '220KV GACHIBOWLI-2', '220KV KETHIREDDYPALLY', '220KV YEDDUMAILARAM-1', '220KV YEDDUMAILARAM-2', '220KV SADASIVAPET-1', '220KV SADASIVAPET-2']);
-      } else if (input1Value === 'ICTS') {
-        addOptionsToInput2(['315MVA ICT-1', '315MVA ICT-2', '315MVA ICT-3', '500MVA ICT-4']);
-      }
-      feederLabel.style.display = 'block';
-    });
-
-    function clearFormInputs() {
-      document.getElementById('dataInput1').value = '';
-      document.getElementById('dataInput2').value = '';
-      document.getElementById('dataInput3').value = '';
-    }
-
-    function logout() {
-            if (confirm("Are you sure you want to logout?")) {
-                localStorage.removeItem('token'); // Clear the token from localStorage or sessionStorage
-                sessionStorage.clear(); // Clear any session-specific data
-                window.location.href = 'https://loginpage-git-main-vinay-kumars-projects-f1559f4a.vercel.app/'; // Redirect to login page
+              setTimeout(() => {
+                document.getElementById('successModal').style.display = 'none';
+              }, 500);
             }
+          })
+          .catch(error => {
+            console.error('Error:', error);
+            alert('An error occurred while uploading data. Please try again.');
+          });
+        });
+  
+        // Function to fetch and display data
+        function fetchData(voltage, feeder, year) {
+          fetchAndDisplayData(voltage, feeder, year, function(data) {
+            displayData(data); // Display the fetched data below the data upload container
+          });
+        }
+
+        function fetchData() {
+          const feeder = document.querySelector('#input2Container select').value;
+          const year = document.getElementById('year').value;
+
+          fetch(`${API_BASE_URL}/data?feeder=${feeder}&year=${year}`)
+            .then(response => response.json())
+            .then(data => {
+              const tableBody = document.querySelector('#dataTable tbody');
+              tableBody.innerHTML = '';
+
+              data.forEach((item, index) => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                  <td>${index + 1}</td>
+                  <td>${feeder}</td>
+                  <td>${item.MW}</td>
+                  <td>${item.date}</td>
+                  <td>${item.time}</td>
+                  <td class="action-btns">
+                    <span class="btn btn-sm btn-primary" onclick="openEditModal('${item._id}', '${item.MW}', '${item.date}', '${item.time}')">Edit</span>
+                    <span class="btn btn-sm btn-danger" onclick="deleteData('${item._id}')">Delete</span>
+                  </td>
+                `;
+                tableBody.appendChild(row);
+              });
+
+              document.getElementById('uploadedData').style.display = 'block';
+            });
+        }
+
+        function openEditModal(id, MW, date, time) {
+          document.getElementById('editId').value = id;
+          document.getElementById('editDataInput1').value = MW;
+          document.getElementById('editDataInput2').value = date;
+          document.getElementById('editDataInput3').value = time;
+          document.getElementById('editModal').style.display = 'block';
+        }
+
+        document.querySelector('#editModal .close').onclick = function() {
+          document.getElementById('editModal').style.display = 'none';
+        };
+
+        document.getElementById('editForm').addEventListener('submit', function(event) {
+          event.preventDefault();
+
+          const id = document.getElementById('editId').value;
+          const MW = document.getElementById('editDataInput1').value;
+          const date = document.getElementById('editDataInput2').value;
+          const time = document.getElementById('editDataInput3').value;
+          const feeder = document.querySelector('#input2Container select').value;
+          const year = document.getElementById('year').value;
+
+          fetch(`${API_BASE_URL}/update?feeder=${feeder}&year=${year}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ id, MW, date, time })
+          })
+          .then(response => response.json())
+          .then(data => {
+            if (data.error) {
+              alert(data.error);
+            } else {
+              document.getElementById('editModal').style.display = 'none';
+              fetchData();
+            }
+          });
+        });
+
+        function deleteData(id) {
+          const feeder = document.querySelector('#input2Container select').value;
+          const year = document.getElementById('year').value;
+
+          fetch(`${API_BASE_URL}/delete/${id}?feeder=${feeder}&year=${year}`, {
+            method: 'DELETE'
+          })
+          .then(response => response.json())
+          .then(data => {
+            if (data.error) {
+              alert(data.error);
+            } else {
+              fetchData();
+            }
+          });
+        }
+
+        function addOptionsToInput2(options) {
+          const input2Container = document.getElementById('input2Container');
+          const select = document.createElement('select');
+          select.name = 'input2';
+          select.id = 'input2';
+          options.forEach(optionText => {
+            const option = document.createElement('option');
+            option.value = optionText;
+            option.textContent = optionText;
+            select.appendChild(option);
+          });
+          input2Container.appendChild(select);
+        }
+
+        window.onclick = function(event) {
+          const modal = document.getElementById('successModal');
+          const editModal = document.getElementById('editModal');
+
+          if (event.target == modal) {
+            modal.style.display = 'none';
+          }
+
+          if (event.target == editModal) {
+            editModal.style.display = 'none';
+          }
+        };
+
+        // Populate year dropdown options
+        const yearSelect = document.getElementById('year');
+          for (let year = 2012; year <= new Date().getFullYear(); year++) {
+            const option = document.createElement('option');
+            option.value = year;
+            option.textContent = year;
+            yearSelect.appendChild(option);
+          }
+
+        document.getElementById('input1').addEventListener('change', function() {
+          const input1Value = this.value;
+          const feederLabel = document.getElementById('input2Label');
+          const input2Container = document.getElementById('input2Container');
+          input2Container.innerHTML = ''; // Clear previous options
+
+            if (input1Value === '400KV') {
+              addOptionsToInput2(['400KV MAHESHWARAM-2', '400KV MAHESHWARAM-1', '400KV NARSAPUR-1', '400KV NARSAPUR-2', '400KV KETHIREDDYPALLY-1', '400KV KETHIREDDYPALLY-2', '400KV NIZAMABAD-1', '400KV NIZAMABAD-2']);
+            } else if (input1Value === '220KV') {
+              addOptionsToInput2(['220KV PARIGI-1', '220KV PARIGI-2', '220KV TANDUR', '220KV GACHIBOWLI-1', '220KV GACHIBOWLI-2', '220KV KETHIREDDYPALLY', '220KV YEDDUMAILARAM-1', '220KV YEDDUMAILARAM-2', '220KV SADASIVAPET-1', '220KV SADASIVAPET-2']);
+            } else if (input1Value === 'ICTS') {
+              addOptionsToInput2(['315MVA ICT-1', '315MVA ICT-2', '315MVA ICT-3', '500MVA ICT-4']);
+            }
+            feederLabel.style.display = 'block';
+        });
+
+        function clearFormInputs() {
+          document.getElementById('dataInput1').value = '';
+          document.getElementById('dataInput2').value = '';
+          document.getElementById('dataInput3').value = '';
         }
 
         function preventBack() {
