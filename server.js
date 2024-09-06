@@ -85,27 +85,35 @@ app.use((req, res, next) => {
   next();
 });
 
+// Prevent direct access to Dataupload.html
+app.get('/Dataupload.html', (req, res) => {
+  res.status(404).send('Page Not Found'); // 404 for direct access
+});
+
 // Routes
 app.get('/', (req, res) => {
   res.sendFile(__dirname + '/public/login.html');
 });
 
+// Login route
 app.post('/login', passport.authenticate('local', {
-  successRedirect: '/Dataupload',
+  successRedirect: '/dashboard', // Redirect to /dashboard instead of /Dataupload.html
   failureRedirect: '/',
   failureFlash: true
 }));
 
 // Ensure the user is authenticated for Dataupload access
+// Authentication middleware
 function isAuthenticated(req, res, next) {
   if (req.isAuthenticated()) {
-      return next();
+    return next();
   }
   res.redirect('/');
 }
 
-app.get('/Dataupload', isAuthenticated, (req, res) => {
-  res.sendFile(__dirname + '/public/Dataupload.html');
+// Serve dashboard route (displays Dataupload.html content)
+app.get('/dashboard', isAuthenticated, (req, res) => {
+  res.sendFile(__dirname + '/public/Dataupload.html'); // Serve the content of Dataupload.html
 });
 
 // Logout route
