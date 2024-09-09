@@ -1,234 +1,226 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login Page</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background: linear-gradient(-45deg, #f39c12, #8e44ad, #3498db, #e74c3c);
-            background-size: 400% 400%;
-            animation: gradientBG 15s ease infinite;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            flex-direction: column;
-            height: 100vh;
-            margin: 0;
-        }
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login Page</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: linear-gradient(135deg, #6b7af7, #9b7af7);
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+    }
 
-        @keyframes gradientBG {
-            0% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
-            100% { background-position: 0% 50%; }
-        }
+    .header {
+      width: 100%;
+      padding: 5px; /* Reduced padding */
+      background-color: rgba(255, 255, 255, 0.8);
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      position: fixed;
+      top: 0;
+      left: 0;
+      z-index: 1000;
+    }
 
-        .header {
-            width: 100%;
-            padding: 20px;
-            text-align: center;
-            background-color: rgba(255, 255, 255, 0.2);
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-            color: #fff;
-            text-transform: uppercase;
-            font-weight: bold;
-            letter-spacing: 2px;
-            position: fixed;
-            top: 0;
-            left: 0;
-            z-index: 1000;
-        }
+    .header-content {
+      display: flex;
+      align-items: center;
+      justify-content: flex-start;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
 
-        .logo {
-            width: 100px;
-            height: 100px;
-            vertical-align: middle;
-            margin-right: 15px;
-            background-color: #fff;
-        }
+    .logo {
+      width: 100px; /* Reduced logo width */
+      height: 100px; /* Reduced logo height */
+      margin-right: 15px; /* Adjusted margin */
+    }
 
-        .header h1 {
-            display: inline-block;
-            font-size: 2.3rem;
-            text-decoration: underline;
-        }
+    .header h1 {
+      font-size: 2rem; /* Reduced font size */
+      color: red;
+      margin: 0;
+      text-decoration: underline;
+    }
 
-        .navbar {
-            display: flex;
-            justify-content: center;
-            margin-top: 70px;
-            background-color: transparent;
-            position: fixed;
-            top: 80px; /* Adjust based on the height of the header */
-            left: 0;
-            width: 100%;
-            z-index: 1000;
-        }
+    .navbar {
+      display: flex;
+      justify-content: center;
+      background-color: transparent;
+      padding: 10px;
+    }
 
-        .navbar a {
-            text-decoration: none;
-            padding: 10px 20px;
-            margin: 0 10px;
-            background-color: #fff;
-            border-radius: 20px;
-            color: #333;
-            font-weight: bold;
-            transition: background-color 0.3s, color 0.3s;
-            box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2);
-        }
+    .navbar a {
+      text-decoration: none;
+      padding: 10px 20px;
+      background-color: #fff;
+      border-radius: 20px;
+      color: #333;
+      font-weight: bold;
+      transition: background-color 0.3s, color 0.3s;
+      box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2);
+    }
 
-        .navbar a:hover {
-            background-color: #3498db;
-            color: #fff;
-        }
+    .navbar a:hover {
+      background-color: #3498db;
+      color: #fff;
+    }
 
-        .login-container {
-            background-color: #fff;
-            padding: 30px;
-            border-radius: 15px;
-            box-shadow: 0 15px 25px rgba(0, 0, 0, 0.3);
-            text-align: center;
-            width: 350px;
-            margin-top: 170px; /* Adjust based on the height of the header and navbar */
-            animation: slideIn 1s forwards;
-        }
+    .main {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: calc(100vh - 60px); /* Adjusted for smaller header height */
+      margin-top: 90px; /* Adjusted for smaller header height */
+    }
 
-        @keyframes slideIn {
-            0% {
-                opacity: 0;
-                transform: translateY(-150px);
-            }
-            100% {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
+    .login-container {
+      background: #ffffff;
+      padding: 40px;
+      border-radius: 15px;
+      box-shadow: 0 15px 30px rgba(0, 0, 0, 0.2);
+      width: 100%;
+      max-width: 400px;
+      transform: scale(0.98);
+      transition: transform 0.3s ease;
+    }
 
-        h2 {
-            color: #333;
-            margin-bottom: 20px;
-            font-size: 24px;
-            letter-spacing: 1px;
-        }
+    .login-container:hover {
+      transform: scale(1);
+    }
 
-        .input-group {
-            margin-bottom: 20px;
-            position: relative;
-            text-align: left;
-        }
+    h2 {
+      text-align: center;
+      color: #333;
+      margin-bottom: 20px;
+      font-size: 2rem;
+      text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.1);
+    }
 
-        label {
-            display: block;
-            margin-bottom: 5px;
-            color: #666;
-        }
+    .input-field {
+      display: block;
+      width: calc(100% - 20px);
+      padding: 12px;
+      margin-bottom: 20px;
+      border: 2px solid #ddd;
+      border-radius: 5px;
+      transition: border-color 0.3s ease, box-shadow 0.3s ease;
+      box-sizing: border-box;
+    }
 
-        input[type="text"],
-        input[type="password"] {
-            width: 100%;
-            padding: 10px;
-            font-size: 16px;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-            box-sizing: border-box;
-            transition: border-color 0.3s ease, box-shadow 0.3s ease;
-        }
+    .input-field:focus {
+      border-color: #007bff;
+      box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
+      outline: none;
+    }
 
-        input[type="text"]:focus,
-        input[type="password"]:focus {
-            border-color: #3498db;
-            box-shadow: 0 0 8px rgba(52, 152, 219, 0.6);
-            outline: none;
-        }
+    .password-container {
+      position: relative;
+      margin-bottom: 20px;
+    }
 
-        .toggle-password {
-            position: absolute;
-            right: 10px;
-            top: 35px;
-            cursor: pointer;
-            color: #3498db;
-            font-size: 14px;
-        }
+    .password-toggle {
+      position: absolute;
+      right: 30px;
+      top: 50%;
+      transform: translateY(-50%);
+      cursor: pointer;
+      color: #007bff;
+      transition: color 0.3s ease;
+      font-size: 1.2rem;
+    }
 
-        button {
-            background-color: #4CAF50;
-            color: white;
-            border: none;
-            padding: 12px 25px;
-            text-align: center;
-            text-decoration: none;
-            font-size: 16px;
-            margin-top: 15px;
-            cursor: pointer;
-            border-radius: 25px;
-            transition: background-color 0.3s ease, box-shadow 0.3s ease;
-            box-shadow: 0 5px #2e7d32;
-        }
+    .password-toggle:hover {
+      color: #0056b3;
+    }
 
-        button:hover {
-            background-color: #45a049;
-            box-shadow: 0 10px 15px rgba(0, 0, 0, 0.2);
-        }
+    .login-button {
+      width: 96%;
+      padding: 12px;
+      background: linear-gradient(135deg, #007bff, #0056b3);
+      border: none;
+      color: white;
+      font-size: 16px;
+      cursor: pointer;
+      border-radius: 5px;
+      transition: background 0.3s ease, transform 0.3s ease;
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+    }
 
-        button:active {
-            background-color: #3e8e41;
-            box-shadow: 0 3px #2e7d32;
-            transform: translateY(2px);
-        }
+    .login-button:hover {
+      background: linear-gradient(135deg, #0056b3, #004080);
+      transform: translateY(-3px);
+    }
 
-        .login-message {
-            color: green;
-            font-size: 16px;
-            margin-top: 15px;
-            display: none;
-        }
-    </style>
+    .login-button:active {
+      background: linear-gradient(135deg, #004080, #003366);
+      transform: translateY(1px);
+    }
+
+    .error {
+      color: red;
+      text-align: center;
+      margin-bottom: 10px;
+      font-size: 0.9rem;
+    }
+  </style>
 </head>
 <body>
-
-    <header class="header">
-        <img src="logo_new.png" alt="Company Logo" class="logo">
-        <h1>Transmission Corporation of Telangana Limited</h1>
-    </header>
-
-    <div class="navbar">
-        <a href='https://400kvssshankarpally.free.nf/'>Home</a>
-        <a href="#">LC Procedures</a>
-        <a href='https://maxregister-git-main-vinay-kumars-projects-f1559f4a.vercel.app/Displaydata_original.html'>Max-Min Data</a>
+  <header class="header">
+    <div class="header-content">
+      <img src="logo_new.png" alt="Company Logo" class="logo">
+      <h1>TRANSMISSION CORPORATION OF TELANGANA LIMITED</h1>
     </div>
+    <nav class="navbar">
+      <a href='https://400kvssshankarpally.free.nf/'>Home</a>
+      <a href="#">LC Procedures</a>
+      <a href='https://maxregister-git-main-vinay-kumars-projects-f1559f4a.vercel.app/Displaydata_original.html'>Max-Min Data</a>
+    </nav>
+  </header>
 
+  <div class="main">
     <div class="login-container">
-        <h2>MAX-MW Data Entry Login</h2>
-        <form id="loginForm" action="/login" method="POST">
-            <div class="input-group">
-                <label for="username">Username:</label>
-                <input type="text" id="username" name="username" required>
-            </div>
-            <div class="input-group">
-                <label for="password">Password:</label>
-                <input type="password" id="password" name="password" required>
-                <span class="toggle-password" onclick="togglePassword()">Show</span>
-            </div>
-            <button type="submit">Login</button>
-            <p class="login-message" id="loginMessage">Login Successful!</p>
-        </form>
+      <h2>MAX-MW Data Entry Login</h2>
+      <form id="loginForm">
+        <input type="text" class="input-field" id="username" placeholder="Username" required>
+        <div class="password-container">
+          <input type="password" class="input-field" id="password" placeholder="Password" required>
+          <span class="password-toggle" id="togglePassword">👁️</span>
+        </div>
+        <div class="error" id="errorMessage"></div>
+        <button type="submit" class="login-button">Login</button>
+      </form>
     </div>
+  </div>
 
-    <script>
-        // Function to toggle password visibility
-        function togglePassword() {
-            var passwordField = document.getElementById("password");
-            var toggleText = document.querySelector(".toggle-password");
-            if (passwordField.type === "password") {
-                passwordField.type = "text";
-                toggleText.textContent = "Hide";
-            } else {
-                passwordField.type = "password";
-                toggleText.textContent = "Show";
-            }
-        }
-    </script>
+  <script>
+    document.getElementById('loginForm').addEventListener('submit', async function(event) {
+      event.preventDefault();
+      const username = document.getElementById('username').value;
+      const password = document.getElementById('password').value;
 
+      const response = await fetch('/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, password })
+      });
+
+      const result = await response.json();
+      if (result.success) {
+        window.location.href = 'Dataupload.html';
+      } else {
+        document.getElementById('errorMessage').innerText = result.message;
+      }
+    });
+
+    document.getElementById('togglePassword').addEventListener('click', function () {
+      const passwordField = document.getElementById('password');
+      const type = passwordField.type === 'password' ? 'text' : 'password';
+      passwordField.type = type;
+      this.textContent = type === 'password' ? '👁️' : '👁️‍🗨️';
+    });
+  </script>
 </body>
 </html>

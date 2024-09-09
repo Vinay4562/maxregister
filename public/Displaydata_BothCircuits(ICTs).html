@@ -822,8 +822,6 @@
             matchedTableBody.appendChild(tableRow);
 
             tableRow.classList.add('highlight');
-          } else {
-            alert('No matching data available');
         }
 
         // Add print functionality
@@ -862,7 +860,7 @@ async function fetchDataForFeeder(feeder, startYear, endYear) {
     let fetchedData = [];
     for (let year = startYear; year <= endYear; year++) {
         try {
-            const data = await fetch(`https://maxregister-git-main-vinay-kumars-projects-f1559f4a.vercel.app/data?feeder=${feeder}&year=${year}`).then(response => response.json());
+            const data = await fetch(`http://localhost:5000/data?feeder=${feeder}&year=${year}`).then(response => response.json());
             fetchedData = fetchedData.concat(data);
         } catch (error) {
             console.error('Error fetching data:', error);
