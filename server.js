@@ -5,6 +5,7 @@ const mongoose = require('mongoose');
 const bodyParser = require('body-parser');
 const cors = require('cors');
 const session = require('express-session');
+const MongoStore = require('connect-mongo'); // For session storage
 const bcrypt = require('bcryptjs'); // Use bcryptjs instead of bcrypt
 const path = require('path');
 
@@ -18,16 +19,14 @@ app.use(session({
   secret: 'chantichanti2255', // Use a strong secret for session management
   resave: false,
   saveUninitialized: true,
+  store: MongoStore.create({ mongoUrl: process.env.MONGO_URI }), // Use MongoDB to store sessions
   cookie: { secure: false } // Set to true in production if using HTTPS
 }));
 
 // MongoDB connection
 const MONGO_URI = process.env.MONGO_URI; // This should match your .env variable
 
-mongoose.connect(MONGO_URI, {
-  useNewUrlParser: true,
-  useUnifiedTopology: true
-}).then(() => {
+mongoose.connect(MONGO_URI).then(() => {
   console.log('Connected to MongoDB');
 }).catch(err => {
   console.error('Connection error', err);
@@ -54,13 +53,13 @@ const getModel = (collectionName) => {
   return models[collectionName];
 };
 
-// Replace bcrypt.hashSync with bcryptjs.hashSync
+// Dummy credentials (hashed password)
 const defaultUser = {
   username: 'Shankarpally400kv',
-  passwordHash: bcrypt.hashSync('Shankarpally@9870', 10) // Use bcryptjs
+  passwordHash: bcrypt.hashSync('Shankarpally@9870', 10) // Replace 'password' with the actual password
 };
 
-// Replace bcrypt.compareSync with bcryptjs.compareSync
+// POST route for login
 app.post('/login', (req, res) => {
   const { username, password } = req.body;
 
@@ -77,7 +76,7 @@ app.post('/login', (req, res) => {
 app.post('/logout', (req, res) => {
   req.session.destroy(err => {
     if (err) {
-      return res.status(500).json({ error: 'Failed to logout' });
+      return next(err);
     }
     res.clearCookie('connect.sid'); // clear the session cookie
     res.redirect('/login.html'); // redirect to login page after logout
@@ -95,6 +94,15 @@ const ensureAuthenticated = (req, res, next) => {
 // Protect the route that serves Dataupload.html
 app.get('/dataupload', ensureAuthenticated, (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'Dataupload.html'));
+});
+
+// Protect Dataupload.html route
+app.use('/Dataupload.html', (req, res, next) => {
+  if (req.session.authenticated) {
+    next(); // Proceed if the user is authenticated
+  } else {
+    res.redirect('/login.html'); // Redirect to login if not authenticated
+  }
 });
 
 // Function to check if data exists in the collection
