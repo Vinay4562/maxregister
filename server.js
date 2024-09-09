@@ -5,7 +5,7 @@ const mongoose = require('mongoose');
 const bodyParser = require('body-parser');
 const cors = require('cors');
 const session = require('express-session');
-const bcrypt = require('bcrypt'); // for hashing passwords
+const bcrypt = require('bcryptjs'); // Use bcryptjs instead of bcrypt
 const path = require('path');
 
 const app = express();
@@ -54,13 +54,13 @@ const getModel = (collectionName) => {
   return models[collectionName];
 };
 
-// Dummy credentials (hashed password)
+// Replace bcrypt.hashSync with bcryptjs.hashSync
 const defaultUser = {
   username: 'Shankarpally400kv',
-  passwordHash: bcrypt.hashSync('Shankarpally@9870', 10) // Replace 'password' with the actual password
+  passwordHash: bcrypt.hashSync('Shankarpally@9870', 10) // Use bcryptjs
 };
 
-// POST route for login
+// Replace bcrypt.compareSync with bcryptjs.compareSync
 app.post('/login', (req, res) => {
   const { username, password } = req.body;
 
