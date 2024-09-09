@@ -233,210 +233,209 @@
     document.getElementById('excelFileInput').addEventListener('change', handleFileSelect);
 
     function handleFileSelect(event) {
-      const file = event.target.files[0];
-      if (!file) {
-        return;
-      }
+        const file = event.target.files[0];
+        if (!file) {
+            return;
+        }
 
-      const reader = new FileReader();
-      reader.onload = function(e) {
-        const data = new Uint8Array(e.target.result);
-        const workbook = XLSX.read(data, { type: 'array' });
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const data = new Uint8Array(e.target.result);
+            const workbook = XLSX.read(data, { type: 'array' });
 
-        const sheetName = workbook.SheetNames[0];
-        const worksheet = workbook.Sheets[sheetName];
-        const jsonData = XLSX.utils.sheet_to_json(worksheet);
+            const sheetName = workbook.SheetNames[0];
+            const worksheet = workbook.Sheets[sheetName];
+            const jsonData = XLSX.utils.sheet_to_json(worksheet);
 
-        // Process the jsonData and send it to the server
-        jsonData.forEach(row => {
-          const { MW, Date, Time } = row;
-          const feeder = document.querySelector('#input2Container select').value;
-          const year = document.getElementById('year').value;
-          const voltage = document.getElementById('input1').value;
+            // Process the jsonData and send it to the server
+            jsonData.forEach(row => {
+                const { MW, Date, Time } = row;
+                const feeder = document.querySelector('#input2Container select').value;
+                const year = document.getElementById('year').value;
+                const voltage = document.getElementById('input1').value;
 
-          fetch('https://maxregister-git-main-vinay-kumars-projects-f1559f4a.vercel.app//upload', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ feeder, year, voltage, MW, date: Date, time: Time })
-          }).then(response => response.json())
-            .then(data => {
-              if (data.error) {
-                alert(data.error);
-              } else {
-                document.getElementById('successModal').style.display = 'block';
-                fetchData();
+                fetch('https://maxregister-git-main-vinay-kumars-projects-f1559f4a.vercel.app/upload', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ feeder, year, voltage, MW, date: Date, time: Time })
+                }).then(response => response.json())
+                    .then(data => {
+                        if (data.error) {
+                            alert(data.error);
+                        } else {
+                            document.getElementById('successModal').style.display = 'block';
+                            fetchData();
 
-                // Close the success modal after 0.5 seconds
-                setTimeout(() => {
-                  document.getElementById('successModal').style.display = 'none';
-                }, 500);
-              }
+                            // Close the success modal after 0.5 seconds
+                            setTimeout(() => {
+                                document.getElementById('successModal').style.display = 'none';
+                            }, 500);
+                        }
+                    });
             });
-        });
-      };
+        };
 
-      reader.readAsArrayBuffer(file);
+        reader.readAsArrayBuffer(file);
     }
 
     document.getElementById('selectForm').addEventListener('submit', function(event) {
-      event.preventDefault(); // Prevent the form from submitting
+        event.preventDefault(); // Prevent the form from submitting
 
-      const voltage = document.getElementById('input1').value;
-      const feeder = document.querySelector('#input2Container select').value;
-      const year = document.getElementById('year').value;
+        const voltage = document.getElementById('input1').value;
+        const feeder = document.querySelector('#input2Container select').value;
+        const year = document.getElementById('year').value;
 
-      if (!voltage || !feeder || !year) {
-        alert('Please select voltage level, feeder/ICT, and year');
-        return;
-      }
+        if (!voltage || !feeder || !year) {
+            alert('Please select voltage level, feeder/ICT, and year');
+            return;
+        }
 
-      // Set the title for the data upload container
-      const title = `Upload Data for ${voltage} ${feeder}-(${year})`;
-      document.getElementById('dataUploadTitle').textContent = title;
+        // Set the title for the data upload container
+        const title = `Upload Data for ${voltage} ${feeder}-(${year})`;
+        document.getElementById('dataUploadTitle').textContent = title;
 
-      // Show the data upload container
-      document.querySelector('.data-upload').style.display = 'block';
-      document.getElementById('dataUploadForm').reset(); // Reset form inputs
+        // Show the data upload container
+        document.querySelector('.data-upload').style.display = 'block';
+        document.getElementById('dataUploadForm').reset(); // Reset form inputs
 
-      // Fetch and display data for the selected feeder and year
-      fetchData(voltage, feeder, year);
+        // Fetch and display data for the selected feeder and year
+        fetchData(voltage, feeder, year);
     });
 
     document.getElementById('dataUploadForm').addEventListener('submit', function(event) {
-      event.preventDefault();
+        event.preventDefault();
 
-      const MW = document.getElementById('dataInput1').value;
-      const date = document.getElementById('dataInput2').value;
-      const time = document.getElementById('dataInput3').value;
-      const feeder = document.querySelector('#input2Container select').value;
-      const year = document.getElementById('year').value;
-      const voltage = document.getElementById('input1').value;
+        const MW = document.getElementById('dataInput1').value;
+        const date = document.getElementById('dataInput2').value;
+        const time = document.getElementById('dataInput3').value;
+        const feeder = document.querySelector('#input2Container select').value;
+        const year = document.getElementById('year').value;
+        const voltage = document.getElementById('input1').value;
 
-      const enteredDate = new Date(date);
-      const enteredYear = enteredDate.getFullYear();
+        const enteredDate = new Date(date);
+        const enteredYear = enteredDate.getFullYear();
 
-      if (year !== enteredYear.toString()) {
-          alert('The entered year does not match the selected year.');
-          return;
-      }
+        if (year !== enteredYear.toString()) {
+            alert('The entered year does not match the selected year.');
+            return;
+        }
 
-      fetch('https://maxregister-git-main-vinay-kumars-projects-f1559f4a.vercel.app//upload', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ feeder, year, voltage, MW, date, time })
-      }).then(response => response.json())
-        .then(data => {
-            if (data.error) {
-                alert(data.error);
-            } else {
-                document.getElementById('successModal').style.display = 'block';
-                document.getElementById('dataUploadForm').reset(); // Reset form inputs
-                fetchData();
+        fetch('https://maxregister-git-main-vinay-kumars-projects-f1559f4a.vercel.app/upload', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ feeder, year, voltage, MW, date, time })
+        }).then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    alert(data.error);
+                } else {
+                    document.getElementById('successModal').style.display = 'block';
+                    document.getElementById('dataUploadForm').reset(); // Reset form inputs
+                    fetchData();
 
-                // Close the success modal after 0.5 seconds
-                setTimeout(() => {
-                    document.getElementById('successModal').style.display = 'none';
-                }, 500);
-            }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            alert('An error occurred while uploading data. Please try again.');
-        });
-  });
+                    // Close the success modal after 0.5 seconds
+                    setTimeout(() => {
+                        document.getElementById('successModal').style.display = 'none';
+                    }, 500);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('An error occurred while uploading data. Please try again.');
+            });
+    });
 
-  
     // Function to fetch and display data
     function fetchData(voltage, feeder, year) {
-      fetchAndDisplayData(voltage, feeder, year, function(data) {
-        displayData(data); // Display the fetched data below the data upload container
-      });
+        fetchAndDisplayData(voltage, feeder, year, function(data) {
+            displayData(data); // Display the fetched data below the data upload container
+        });
     }
 
     function fetchData() {
-      const feeder = document.querySelector('#input2Container select').value;
-      const year = document.getElementById('year').value;
+        const feeder = document.querySelector('#input2Container select').value;
+        const year = document.getElementById('year').value;
 
-      fetch(`https://maxregister-git-main-vinay-kumars-projects-f1559f4a.vercel.app//data?feeder=${feeder}&year=${year}`)
-        .then(response => response.json())
-        .then(data => {
-          const tableBody = document.querySelector('#dataTable tbody');
-          tableBody.innerHTML = ''; // Clear previous data
+        fetch(`https://maxregister-git-main-vinay-kumars-projects-f1559f4a.vercel.app/data?feeder=${feeder}&year=${year}`)
+            .then(response => response.json())
+            .then(data => {
+                const tableBody = document.querySelector('#dataTable tbody');
+                tableBody.innerHTML = ''; // Clear previous data
 
-          data.forEach((item, index) => {
-            const row = document.createElement('tr');
-            row.innerHTML = `
-              <td>${index + 1}</td>
-              <td>${feeder}</td>
-              <td>${item.MW}</td>
-              <td>${item.date}</td>
-              <td>${item.time}</td>
-              <td class="action-btns">
-                <span class="btn btn-sm btn-primary" onclick="openEditModal('${item._id}', '${item.MW}', '${item.date}', '${item.time}')">Edit</span>
-                <span class="btn btn-sm btn-danger" onclick="deleteData('${item._id}')">Delete</span>
-              </td>
-            `;
-            tableBody.appendChild(row);
-          });
+                data.forEach((item, index) => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                      <td>${index + 1}</td>
+                      <td>${feeder}</td>
+                      <td>${item.MW}</td>
+                      <td>${item.date}</td>
+                      <td>${item.time}</td>
+                      <td class="action-btns">
+                        <span class="btn btn-sm btn-primary" onclick="openEditModal('${item._id}', '${item.MW}', '${item.date}', '${item.time}')">Edit</span>
+                        <span class="btn btn-sm btn-danger" onclick="deleteData('${item._id}')">Delete</span>
+                      </td>
+                    `;
+                    tableBody.appendChild(row);
+                });
 
-          // Show the uploaded data container
-          document.getElementById('uploadedData').style.display = 'block';
-        });
+                // Show the uploaded data container
+                document.getElementById('uploadedData').style.display = 'block';
+            });
     }
 
     function openEditModal(id, MW, date, time) {
-      document.getElementById('editId').value = id;
-      document.getElementById('editDataInput1').value = MW;
-      document.getElementById('editDataInput2').value = date;
-      document.getElementById('editDataInput3').value = time;
-      document.getElementById('editModal').style.display = 'block';
+        document.getElementById('editId').value = id;
+        document.getElementById('editDataInput1').value = MW;
+        document.getElementById('editDataInput2').value = date;
+        document.getElementById('editDataInput3').value = time;
+        document.getElementById('editModal').style.display = 'block';
     }
 
     document.querySelector('#editModal .close').onclick = function() {
-      document.getElementById('editModal').style.display = 'none';
+        document.getElementById('editModal').style.display = 'none';
     };
 
     document.getElementById('editForm').addEventListener('submit', function(event) {
-      event.preventDefault(); // Prevent the form from submitting
+        event.preventDefault(); // Prevent the form from submitting
 
-      const id = document.getElementById('editId').value;
-      const MW = document.getElementById('editDataInput1').value;
-      const date = document.getElementById('editDataInput2').value;
-      const time = document.getElementById('editDataInput3').value;
-      const feeder = document.querySelector('#input2Container select').value;
-      const year = document.getElementById('year').value;
+        const id = document.getElementById('editId').value;
+        const MW = document.getElementById('editDataInput1').value;
+        const date = document.getElementById('editDataInput2').value;
+        const time = document.getElementById('editDataInput3').value;
+        const feeder = document.querySelector('#input2Container select').value;
+        const year = document.getElementById('year').value;
 
-      fetch(`https://maxregister-git-main-vinay-kumars-projects-f1559f4a.vercel.app//update?feeder=${feeder}&year=${year}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id, MW, date, time })
-      }).then(response => response.json())
-        .then(data => {
-          if (data.error) {
-            alert(data.error);
-          } else {
-            document.getElementById('editModal').style.display = 'none';
-            fetchData();
-          }
-        });
+        fetch(`https://maxregister-git-main-vinay-kumars-projects-f1559f4a.vercel.app/update?feeder=${feeder}&year=${year}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ id, MW, date, time })
+        }).then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    alert(data.error);
+                } else {
+                    document.getElementById('editModal').style.display = 'none';
+                    fetchData();
+                }
+            });
     });
 
     function deleteData(id) {
-      const feeder = document.querySelector('#input2Container select').value;
-      const year = document.getElementById('year').value;
+        const feeder = document.querySelector('#input2Container select').value;
+        const year = document.getElementById('year').value;
 
-      fetch(`https://maxregister-git-main-vinay-kumars-projects-f1559f4a.vercel.app//delete/${id}?feeder=${feeder}&year=${year}`, {
-        method: 'DELETE'
-      }).then(response => response.json())
-        .then(data => {
-          if (data.error) {
-            alert(data.error);
-          } else {
-            fetchData();
-          }
-        });
+        fetch(`https://maxregister-git-main-vinay-kumars-projects-f1559f4a.vercel.app/delete/${id}?feeder=${feeder}&year=${year}`, {
+            method: 'DELETE'
+        }).then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    alert(data.error);
+                } else {
+                    fetchData();
+                }
+            });
     }
-
+    
     function addOptionsToInput2(options) {
       const input2Container = document.getElementById('input2Container');
       const select = document.createElement('select');
