@@ -6,7 +6,7 @@ const bodyParser = require('body-parser');
 const cors = require('cors');
 const session = require('express-session');
 const MongoStore = require('connect-mongo'); // For session storage
-const bcrypt = require('bcryptjs'); // Use bcryptjs instead of bcrypt
+const bcrypt = require('bcryptjs'); // Use bcryptjs for hashing
 const path = require('path');
 
 const app = express();
@@ -16,17 +16,15 @@ app.use(bodyParser.json());
 app.use(cors());
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(session({
-  secret: 'chantichanti2255', // Use a strong secret for session management
+  secret: process.env.SESSION_SECRET || 'your_secret_key', // Use a strong secret for session management
   resave: false,
   saveUninitialized: true,
   store: MongoStore.create({ mongoUrl: process.env.MONGO_URI }), // Use MongoDB to store sessions
-  cookie: { secure: false } // Set to true in production if using HTTPS
+  cookie: { secure: process.env.NODE_ENV === 'production' } // Set to true in production if using HTTPS
 }));
 
 // MongoDB connection
-const MONGO_URI = process.env.MONGO_URI; // This should match your .env variable
-
-mongoose.connect(MONGO_URI).then(() => {
+mongoose.connect(process.env.MONGO_URI).then(() => {
   console.log('Connected to MongoDB');
 }).catch(err => {
   console.error('Connection error', err);
@@ -73,23 +71,19 @@ app.post('/login', (req, res) => {
 });
 
 // Logout route
-app.post('/logout', (req, res) => {
+app.post('/logout', (req, res, next) => {
   req.session.destroy(err => {
     if (err) {
       return next(err);
     }
-    res.clearCookie('connect.sid'); // clear the session cookie
-    res.redirect('/login.html'); // redirect to login page after logout
+    res.clearCookie('connect.sid'); // Clear the session cookie
+    res.redirect('/login.html'); // Redirect to login page after logout
   });
 });
 
 // GET route to check if user is authenticated
 app.get('/check-auth', (req, res) => {
-  if (req.session.authenticated) {
-    res.json({ authenticated: true });
-  } else {
-    res.json({ authenticated: false });
-  }
+  res.json({ authenticated: req.session.authenticated || false });
 });
 
 // Middleware to check if the user is authenticated
@@ -97,21 +91,13 @@ const ensureAuthenticated = (req, res, next) => {
   if (req.session.authenticated) {
     return next();
   }
-  res.redirect('/login.html'); // redirect to login if not authenticated
+  res.redirect('/login.html'); // Redirect to login if not authenticated
 };
 
 // Protect the route that serves Dataupload.html
 app.get('/dataupload', ensureAuthenticated, (req, res) => {
+  res.setHeader('Cache-Control', 'no-store'); // Prevent caching of the page
   res.sendFile(path.join(__dirname, 'public', 'Dataupload.html'));
-});
-
-// Protect Dataupload.html route
-app.use('/Dataupload.html', (req, res, next) => {
-  if (req.session.authenticated) {
-    next(); // Proceed if the user is authenticated
-  } else {
-    res.redirect('/login.html'); // Redirect to login if not authenticated
-  }
 });
 
 // Function to check if data exists in the collection
