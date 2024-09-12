@@ -353,15 +353,28 @@
     }
 
     function fetchData() {
-        const feeder = document.querySelector('#input2Container select').value;
-        const year = document.getElementById('year').value;
+    const feeder = document.querySelector('#input2Container select').value;
+    const year = document.getElementById('year').value;
 
-        fetch(`https://maxregister-git-main-vinay-kumars-projects-f1559f4a.vercel.app/data?feeder=${feeder}&year=${year}`)
-            .then(response => response.json())
-            .then(data => {
-                const tableBody = document.querySelector('#dataTable tbody');
-                tableBody.innerHTML = ''; // Clear previous data
+    // Fetch the data from the server
+    fetch(`https://maxregister-git-main-vinay-kumars-projects-f1559f4a.vercel.app/data?feeder=${feeder}&year=${year}`)
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Failed to fetch data');
+            }
+            return response.json();
+        })
+        .then(data => {
+            const tableBody = document.querySelector('#dataTable tbody');
+            tableBody.innerHTML = ''; // Clear previous data
 
+            if (data.length === 0) {
+                // Display "No Data Available" if the data array is empty
+                const noDataRow = document.createElement('tr');
+                noDataRow.innerHTML = `<td colspan="6" style="text-align: center;">No Data Available</td>`;
+                tableBody.appendChild(noDataRow);
+            } else {
+                // Populate the table with data
                 data.forEach((item, index) => {
                     const row = document.createElement('tr');
                     row.innerHTML = `
@@ -377,11 +390,15 @@
                     `;
                     tableBody.appendChild(row);
                 });
+            }
 
-                // Show the uploaded data container
-                document.getElementById('uploadedData').style.display = 'block';
-            });
-    }
+            // Show the uploaded data container
+            document.getElementById('uploadedData').style.display = 'block';
+        })
+        .catch(error => {
+            console.error('Error fetching data:', error);
+        });
+}
 
     function openEditModal(id, MW, date, time) {
         document.getElementById('editId').value = id;
@@ -414,8 +431,9 @@
                 if (data.error) {
                     alert(data.error);
                 } else {
-                    document.getElementById('editModal').style.display = 'none';
-                    fetchData();
+                  document.getElementById('editModal').style.display = 'none';
+                  alert('Data updated successfully!');
+                  fetchData(); // Refresh data on the page
                 }
             });
     });
@@ -431,7 +449,9 @@
                 if (data.error) {
                     alert(data.error);
                 } else {
-                    fetchData();
+                  document.getElementById('editModal').style.display = 'none';
+                  alert('Data Deleted successfully!');
+                  fetchData();
                 }
             });
     }
@@ -494,14 +514,42 @@
       document.getElementById('dataInput3').value = '';
     }
 
+    document.addEventListener('keydown', function(event) {
+      if (event.key === 'Escape') {
+        document.querySelectorAll('.modal').forEach(modal => {
+          modal.style.display = 'none';
+        });
+      }
+    });
 
-        function preventBack() {
-            window.history.forward();
-        }
+  // Check authentication on page load
+  window.onload = function() {
+    fetch('/check-auth', {
+      method: 'GET',
+      credentials: 'include'  // Important to include credentials (cookies) in the request
+    })
+    .then(response => {
+      if (!response.ok) {
+        // If the response status is not 200 (OK), redirect to the login page
+        window.location.href = '/login.html';
+      }
+    })
+    .catch(error => {
+      console.error('Error checking authentication:', error);
+      window.location.href = '/login.html'; // Redirect to login page on error
+    });
+  };
 
-        setTimeout("preventBack()", 0);
-        window.onunload = function () { null};
+  // Prevent back navigation
+  function preventBack() {
+    window.history.forward();
+  }
 
+  // Run the preventBack function immediately
+  setTimeout(preventBack, 0);
+
+  // Prevent unloading of the page
+  window.onunload = function() { null };
   </script>
 </body>
 </html>
