@@ -413,32 +413,35 @@
     };
 
     document.getElementById('editForm').addEventListener('submit', function(event) {
-        event.preventDefault(); // Prevent the form from submitting
+      event.preventDefault(); // Prevent the form from submitting
 
-        const id = document.getElementById('editId').value;
-        const MW = document.getElementById('editDataInput1').value;
-        const date = document.getElementById('editDataInput2').value;
-        const time = document.getElementById('editDataInput3').value;
-        const feeder = document.querySelector('#input2Container select').value;
-        const year = document.getElementById('year').value;
+      const id = document.getElementById('editId').value;
+      const MW = document.getElementById('editDataInput1').value;
+      const date = document.getElementById('editDataInput2').value;
+      const time = document.getElementById('editDataInput3').value;
+      const feeder = document.querySelector('#input2Container select').value;
+      const year = document.getElementById('year').value;
 
-        fetch(`https://maxregister-git-main-vinay-kumars-projects-f1559f4a.vercel.app/update?feeder=${feeder}&year=${year}`, {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ id, MW, date, time })
-        }).then(response => response.json())
-            .then(data => {
-                if (data.error) {
-                    alert(data.error);
-                } else {
+      fetch(`https://maxregister-git-main-vinay-kumars-projects-f1559f4a.vercel.app/update?feeder=${feeder}&year=${year}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id, MW, date, time })
+      }).then(response => response.json())
+          .then(data => {
+              if (data.error) {
+                  alert(data.error); // Display error message
+              } else {
                   document.getElementById('editModal').style.display = 'none';
-                  alert('Data updated successfully!');
+                  alert('Data updated successfully!'); // Display success message
                   fetchData(); // Refresh data on the page
-                }
-            });
-    });
+              }
+          }).catch(error => {
+              console.error('Error:', error);
+              alert('An error occurred while updating the data. Please try again.');
+          });
+  });
 
-    function deleteData(id) {
+      function deleteData(id) {
         const feeder = document.querySelector('#input2Container select').value;
         const year = document.getElementById('year').value;
 
@@ -447,14 +450,18 @@
         }).then(response => response.json())
             .then(data => {
                 if (data.error) {
-                    alert(data.error);
+                    alert(data.error); // Display error message
                 } else {
-                  document.getElementById('editModal').style.display = 'none';
-                  alert('Data Deleted successfully!');
-                  fetchData();
+                    document.getElementById('editModal').style.display = 'none';
+                    alert('Data deleted successfully!'); // Display success message
+                    fetchData(); // Refresh data on the page
                 }
+            }).catch(error => {
+                console.error('Error:', error);
+                alert('An error occurred while deleting the data. Please try again.');
             });
     }
+
     
     function addOptionsToInput2(options) {
       const input2Container = document.getElementById('input2Container');
