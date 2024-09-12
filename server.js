@@ -83,6 +83,15 @@ app.post('/logout', (req, res) => {
   });
 });
 
+// GET route to check if user is authenticated
+app.get('/check-auth', (req, res) => {
+  if (req.session.authenticated) {
+    res.json({ authenticated: true });
+  } else {
+    res.json({ authenticated: false });
+  }
+});
+
 // Middleware to check if the user is authenticated
 const ensureAuthenticated = (req, res, next) => {
   if (req.session.authenticated) {
