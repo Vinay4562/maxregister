@@ -466,8 +466,7 @@ function closeDeleteModal() {
 });
 
 
-function confirmDelete() {
-    const id = document.getElementById('deleteId').value;
+function deleteData(id) {
     const feeder = document.querySelector('#input2Container select').value;
     const year = document.getElementById('year').value;
 
@@ -478,7 +477,6 @@ function confirmDelete() {
             if (data.error) {
                 alert(data.error); // Display error message
             } else {
-                closeDeleteModal(); // Close the modal
                 alert('Data deleted successfully!'); // Display success message
                 fetchData(); // Refresh data on the page
             }
@@ -487,8 +485,6 @@ function confirmDelete() {
             alert('An error occurred while deleting the data. Please try again.');
         });
 }
-
-
     
     function addOptionsToInput2(options) {
       const input2Container = document.getElementById('input2Container');
