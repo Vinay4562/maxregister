@@ -228,16 +228,6 @@
     </div>
   </div>
 
-  <!-- Delete Modal (if needed) -->
-<div id="deleteModal" class="modal">
-  <div class="modal-content">
-      <span class="close" onclick="closeDeleteModal()">&times;</span>
-      <p>Are you sure you want to delete this data?</p>
-      <button onclick="confirmDelete()">Yes</button>
-      <button onclick="closeDeleteModal()">No</button>
-  </div>
-</div>
-
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.0/xlsx.full.min.js"></script>
   <script>
     document.getElementById('excelFileInput').addEventListener('change', handleFileSelect);
@@ -410,83 +400,68 @@
         });
 }
 
-function openEditModal(id, MW, date, time) {
-    document.getElementById('editId').value = id;
-    document.getElementById('editDataInput1').value = MW;
-    document.getElementById('editDataInput2').value = date;
-    document.getElementById('editDataInput3').value = time;
-    document.getElementById('editModal').style.display = 'block';
-}
-
-function closeEditModal() {
-    document.getElementById('editModal').style.display = 'none';
-}
-
-function openDeleteModal(id) {
-    document.getElementById('deleteId').value = id;
-    document.getElementById('deleteModal').style.display = 'block';
-}
-
-function closeDeleteModal() {
-    document.getElementById('deleteModal').style.display = 'none';
-}
-
+    function openEditModal(id, MW, date, time) {
+        document.getElementById('editId').value = id;
+        document.getElementById('editDataInput1').value = MW;
+        document.getElementById('editDataInput2').value = date;
+        document.getElementById('editDataInput3').value = time;
+        document.getElementById('editModal').style.display = 'block';
+    }
 
     document.querySelector('#editModal .close').onclick = function() {
         document.getElementById('editModal').style.display = 'none';
     };
 
     document.getElementById('editForm').addEventListener('submit', function(event) {
-    event.preventDefault(); // Prevent the form from submitting
+      event.preventDefault(); // Prevent the form from submitting
 
-    const id = document.getElementById('editId').value;
-    const MW = document.getElementById('editDataInput1').value;
-    const date = document.getElementById('editDataInput2').value;
-    const time = document.getElementById('editDataInput3').value;
-    const feeder = document.querySelector('#input2Container select').value;
-    const year = document.getElementById('year').value;
+      const id = document.getElementById('editId').value;
+      const MW = document.getElementById('editDataInput1').value;
+      const date = document.getElementById('editDataInput2').value;
+      const time = document.getElementById('editDataInput3').value;
+      const feeder = document.querySelector('#input2Container select').value;
+      const year = document.getElementById('year').value;
 
-    fetch(`https://maxregister-git-main-vinay-kumars-projects-f1559f4a.vercel.app/update?feeder=${feeder}&year=${year}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id, MW, date, time })
-    }).then(response => response.json())
-        .then(data => {
-            if (data.error) {
-                alert(data.error); // Display error message
-            } else {
-                closeEditModal(); // Close the modal
-                alert('Data updated successfully!'); // Display success message
-                fetchData(); // Refresh data on the page
-            }
-        }).catch(error => {
-            console.error('Error:', error);
-            alert('An error occurred while updating the data. Please try again.');
-        });
-});
+      fetch(`https://maxregister-git-main-vinay-kumars-projects-f1559f4a.vercel.app/update?feeder=${feeder}&year=${year}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id, MW, date, time })
+      }).then(response => response.json())
+          .then(data => {
+              if (data.error) {
+                  alert(data.error); // Display error message
+              } else {
+                  document.getElementById('editModal').style.display = 'none';
+                  alert('Data updated successfully!'); // Display success message
+                  fetchData(); // Refresh data on the page
+              }
+          }).catch(error => {
+              console.error('Error:', error);
+              alert('An error occurred while updating the data. Please try again.');
+          });
+  });
 
+      function deleteData(id) {
+        const feeder = document.querySelector('#input2Container select').value;
+        const year = document.getElementById('year').value;
 
-function deleteData(id) {
-    const feeder = document.querySelector('#input2Container select').value;
-    const year = document.getElementById('year').value;
+        fetch(`https://maxregister-git-main-vinay-kumars-projects-f1559f4a.vercel.app/delete/${id}?feeder=${feeder}&year=${year}`, {
+            method: 'DELETE'
+        }).then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    alert(data.error); // Display error message
+                } else {
+                    document.getElementById('editModal').style.display = 'none';
+                    alert('Data deleted successfully!'); // Display success message
+                    fetchData(); // Refresh data on the page
+                }
+            }).catch(error => {
+                console.error('Error:', error);
+                alert('An error occurred while deleting the data. Please try again.');
+            });
+    }
 
-    fetch(`https://maxregister-git-main-vinay-kumars-projects-f1559f4a.vercel.app/delete/${id}?feeder=${feeder}&year=${year}`, {
-        method: 'DELETE'
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.error) {
-            alert(data.error); // Display error message
-        } else {
-            alert('Data deleted successfully!'); // Display success message
-            fetchData(); // Refresh data on the page
-        }
-    })
-    .catch(error => {
-        console.error('Error:', error);
-        alert('An error occurred while deleting the data. Please try again.');
-    });
-}
     
     function addOptionsToInput2(options) {
       const input2Container = document.getElementById('input2Container');
