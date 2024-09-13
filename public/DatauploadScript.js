@@ -137,8 +137,41 @@ document.getElementById('excelFileInput').addEventListener('change', handleFileS
                 return dateA - dateB; // Sort in ascending order
             });
     
-            displayData(data); // Display the sorted data
+            // Function to display the sorted data
+            displayData(data);
         });
+    }
+    
+    function displayData(data) {
+        const tableBody = document.querySelector('#dataTable tbody');
+        tableBody.innerHTML = ''; // Clear previous data
+    
+        if (data.length === 0) {
+            // Display "No Data Available" if the data array is empty
+            const noDataRow = document.createElement('tr');
+            noDataRow.innerHTML = `<td colspan="6" style="text-align: center;">No Data Available</td>`;
+            tableBody.appendChild(noDataRow);
+        } else {
+            // Populate the table with data
+            data.forEach((item, index) => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${index + 1}</td>
+                    <td>${feeder}</td>
+                    <td>${item.MW}</td>
+                    <td>${item.date}</td>
+                    <td>${item.time}</td>
+                    <td class="action-btns">
+                        <span class="btn btn-sm btn-primary" onclick="openEditModal('${item._id}', '${item.MW}', '${item.date}', '${item.time}')">Edit</span>
+                        <span class="btn btn-sm btn-danger" onclick="deleteData('${item._id}')">Delete</span>
+                    </td>
+                `;
+                tableBody.appendChild(row);
+            });
+        }
+    
+        // Show the uploaded data container
+        document.getElementById('uploadedData').style.display = 'block';
     }
 
     function fetchData() {
