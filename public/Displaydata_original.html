@@ -244,6 +244,28 @@
     transform: scale(1.05);
   }
 
+  #noDataContainer {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100vh; /* Full viewport height */
+    width: 100vw;  /* Full viewport width */
+    position: absolute;
+    top: 0;
+    left: 0;
+    background-color: rgba(255, 255, 255, 0.8); /* Optional: background with slight opacity */
+}
+
+#noDataMessage {
+    font-size: 1.5rem;
+    color: #333; /* Text color */
+    padding: 1rem;
+    border: 1px solid #ccc; /* Optional: border around the message */
+    border-radius: 5px; /* Optional: rounded corners */
+    background-color: #f9f9f9; /* Optional: background color for the message */
+}
+
+
   @media print {
   .header h1 {
     font-size: 18px; /* Adjust the font size as needed */
@@ -344,7 +366,9 @@
   </div>
 </div>
 
-<div id="noDataMessage" style="display: none;">No Data Available</div>
+<div id="noDataContainer">
+  <div id="noDataMessage">No Data Available</div>
+</div>
 
 <div class="graph-container">
   <canvas id="myChart" width="200" height="100"></canvas>
