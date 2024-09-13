@@ -225,7 +225,7 @@ document.getElementById('excelFileInput').addEventListener('change', handleFileS
         
         setTimeout(() => {
             alertBox.style.display = 'none';
-        }, 3000); // Hide after 3 seconds
+        }, 1500); // Hide after 1.5 seconds
     }
     
     document.getElementById('editForm').addEventListener('submit', function(event) {
@@ -274,15 +274,14 @@ document.getElementById('excelFileInput').addEventListener('change', handleFileS
                     alert(data.error); // Display error message
                 } else {
                     document.getElementById('editModal').style.display = 'none';
-                    alert('Data deleted successfully!'); // Display success message
+                    showAlert('Data deleted successfully!'); // Display success message
                     fetchData(); // Refresh data on the page
                 }
             }).catch(error => {
                 console.error('Error:', error);
-                alert('An error occurred while deleting the data. Please try again.');
+                showAlert('An error occurred while deleting the data. Please try again.');
             });
     }
-
     
     function addOptionsToInput2(options) {
       const input2Container = document.getElementById('input2Container');
