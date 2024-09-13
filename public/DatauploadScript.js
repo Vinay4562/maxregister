@@ -130,97 +130,63 @@ document.getElementById('excelFileInput').addEventListener('change', handleFileS
     // Function to fetch and display data
     function fetchData(voltage, feeder, year) {
         fetchAndDisplayData(voltage, feeder, year, function(data) {
-            // Sort the data by date in ascending order
-            data.sort((a, b) => {
-                const dateA = new Date(a.date);
-                const dateB = new Date(b.date);
-                return dateA - dateB; // Sort in ascending order
-            });
-    
-            // Function to display the sorted data
-            displayData(data);
+            // Sort the data by date
+            data.sort((a, b) => new Date(a.date) - new Date(b.date));
+            displayData(data); // Display the sorted data
         });
     }
     
-    function displayData(data) {
-        const tableBody = document.querySelector('#dataTable tbody');
-        tableBody.innerHTML = ''; // Clear previous data
-    
-        if (data.length === 0) {
-            // Display "No Data Available" if the data array is empty
-            const noDataRow = document.createElement('tr');
-            noDataRow.innerHTML = `<td colspan="6" style="text-align: center;">No Data Available</td>`;
-            tableBody.appendChild(noDataRow);
-        } else {
-            // Populate the table with data
-            data.forEach((item, index) => {
-                const row = document.createElement('tr');
-                row.innerHTML = `
-                    <td>${index + 1}</td>
-                    <td>${feeder}</td>
-                    <td>${item.MW}</td>
-                    <td>${item.date}</td>
-                    <td>${item.time}</td>
-                    <td class="action-btns">
-                        <span class="btn btn-sm btn-primary" onclick="openEditModal('${item._id}', '${item.MW}', '${item.date}', '${item.time}')">Edit</span>
-                        <span class="btn btn-sm btn-danger" onclick="deleteData('${item._id}')">Delete</span>
-                    </td>
-                `;
-                tableBody.appendChild(row);
-            });
-        }
-    
-        // Show the uploaded data container
-        document.getElementById('uploadedData').style.display = 'block';
-    }
-
     function fetchData() {
-    const feeder = document.querySelector('#input2Container select').value;
-    const year = document.getElementById('year').value;
-
-    // Fetch the data from the server
-    fetch(`https://maxregister-git-main-vinay-kumars-projects-f1559f4a.vercel.app/data?feeder=${feeder}&year=${year}`)
-        .then(response => {
-            if (!response.ok) {
-                throw new Error('Failed to fetch data');
-            }
-            return response.json();
-        })
-        .then(data => {
-            const tableBody = document.querySelector('#dataTable tbody');
-            tableBody.innerHTML = ''; // Clear previous data
-
-            if (data.length === 0) {
-                // Display "No Data Available" if the data array is empty
-                const noDataRow = document.createElement('tr');
-                noDataRow.innerHTML = `<td colspan="6" style="text-align: center;">No Data Available</td>`;
-                tableBody.appendChild(noDataRow);
-            } else {
-                // Populate the table with data
-                data.forEach((item, index) => {
-                    const row = document.createElement('tr');
-                    row.innerHTML = `
-                      <td>${index + 1}</td>
-                      <td>${feeder}</td>
-                      <td>${item.MW}</td>
-                      <td>${item.date}</td>
-                      <td>${item.time}</td>
-                      <td class="action-btns">
-                        <span class="btn btn-sm btn-primary" onclick="openEditModal('${item._id}', '${item.MW}', '${item.date}', '${item.time}')">Edit</span>
-                        <span class="btn btn-sm btn-danger" onclick="deleteData('${item._id}')">Delete</span>
-                      </td>
-                    `;
-                    tableBody.appendChild(row);
-                });
-            }
-
-            // Show the uploaded data container
-            document.getElementById('uploadedData').style.display = 'block';
-        })
-        .catch(error => {
-            console.error('Error fetching data:', error);
-        });
-}
+        const feeder = document.querySelector('#input2Container select').value;
+        const year = document.getElementById('year').value;
+    
+        // Fetch the data from the server
+        fetch(`https://maxregister-git-main-vinay-kumars-projects-f1559f4a.vercel.app/data?feeder=${feeder}&year=${year}`)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Failed to fetch data');
+                }
+                return response.json();
+            })
+            .then(data => {
+                // Sort the data by date
+                data.sort((a, b) => new Date(a.date) - new Date(b.date));
+    
+                const tableBody = document.querySelector('#dataTable tbody');
+                tableBody.innerHTML = ''; // Clear previous data
+    
+                if (data.length === 0) {
+                    // Display "No Data Available" if the data array is empty
+                    const noDataRow = document.createElement('tr');
+                    noDataRow.innerHTML = `<td colspan="6" style="text-align: center;">No Data Available</td>`;
+                    tableBody.appendChild(noDataRow);
+                } else {
+                    // Populate the table with sorted data
+                    data.forEach((item, index) => {
+                        const row = document.createElement('tr');
+                        row.innerHTML = `
+                          <td>${index + 1}</td>
+                          <td>${feeder}</td>
+                          <td>${item.MW}</td>
+                          <td>${item.date}</td>
+                          <td>${item.time}</td>
+                          <td class="action-btns">
+                            <span class="btn btn-sm btn-primary" onclick="openEditModal('${item._id}', '${item.MW}', '${item.date}', '${item.time}')">Edit</span>
+                            <span class="btn btn-sm btn-danger" onclick="deleteData('${item._id}')">Delete</span>
+                          </td>
+                        `;
+                        tableBody.appendChild(row);
+                    });
+                }
+    
+                // Show the uploaded data container
+                document.getElementById('uploadedData').style.display = 'block';
+            })
+            .catch(error => {
+                console.error('Error fetching data:', error);
+            });
+    }
+    
 
     function openEditModal(id, MW, date, time) {
         document.getElementById('editId').value = id;
