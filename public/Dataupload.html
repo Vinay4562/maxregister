@@ -234,7 +234,8 @@
 
     function handleFileSelect(event) {
         const file = event.target.files[0];
-        if (!file) {
+        if (!file || !file.name.endsWith('.xlsx')) {
+            alert('Please upload a valid Excel file.');
             return;
         }
 
@@ -250,6 +251,11 @@
             // Process the jsonData and send it to the server
             jsonData.forEach(row => {
                 const { MW, Date, Time } = row;
+
+                // Convert Date and Time from Excel format
+                const formattedDate = new Date((Date - (25567 + 2)) * 86400 * 1000).toISOString().split('T')[0];  // Convert to yyyy-MM-dd
+                const formattedTime = convertExcelTimeToTimeString(Time);  // Assuming `time` is in Excel time format
+
                 const feeder = document.querySelector('#input2Container select').value;
                 const year = document.getElementById('year').value;
                 const voltage = document.getElementById('input1').value;
@@ -257,7 +263,7 @@
                 fetch('https://maxregister-git-main-vinay-kumars-projects-f1559f4a.vercel.app/upload', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ feeder, year, voltage, MW, date: Date, time: Time })
+                    body: JSON.stringify({ feeder, year, voltage, MW, date: formattedDate, time: formattedTime })
                 }).then(response => response.json())
                     .then(data => {
                         if (data.error) {
@@ -276,6 +282,13 @@
         };
 
         reader.readAsArrayBuffer(file);
+    }
+
+    function convertExcelTimeToTimeString(excelTime) {
+        const totalMinutes = excelTime * 24 * 60; // Convert fractional day to total minutes
+        const hours = Math.floor(totalMinutes / 60);
+        const minutes = Math.round(totalMinutes % 60);
+        return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`;
     }
 
     document.getElementById('selectForm').addEventListener('submit', function(event) {
