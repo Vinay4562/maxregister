@@ -410,9 +410,9 @@
     }
   }
 
-  let myChart = null; // Declare myChart outside the fetchAndDisplayData function
+  let myChart = null; // Declare myChart globally if it’s used across multiple functions
 
-  function fetchAndDisplayData(voltage, feeder, startYear, endYear) {
+function fetchAndDisplayData(voltage, feeder, startYear, endYear) {
     const tableBody = document.querySelector('#dataTable tbody');
     tableBody.innerHTML = ''; // Clear previous data
 
@@ -426,83 +426,104 @@
 
     // Create the chart if it doesn't exist
     if (!myChart) {
-      const ctx = document.getElementById('myChart').getContext('2d');
-      ctx.canvas.width = 300; // Set the width of the canvas
-      ctx.canvas.height = 100; // Set the height of the canvas
-      myChart = new Chart(ctx, {
-        type: 'line',
-        data: {
-          labels: [],
-          datasets: [{
-            label: 'MW',
-            data: [],
-            backgroundColor: 'rgba(54, 162, 235, 0.2)',
-            borderColor: 'rgba(54, 162, 235, 1)',
-            borderWidth: 1
-          }]
-        },
-        options: {
-          animation: {
-            duration: 3000, // Animation duration in milliseconds
-          },
-          scales: {
-            y: {
-              beginAtZero: true
+        const ctx = document.getElementById('myChart').getContext('2d');
+        ctx.canvas.width = 300; // Set the width of the canvas
+        ctx.canvas.height = 100; // Set the height of the canvas
+        myChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: [],
+                datasets: [{
+                    label: 'MW',
+                    data: [],
+                    backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                    borderColor: 'rgba(54, 162, 235, 1)',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                animation: {
+                    duration: 3000, // Animation duration in milliseconds
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
             }
-          }
-        }
-      });
+        });
     } else {
-      // Clear the existing chart data
-      myChart.data.labels = [];
-      myChart.data.datasets[0].data = [];
-      myChart.update();
+        // Clear the existing chart data
+        myChart.data.labels = [];
+        myChart.data.datasets[0].data = [];
+        myChart.update();
     }
 
-    for (let year = startYear; year <= endYear; year++) {
-      fetch(`https://maxregister-git-main-vinay-kumars-projects-f1559f4a.vercel.app/data?feeder=${feeder}&year=${year}`)
-        .then(response => response.json())
-        .then(data => {
-          data.forEach(item => {
-            fetchedData.push({
-              SerialNo: serialNumber,
-              NameOfTheFeeder: feeder,
-              MW: item.MW,
-              Date: formatDate(item.date),
-              Time: item.time
+    async function fetchDataForYear(year) {
+        try {
+            const response = await fetch(`https://maxregister-git-main-vinay-kumars-projects-f1559f4a.vercel.app/data?feeder=${feeder}&year=${year}`);
+            const data = await response.json();
+            data.forEach(item => {
+                fetchedData.push({
+                    SerialNo: serialNumber,
+                    NameOfTheFeeder: feeder,
+                    MW: item.MW,
+                    Date: formatDate(item.date),
+                    Time: item.time,
+                    DateTime: new Date(`${item.date}T${item.time}`) // For sorting purposes
+                });
+
+                if (item.MW > maxMW) {
+                    maxMW = item.MW;
+                    maxMWRow = {
+                        feeder,
+                        MW: item.MW,
+                        date: item.date,
+                        time: item.time
+                    };
+                }
+
+                serialNumber++; // Increment the serial number
             });
+        } catch (error) {
+            console.error('Error fetching data:', error);
+        }
+    }
 
+    // Fetch data for each year sequentially
+    async function fetchAllData() {
+        for (let year = startYear; year <= endYear; year++) {
+            await fetchDataForYear(year);
+        }
+
+        // Sort data by DateTime
+        fetchedData.sort((a, b) => a.DateTime - b.DateTime);
+
+        // Render sorted data in the table and chart
+        fetchedData.forEach(item => {
             // Add data to the chart
-            myChart.data.labels.push(formatDate(item.date) + ' ' + item.time);
+            myChart.data.labels.push(item.Date + ' ' + item.Time);
             myChart.data.datasets[0].data.push(item.MW);
-
-            if (item.MW > maxMW) {
-              maxMW = item.MW;
-              maxMWRow = {
-                feeder,
-                MW: item.MW,
-                date: item.date,
-                time: item.time
-              };
-            }
 
             const row = document.createElement('tr');
             row.innerHTML = `
-              <td>${serialNumber}</td>
-              <td>${feeder}</td>
+              <td>${item.SerialNo}</td>
+              <td>${item.NameOfTheFeeder}</td>
               <td>${item.MW}</td>
-              <td>${formatDate(item.date)}</td>
-              <td>${item.time}</td>
+              <td>${item.Date}</td>
+              <td>${item.Time}</td>
             `;
             tableBody.appendChild(row);
-            serialNumber++; // Increment the serial number
-          });
+        });
 
-          // Show the uploaded data container
-          document.getElementById('uploadedData').style.display = 'block';
+        // Update the chart with the new data
+        myChart.update();
 
-          // Display the maximum MW row after fetching all data
-          if (year === endYear) {
+        // Show the uploaded data container
+        document.getElementById('uploadedData').style.display = 'block';
+
+        // Display the maximum MW row after fetching all data
+        if (maxMWRow) {
             const maxMWContainer = document.createElement('div');
             maxMWContainer.classList.add('max-mw-container');
             maxMWContainer.innerHTML = `
@@ -535,23 +556,22 @@
             // Add event listeners to the buttons
             const printButton = maxMWContainer.querySelector('.print-button');
             printButton.addEventListener('click', function() {
-              window.print();
+                window.print();
             });
 
             const excelButton = maxMWContainer.querySelector('.excel-button');
             excelButton.addEventListener('click', function() {
-              exportToExcel(fetchedData);
+                exportToExcel(fetchedData);
             });
 
             // Show the maxMWContainer
             maxMWContainer.style.display = 'block';
-          }
-
-          // Update the chart with the new data
-          myChart.update();
-        });
+        }
     }
-  }
+
+    fetchAllData();
+}
+
 
   function exportToExcel(data, filename = 'data.xlsx') {
     const ws = XLSX.utils.json_to_sheet(data);
@@ -579,8 +599,6 @@ function addOptionsToInput2(options) {
     const year = date.getFullYear();
     return `${day}-${month}-${year}`;
   }
-
-
 </script>
 </body>
 </html>
