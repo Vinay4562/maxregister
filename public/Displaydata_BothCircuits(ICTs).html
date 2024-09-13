@@ -253,7 +253,6 @@
     let fetchedData = []; // Array to store fetched data
 
     try {
-        // Fetch data for each feeder
         const feeder1Data = await fetchDataForFeeder(feeder1, startYear, endYear);
         const feeder2Data = await fetchDataForFeeder(feeder2, startYear, endYear);
         const feeder3Data = voltage === 'ICTS' ? await fetchDataForFeeder(feeder3, startYear, endYear) : [];
@@ -261,10 +260,11 @@
 
         let matchedRows = [];
 
-        // Match data based on voltage type
         if (voltage !== 'ICTS') {
-            for (let item1 of feeder1Data) {
-                for (let item2 of feeder2Data) {
+            for (let i = 0; i < feeder1Data.length; i++) {
+                const item1 = feeder1Data[i];
+                for (let j = 0; j < feeder2Data.length; j++) {
+                    const item2 = feeder2Data[j];
                     if (item1.date === item2.date && item1.time === item2.time) {
                         matchedRows.push({
                             date: item1.date,
@@ -276,12 +276,16 @@
                 }
             }
         } else {
-            for (let item1 of feeder1Data) {
-                for (let item2 of feeder2Data) {
+            for (let i = 0; i < feeder1Data.length; i++) {
+                const item1 = feeder1Data[i];
+                for (let j = 0; j < feeder2Data.length; j++) {
+                    const item2 = feeder2Data[j];
                     if (item1.date === item2.date && item1.time === item2.time) {
-                        for (let item3 of feeder3Data) {
+                        for (let k = 0; k < feeder3Data.length; k++) {
+                            const item3 = feeder3Data[k];
                             if (item1.date === item3.date && item1.time === item3.time) {
-                                for (let item4 of feeder4Data) {
+                                for (let l = 0; l < feeder4Data.length; l++) {
+                                    const item4 = feeder4Data[l];
                                     if (item1.date === item4.date && item1.time === item4.time) {
                                         matchedRows.push({
                                             date: item1.date,
@@ -318,7 +322,6 @@
         if (maxMWRow) {
             const tableRow = document.createElement('tr');
             tableRow.innerHTML = `
-                <td>${serialNumber++}</td>
                 <td>${maxMWRow.date}</td>
                 <td>${maxMWRow.time}</td>
                 <td>${feeder1}</td>
@@ -352,20 +355,6 @@
     document.getElementById('matchedData').style.display = 'block';
 }
 
-async function fetchDataForFeeder(feeder, startYear, endYear) {
-    let fetchedData = [];
-    for (let year = startYear; year <= endYear; year++) {
-        try {
-            const response = await fetch(`https://maxregister-git-main-vinay-kumars-projects-f1559f4a.vercel.app/data?feeder=${feeder}&year=${year}`);
-            const data = await response.json();
-            fetchedData = fetchedData.concat(data);
-        } catch (error) {
-            console.error('Error fetching data:', error);
-        }
-    }
-    return fetchedData;
-}
-
 function downloadExcel(data) {
     const fileName = 'matched_data.xlsx';
 
@@ -376,6 +365,20 @@ function downloadExcel(data) {
 
     // Generate Excel file and trigger download
     XLSX.writeFile(workbook, fileName);
+}
+
+
+async function fetchDataForFeeder(feeder, startYear, endYear) {
+    let fetchedData = [];
+    for (let year = startYear; year <= endYear; year++) {
+        try {
+            const data = await fetch(`https://maxregister-git-main-vinay-kumars-projects-f1559f4a.vercel.app/data?feeder=${feeder}&year=${year}`).then(response => response.json());
+            fetchedData = fetchedData.concat(data);
+        } catch (error) {
+            console.error('Error fetching data:', error);
+        }
+    }
+    return fetchedData;
 }
 
 function formatDate(dateString) {
