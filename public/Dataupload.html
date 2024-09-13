@@ -232,64 +232,65 @@
   <script>
     document.getElementById('excelFileInput').addEventListener('change', handleFileSelect);
 
-    function handleFileSelect(event) {
-        const file = event.target.files[0];
-        if (!file || !file.name.endsWith('.xlsx')) {
-            alert('Please upload a valid Excel file.');
-            return;
-        }
-
-        const reader = new FileReader();
-        reader.onload = function(e) {
-            const data = new Uint8Array(e.target.result);
-            const workbook = XLSX.read(data, { type: 'array' });
-
-            const sheetName = workbook.SheetNames[0];
-            const worksheet = workbook.Sheets[sheetName];
-            const jsonData = XLSX.utils.sheet_to_json(worksheet);
-
-            // Process the jsonData and send it to the server
-            jsonData.forEach(row => {
-                const { MW, Date, Time } = row;
-
-                // Convert Date and Time from Excel format
-                const formattedDate = new Date((Date - (25567 + 2)) * 86400 * 1000).toISOString().split('T')[0];  // Convert to yyyy-MM-dd
-                const formattedTime = convertExcelTimeToTimeString(Time);  // Assuming `time` is in Excel time format
-
-                const feeder = document.querySelector('#input2Container select').value;
-                const year = document.getElementById('year').value;
-                const voltage = document.getElementById('input1').value;
-
-                fetch('https://maxregister-git-main-vinay-kumars-projects-f1559f4a.vercel.app/upload', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ feeder, year, voltage, MW, date: formattedDate, time: formattedTime })
-                }).then(response => response.json())
-                    .then(data => {
-                        if (data.error) {
-                            alert(data.error);
-                        } else {
-                            document.getElementById('successModal').style.display = 'block';
-                            fetchData();
-
-                            // Close the success modal after 0.5 seconds
-                            setTimeout(() => {
-                                document.getElementById('successModal').style.display = 'none';
-                            }, 500);
-                        }
-                    });
-            });
-        };
-
-        reader.readAsArrayBuffer(file);
+function handleFileSelect(event) {
+    const file = event.target.files[0];
+    if (!file || !file.name.endsWith('.xlsx')) {
+        alert('Please upload a valid Excel file.');
+        return;
     }
 
-    function convertExcelTimeToTimeString(excelTime) {
-        const totalMinutes = excelTime * 24 * 60; // Convert fractional day to total minutes
-        const hours = Math.floor(totalMinutes / 60);
-        const minutes = Math.round(totalMinutes % 60);
-        return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`;
-    }
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        const data = new Uint8Array(e.target.result);
+        const workbook = XLSX.read(data, { type: 'array' });
+
+        const sheetName = workbook.SheetNames[0];
+        const worksheet = workbook.Sheets[sheetName];
+        const jsonData = XLSX.utils.sheet_to_json(worksheet);
+
+        // Process the jsonData and send it to the server
+        jsonData.forEach(row => {
+            const { MW, Date: excelDate, Time: excelTime } = row;  // Rename 'Date' to 'excelDate' and 'Time' to 'excelTime'
+
+            // Convert Date and Time from Excel format
+            const formattedDate = new Date((excelDate - (25567 + 2)) * 86400 * 1000).toISOString().split('T')[0];  // Convert to yyyy-MM-dd
+            const formattedTime = convertExcelTimeToTimeString(excelTime);  // Assuming `time` is in Excel time format
+
+            const feeder = document.querySelector('#input2Container select').value;
+            const year = document.getElementById('year').value;
+            const voltage = document.getElementById('input1').value;
+
+            fetch('https://maxregister-git-main-vinay-kumars-projects-f1559f4a.vercel.app/upload', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ feeder, year, voltage, MW, date: formattedDate, time: formattedTime })
+            }).then(response => response.json())
+                .then(data => {
+                    if (data.error) {
+                        alert(data.error);
+                    } else {
+                        document.getElementById('successModal').style.display = 'block';
+                        fetchData();
+
+                        // Close the success modal after 0.5 seconds
+                        setTimeout(() => {
+                            document.getElementById('successModal').style.display = 'none';
+                        }, 500);
+                    }
+                });
+        });
+    };
+
+    reader.readAsArrayBuffer(file);
+}
+
+function convertExcelTimeToTimeString(excelTime) {
+    const totalMinutes = excelTime * 24 * 60; // Convert fractional day to total minutes
+    const hours = Math.floor(totalMinutes / 60);
+    const minutes = Math.round(totalMinutes % 60);
+    return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`;
+}
+
 
     document.getElementById('selectForm').addEventListener('submit', function(event) {
         event.preventDefault(); // Prevent the form from submitting
