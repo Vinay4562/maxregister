@@ -217,34 +217,50 @@ document.getElementById('excelFileInput').addEventListener('change', handleFileS
         document.getElementById('editModal').style.display = 'none';
     };
 
+    function showAlert(message, type = 'success') {
+        const alertBox = document.getElementById('alertBox');
+        alertBox.textContent = message;
+        alertBox.className = type; // 'success' or 'error'
+        alertBox.style.display = 'block';
+        
+        setTimeout(() => {
+            alertBox.style.display = 'none';
+        }, 1500); // Hide after 3 seconds
+    }
+    
     document.getElementById('editForm').addEventListener('submit', function(event) {
-      event.preventDefault(); // Prevent the form from submitting
-
-      const id = document.getElementById('editId').value;
-      const MW = document.getElementById('editDataInput1').value;
-      const date = document.getElementById('editDataInput2').value;
-      const time = document.getElementById('editDataInput3').value;
-      const feeder = document.querySelector('#input2Container select').value;
-      const year = document.getElementById('year').value;
-
-      fetch(`https://maxregister-git-main-vinay-kumars-projects-f1559f4a.vercel.app/update?feeder=${feeder}&year=${year}`, {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ id, MW, date, time })
-      }).then(response => response.json())
-          .then(data => {
-              if (data.error) {
-                  alert(data.error); // Display error message
-              } else {
-                  document.getElementById('editModal').style.display = 'none';
-                  alert('Data updated successfully!'); // Display success message
-                  fetchData(); // Refresh data on the page
-              }
-          }).catch(error => {
-              console.error('Error:', error);
-              alert('An error occurred while updating the data. Please try again.');
-          });
-  });
+        event.preventDefault(); // Prevent the default form submission behavior
+    
+        // Retrieve form values
+        const id = document.getElementById('editId').value;
+        const MW = document.getElementById('editDataInput1').value;
+        const date = document.getElementById('editDataInput2').value;
+        const time = document.getElementById('editDataInput3').value;
+        const feeder = document.querySelector('#input2Container select').value;
+        const year = document.getElementById('year').value;
+    
+        // Send PUT request to the server
+        fetch(`https://maxregister-git-main-vinay-kumars-projects-f1559f4a.vercel.app/update?feeder=${feeder}&year=${year}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ id, MW, date, time })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.error) {
+                showAlert(data.error, 'error'); // Display error message
+            } else {
+                document.getElementById('editModal').style.display = 'none'; // Hide modal
+                showAlert('Data updated successfully!'); // Display success message
+                fetchData(); // Refresh data on the page
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showAlert('An error occurred while updating the data. Please try again.', 'error'); // Display error message
+        });
+    });
+    
 
       function deleteData(id) {
         const feeder = document.querySelector('#input2Container select').value;
