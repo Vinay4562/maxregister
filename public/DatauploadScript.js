@@ -225,7 +225,7 @@ document.getElementById('excelFileInput').addEventListener('change', handleFileS
         
         setTimeout(() => {
             alertBox.style.display = 'none';
-        }, 1500); // Hide after 3 seconds
+        }, 3000); // Hide after 3 seconds
     }
     
     document.getElementById('editForm').addEventListener('submit', function(event) {
