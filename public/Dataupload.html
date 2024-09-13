@@ -401,11 +401,22 @@
 }
 
     function openEditModal(id, MW, date, time) {
+      const formattedDate = new Date(date).toISOString().split('T')[0];  // Converts to yyyy-MM-dd
+      const formattedTime = convertExcelTimeToTimeString(time);  // Assuming `time` is in Excel time format
+
+
         document.getElementById('editId').value = id;
         document.getElementById('editDataInput1').value = MW;
-        document.getElementById('editDataInput2').value = date;
-        document.getElementById('editDataInput3').value = time;
+        document.getElementById('editDataInput2').value = formattedDate;
+        document.getElementById('editDataInput3').value = formattedTime;
         document.getElementById('editModal').style.display = 'block';
+    }
+
+    function convertExcelTimeToTimeString(excelTime) {
+      const totalMinutes = excelTime * 24 * 60; // Convert fractional day to total minutes
+      const hours = Math.floor(totalMinutes / 60);
+      const minutes = Math.round(totalMinutes % 60);
+      return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`;
     }
 
     document.querySelector('#editModal .close').onclick = function() {
