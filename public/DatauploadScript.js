@@ -132,7 +132,12 @@ document.getElementById('excelFileInput').addEventListener('change', handleFileS
         fetchAndDisplayData(voltage, feeder, year, function(data) {
             // Sort the data by date
             data.sort((a, b) => new Date(a.date) - new Date(b.date));
-            displayData(data); // Display the sorted data
+            
+            // Format the dates and display the data
+            data.forEach(item => {
+                item.date = formatDate(item.date);
+            });
+            displayData(data); // Display the formatted and sorted data
         });
     }
     
@@ -152,6 +157,11 @@ document.getElementById('excelFileInput').addEventListener('change', handleFileS
                 // Sort the data by date
                 data.sort((a, b) => new Date(a.date) - new Date(b.date));
     
+                // Format the dates
+                data.forEach(item => {
+                    item.date = formatDate(item.date);
+                });
+    
                 const tableBody = document.querySelector('#dataTable tbody');
                 tableBody.innerHTML = ''; // Clear previous data
     
@@ -161,7 +171,7 @@ document.getElementById('excelFileInput').addEventListener('change', handleFileS
                     noDataRow.innerHTML = `<td colspan="6" style="text-align: center;">No Data Available</td>`;
                     tableBody.appendChild(noDataRow);
                 } else {
-                    // Populate the table with sorted data
+                    // Populate the table with formatted data
                     data.forEach((item, index) => {
                         const row = document.createElement('tr');
                         row.innerHTML = `
@@ -186,7 +196,14 @@ document.getElementById('excelFileInput').addEventListener('change', handleFileS
                 console.error('Error fetching data:', error);
             });
     }
-    
+
+    function formatDate(dateString) {
+        const date = new Date(dateString);
+        const day = String(date.getDate()).padStart(2, '0');
+        const month = String(date.getMonth() + 1).padStart(2, '0'); // Months are zero-based
+        const year = date.getFullYear();
+        return `${day}-${month}-${year}`;
+    }
 
     function openEditModal(id, MW, date, time) {
         document.getElementById('editId').value = id;
