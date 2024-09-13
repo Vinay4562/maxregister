@@ -416,7 +416,6 @@ function fetchAndDisplayData(voltage, feeder, startYear, endYear) {
     const tableBody = document.querySelector('#dataTable tbody');
     tableBody.innerHTML = ''; // Clear previous data
 
-    let serialNumber = 1; // Counter for serial numbers
     let maxMW = -Infinity;
     let maxMWRow = null;
     let fetchedData = []; // Array to store fetched data
@@ -465,7 +464,6 @@ function fetchAndDisplayData(voltage, feeder, startYear, endYear) {
             const data = await response.json();
             data.forEach(item => {
                 fetchedData.push({
-                    SerialNo: serialNumber,
                     NameOfTheFeeder: feeder,
                     MW: item.MW,
                     Date: formatDate(item.date),
@@ -482,8 +480,6 @@ function fetchAndDisplayData(voltage, feeder, startYear, endYear) {
                         time: item.time
                     };
                 }
-
-                serialNumber++; // Increment the serial number
             });
         } catch (error) {
             console.error('Error fetching data:', error);
@@ -500,14 +496,14 @@ function fetchAndDisplayData(voltage, feeder, startYear, endYear) {
         fetchedData.sort((a, b) => a.DateTime - b.DateTime);
 
         // Render sorted data in the table and chart
-        fetchedData.forEach(item => {
+        fetchedData.forEach((item, index) => {
             // Add data to the chart
             myChart.data.labels.push(item.Date + ' ' + item.Time);
             myChart.data.datasets[0].data.push(item.MW);
 
             const row = document.createElement('tr');
             row.innerHTML = `
-              <td>${item.SerialNo}</td>
+              <td>${index + 1}</td> <!-- Serial Number -->
               <td>${item.NameOfTheFeeder}</td>
               <td>${item.MW}</td>
               <td>${item.Date}</td>
@@ -571,7 +567,6 @@ function fetchAndDisplayData(voltage, feeder, startYear, endYear) {
 
     fetchAllData();
 }
-
 
   function exportToExcel(data, filename = 'data.xlsx') {
     const ws = XLSX.utils.json_to_sheet(data);
