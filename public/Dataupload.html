@@ -250,18 +250,10 @@ function handleFileSelect(event) {
 
         // Process the jsonData and send it to the server
         jsonData.forEach(row => {
-            const { MW, Date: excelDate, Time: excelTime } = row;
+            const { MW, Date: excelDate, Time: excelTime } = row;  // 'Date' remains as-is from Excel
 
-            // Check if 'excelDate' is a string (dd-MM-yyyy) or a number (Excel date format)
-            let formattedDate;
-            if (typeof excelDate === 'string' && excelDate.includes('-')) {
-                formattedDate = formatDateString(excelDate); // Parse the string 'dd-MM-yyyy'
-            } else if (!isNaN(excelDate)) {
-                formattedDate = new Date((excelDate - (25567 + 2)) * 86400 * 1000).toISOString().split('T')[0];  // Convert Excel date number to yyyy-MM-dd
-            } else {
-                console.error(`Invalid date in row:`, row);
-                formattedDate = 'Invalid date';  // Or handle invalid date case
-            }
+            // Skip date conversion, use the date exactly as it is from the Excel file
+            const formattedDate = excelDate; 
 
             // Convert Excel Time
             const formattedTime = convertExcelTimeToTimeString(excelTime);
@@ -298,11 +290,6 @@ function convertExcelTimeToTimeString(excelTime) {
     const hours = Math.floor(totalMinutes / 60);
     const minutes = Math.round(totalMinutes % 60);
     return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`;
-}
-
-function formatDateString(dateString) {
-    const [day, month, year] = dateString.split('-');
-    return `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`; // Convert 'dd-MM-yyyy' to 'yyyy-MM-dd'
 }
 
 
