@@ -25,6 +25,7 @@ body {
   display: flex;
   flex-direction: column;
   align-items: center;
+  position: relative;
 }
 
 @keyframes slideDown {
@@ -42,6 +43,8 @@ body {
   backdrop-filter: blur(15px);
   width: 100%;
   margin-top: 10px;
+  position: absolute;
+  bottom: -30px;
 }
 
 .navbar a {
@@ -71,7 +74,7 @@ body {
 
 .container {
   max-width: 900px;
-  margin: 60px auto;
+  margin: 80px auto 60px auto;
   background: rgba(255, 255, 255, 0.2);
   padding: 30px;
   border-radius: 20px;
