@@ -78,10 +78,10 @@
   </div>
 
   <!-- Loading Spinner -->
-<div id="loadingSpinner" style="display: none; text-align: center; margin-top: 20px;">
-  <p>Loading data...</p>
-  <div class="spinner"></div>
-</div>
+  <div id="fullScreenSpinner" style="display: none;">
+    <div class="spinner"></div>
+    <p>Loading data...</p>
+  </div>
 
   <div id="uploadedData" style="display: none;">
     <h2>Uploaded Data</h2>
@@ -206,8 +206,8 @@
   document.getElementById('selectForm').addEventListener('submit', function(event) {
     event.preventDefault();
 
-    // Show the loading spinner
-    document.getElementById('loadingSpinner').style.display = 'block';
+    // Show the full-screen spinner
+    document.getElementById('fullScreenSpinner').style.display = 'flex'; // Changed to fullScreenSpinner
 
     const voltage = document.getElementById('input1').value;
     const feeder1 = document.getElementById('input2').value;
@@ -221,22 +221,22 @@
     if (voltage === '400KV' || voltage === '220KV') {
         if (hasDuplicates([feeder1, feeder2])) {
             alert('Please select different feeders for each input.');
-            document.getElementById('loadingSpinner').style.display = 'none'; // Hide spinner
+            document.getElementById('fullScreenSpinner').style.display = 'none'; // Hide full-screen spinner
             return;
         }
     } else if (voltage === 'ICTS') {
         if (hasDuplicates([feeder1, feeder2, feeder3, feeder4])) {
-            alert('Please select different feeders for each input.');
-            document.getElementById('loadingSpinner').style.display = 'none'; // Hide spinner
+          alert('Please select different feeders for each input.');
+            document.getElementById('fullScreenSpinner').style.display = 'none'; // Hide full-screen spinner
             return;
         }
     }
 
     // Check for required selections
     if (!voltage || !feeder1 || !feeder2 || !year || !toYear) {
-        alert('Please select all required fields.');
-        document.getElementById('loadingSpinner').style.display = 'none'; // Hide spinner
-        return;
+      alert('Please select different feeders for each input.');
+      document.getElementById('fullScreenSpinner').style.display = 'none'; // Hide full-screen spinner
+      return;
     }
 
     const startYear = parseInt(year);
@@ -249,8 +249,7 @@
             alert("Failed to fetch data. Please try again.");
         })
         .finally(() => {
-            // Hide the loading spinner when done
-            document.getElementById('loadingSpinner').style.display = 'none';
+            document.getElementById('fullScreenSpinner').style.display = 'none'; // Hide full-screen spinner
         });
 });
 
