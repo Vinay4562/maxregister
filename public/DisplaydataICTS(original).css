@@ -38,35 +38,33 @@ h1 {
 /* Navigation Bar */
 .navbar {
   display: flex;
-  gap: 15px;
+  justify-content: center;
+  gap: 20px;
+  padding: 12px 0;
+  background: rgba(255, 255, 255, 0.2); /* Semi-transparent */
+  backdrop-filter: blur(10px);
+  box-shadow: 0 4px 6px rgba(255, 255, 255, 0.2);
 }
 
+/* Navbar Links */
 .navbar a {
-  text-decoration: none;
+  text-decoration: none; /* Remove underline */
   color: white;
   font-size: 18px;
   padding: 12px 20px;
   border-radius: 8px;
   transition: all 0.3s ease-in-out;
-  background: rgba(255, 255, 255, 0.2);
-  box-shadow: 0 4px 6px rgba(255, 255, 255, 0.2);
-  backdrop-filter: blur(10px);
+  background: transparent;
+  font-weight: 500;
 }
 
+/* Hover Effect */
 .navbar a:hover {
   background: #fff;
   color: #0044cc;
   font-weight: bold;
   transform: translateY(-3px);
   box-shadow: 0 6px 12px rgba(255, 255, 255, 0.3);
-}
-
-/* Active Link */
-.navbar a.active {
-  background: #ffffff;
-  color: #0044cc;
-  font-weight: bold;
-  border: 2px solid #fff;
 }
 
 .container {
