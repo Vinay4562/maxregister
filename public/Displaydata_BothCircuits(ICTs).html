@@ -78,10 +78,10 @@
   </div>
 
   <!-- Loading Spinner -->
-  <div id="fullScreenSpinner" style="display: none;">
-    <div class="spinner"></div>
-    <p>Loading data...</p>
-  </div>
+<div id="loadingSpinner" style="display: none; text-align: center; margin-top: 20px;">
+  <p>Loading data...</p>
+  <div class="spinner"></div>
+</div>
 
   <div id="uploadedData" style="display: none;">
     <h2>Uploaded Data</h2>
@@ -264,9 +264,6 @@ function hasDuplicates(arr) {
     const tableBody = document.querySelector('#dataTable tbody');
     tableBody.innerHTML = ''; // Clear previous data
 
-    const fullScreenSpinner = document.getElementById('fullScreenSpinner');
-    fullScreenSpinner.style.display = 'flex'; // Show spinner
-
     const matchedTableBody = document.querySelector('#matchedTable tbody');
     matchedTableBody.innerHTML = ''; // Clear previous matched data
 
@@ -370,8 +367,6 @@ function hasDuplicates(arr) {
 
     } catch (error) {
         console.error('Error fetching or displaying data:', error);
-      } finally {
-        fullScreenSpinner.style.display = 'none'; // Hide spinner
     }
 
     document.getElementById('matchedData').style.display = 'block';
