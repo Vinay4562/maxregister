@@ -78,10 +78,10 @@
   </div>
 
   <!-- Loading Spinner -->
-<div id="loadingSpinner" style="display: none; text-align: center; margin-top: 20px;">
-  <p>Loading data...</p>
-  <div class="spinner"></div>
-</div>
+  <div id="loadingSpinner">
+    <div class="spinner"></div>
+    <p>Fetching data, please wait...</p>
+  </div>  
 
   <div id="uploadedData" style="display: none;">
     <h2>Uploaded Data</h2>
@@ -203,58 +203,61 @@
     }
   });
 
-  document.getElementById('selectForm').addEventListener('submit', function(event) {
-    event.preventDefault();
+    document.getElementById('selectForm').addEventListener('submit', function(event) {
+      event.preventDefault();
 
-    // Show the loading spinner
-    document.getElementById('loadingSpinner').style.display = 'block';
+      // Show the loading spinner
+      document.getElementById('loadingSpinner').style.display = 'block';
 
-    const voltage = document.getElementById('input1').value;
-    const feeder1 = document.getElementById('input2').value;
-    const feeder2 = document.getElementById('input3').value;
-    const feeder3 = document.getElementById('input4').value;
-    const feeder4 = document.getElementById('input5').value;
-    const year = document.getElementById('year').value;
-    const toYear = document.getElementById('toYear').value;
-    
-    // Check for duplicates based on voltage type
-    if (voltage === '400KV') {
-        if (hasDuplicates([feeder1, feeder2])) {
-            alert('Please select different feeders for each input.');
-            return;
-        }
-    } else if (voltage === '220KV') {
-        if (hasDuplicates([feeder1, feeder2])) {
-            alert('Please select different feeders for each input.');
-            return;
-        }
-    } else if (voltage === 'ICTS') {
-        if (hasDuplicates([feeder1, feeder2, feeder3, feeder4])) {
-            alert('Please select different feeders for each input.');
-            return;
-        }
-    }
+      const voltage = document.getElementById('input1').value;
+      const feeder1 = document.getElementById('input2').value;
+      const feeder2 = document.getElementById('input3').value;
+      const feeder3 = document.getElementById('input4').value;
+      const feeder4 = document.getElementById('input5').value;
+      const year = document.getElementById('year').value;
+      const toYear = document.getElementById('toYear').value;
+      
+      // Check for duplicate feeders based on voltage type
+      if (voltage === '400KV' || voltage === '220KV') {
+          if (hasDuplicates([feeder1, feeder2])) {
+              alert('Please select different feeders for each input.');
+              document.getElementById('loadingSpinner').style.display = 'none'; // Hide spinner
+              return;
+          }
+      } else if (voltage === 'ICTS') {
+          if (hasDuplicates([feeder1, feeder2, feeder3, feeder4])) {
+              alert('Please select different feeders for each input.');
+              document.getElementById('loadingSpinner').style.display = 'none'; // Hide spinner
+              return;
+          }
+      }
 
-    // Check for duplicates and validation
-    if (!voltage || !feeder1 || !feeder2 || !year || !toYear) {
-      alert('Please select all required fields.');
-      document.getElementById('loadingSpinner').style.display = 'none'; // Hide spinner
-      return;
-    }
+      // Check for required selections
+      if (!voltage || !feeder1 || !feeder2 || !year || !toYear) {
+          alert('Please select all required fields.');
+          document.getElementById('loadingSpinner').style.display = 'none'; // Hide spinner
+          return;
+      }
 
-    const startYear = parseInt(year);
-    const endYear = parseInt(toYear);
+      const startYear = parseInt(year);
+      const endYear = parseInt(toYear);
 
-    // Fetch and display data
-  fetchAndDisplayData(voltage, feeder1, feeder2, feeder3, feeder4, startYear, endYear)
-    .finally(() => {
-      // Hide the loading spinner when done
-      document.getElementById('loadingSpinner').style.display = 'none';
-    });
+      // Fetch and display data
+      fetchAndDisplayData(voltage, feeder1, feeder2, feeder3, feeder4, startYear, endYear)
+          .catch(error => {
+              console.error("Error fetching data:", error);
+              alert("Failed to fetch data. Please try again.");
+          })
+          .finally(() => {
+              // Hide the loading spinner when done
+              document.getElementById('loadingSpinner').style.display = 'none';
+          });
   });
 
-  function hasDuplicates(array) {
-    return (new Set(array)).size !== array.length;
+  // Function to check for duplicate values
+  function hasDuplicates(arr) {
+      let uniqueValues = new Set(arr.filter(item => item !== "")); // Remove empty selections
+      return uniqueValues.size !== arr.filter(item => item !== "").length;
   }
 
   async function fetchAndDisplayData(voltage, feeder1, feeder2, feeder3, feeder4, startYear, endYear) {
