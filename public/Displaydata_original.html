@@ -475,152 +475,152 @@
 
   let myChart = null; // Declare myChart globally if it’s used across multiple functions
 
-  async function fetchAndDisplayData(voltage, feeder, startYear, endYear) {
-    const tableBody = document.querySelector('#dataTable tbody');
-    const noDataMessage = document.querySelector('#noDataMessage');
-    const fullScreenSpinner = document.getElementById('fullScreenSpinner');
-    
-    // Show spinner
-    fullScreenSpinner.style.display = 'flex';
-    
-    try {
-        tableBody.innerHTML = '';
-        let maxMW = -Infinity;
-        let maxMWRow = null;
-        let fetchedData = [];
+    async function fetchAndDisplayData(voltage, feeder, startYear, endYear) {
+      const tableBody = document.querySelector('#dataTable tbody');
+      const noDataMessage = document.querySelector('#noDataMessage');
+      const fullScreenSpinner = document.getElementById('fullScreenSpinner');
+      
+      // Show spinner
+      fullScreenSpinner.style.display = 'flex';
+      
+      try {
+          tableBody.innerHTML = '';
+          let maxMW = -Infinity;
+          let maxMWRow = null;
+          let fetchedData = [];
 
-        // Remove previous maximum MW container
-        removeMaxMWContainer();
+          // Remove previous maximum MW container
+          removeMaxMWContainer();
 
-        // Initialize or reset chart
-        if (!myChart) {
-            const ctx = document.getElementById('myChart').getContext('2d');
-            ctx.canvas.width = 300;
-            ctx.canvas.height = 100;
-            myChart = new Chart(ctx, {
-                type: 'line',
-                data: {
-                    labels: [],
-                    datasets: [{
-                        label: 'MW',
-                        data: [],
-                        backgroundColor: 'rgba(54, 162, 235, 0.2)',
-                        borderColor: 'rgba(54, 162, 235, 1)',
-                        borderWidth: 1
-                    }]
-                },
-                options: {
-                    animation: { duration: 3000 },
-                    scales: { y: { beginAtZero: true } }
-                }
-            });
-        } else {
-            myChart.data.labels = [];
-            myChart.data.datasets[0].data = [];
-            myChart.update();
-        }
+          // Initialize or reset chart
+          if (!myChart) {
+              const ctx = document.getElementById('myChart').getContext('2d');
+              ctx.canvas.width = 300;
+              ctx.canvas.height = 100;
+              myChart = new Chart(ctx, {
+                  type: 'line',
+                  data: {
+                      labels: [],
+                      datasets: [{
+                          label: 'MW',
+                          data: [],
+                          backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                          borderColor: 'rgba(54, 162, 235, 1)',
+                          borderWidth: 1
+                      }]
+                  },
+                  options: {
+                      animation: { duration: 3000 },
+                      scales: { y: { beginAtZero: true } }
+                  }
+              });
+          } else {
+              myChart.data.labels = [];
+              myChart.data.datasets[0].data = [];
+              myChart.update();
+          }
 
-        // Fetch data for each year
-        for (let year = startYear; year <= endYear; year++) {
-            try {
-                const response = await fetch(`https://maxregister-git-main-vinay-kumars-projects-f1559f4a.vercel.app/data?feeder=${feeder}&year=${year}`);
-                const data = await response.json();
-                
-                data.forEach(item => {
-                    fetchedData.push({
-                        NameOfTheFeeder: feeder,
-                        MW: item.MW,
-                        Date: formatDate(item.date),
-                        Time: item.time,
-                        DateTime: new Date(`${item.date}T${item.time}`)
-                    });
+          // Fetch data for each year
+          for (let year = startYear; year <= endYear; year++) {
+              try {
+                  const response = await fetch(`https://maxregister-git-main-vinay-kumars-projects-f1559f4a.vercel.app/data?feeder=${feeder}&year=${year}`);
+                  const data = await response.json();
+                  
+                  data.forEach(item => {
+                      fetchedData.push({
+                          NameOfTheFeeder: feeder,
+                          MW: item.MW,
+                          Date: formatDate(item.date),
+                          Time: item.time,
+                          DateTime: new Date(`${item.date}T${item.time}`)
+                      });
 
-                    if (item.MW > maxMW) {
-                        maxMW = item.MW;
-                        maxMWRow = {
-                            feeder,
-                            MW: item.MW,
-                            date: item.date,
-                            time: item.time
-                        };
-                    }
-                });
-            } catch (error) {
-                console.error(`Error fetching data for ${year}:`, error);
-            }
-        }
+                      if (item.MW > maxMW) {
+                          maxMW = item.MW;
+                          maxMWRow = {
+                              feeder,
+                              MW: item.MW,
+                              date: item.date,
+                              time: item.time
+                          };
+                      }
+                  });
+              } catch (error) {
+                  console.error(`Error fetching data for ${year}:`, error);
+              }
+          }
 
-        // Process fetched data
-        fetchedData.sort((a, b) => a.DateTime - b.DateTime);
+          // Process fetched data
+          fetchedData.sort((a, b) => a.DateTime - b.DateTime);
 
-        if (fetchedData.length === 0) {
-            noDataMessage.style.display = 'block';
-            document.getElementById('uploadedData').style.display = 'none';
-        } else {
-            noDataMessage.style.display = 'none';
-            
-            // Update table and chart
-            fetchedData.forEach((item, index) => {
-                myChart.data.labels.push(item.Date + ' ' + item.Time);
-                myChart.data.datasets[0].data.push(item.MW);
-                
-                const row = document.createElement('tr');
-                row.innerHTML = `
-                    <td>${index + 1}</td>
-                    <td>${item.NameOfTheFeeder}</td>
-                    <td>${item.MW}</td>
-                    <td>${item.Date}</td>
-                    <td>${item.Time}</td>
-                `;
-                tableBody.appendChild(row);
-            });
+          if (fetchedData.length === 0) {
+              noDataMessage.style.display = 'block';
+              document.getElementById('uploadedData').style.display = 'none';
+          } else {
+              noDataMessage.style.display = 'none';
+              
+              // Update table and chart
+              fetchedData.forEach((item, index) => {
+                  myChart.data.labels.push(item.Date + ' ' + item.Time);
+                  myChart.data.datasets[0].data.push(item.MW);
+                  
+                  const row = document.createElement('tr');
+                  row.innerHTML = `
+                      <td>${index + 1}</td>
+                      <td>${item.NameOfTheFeeder}</td>
+                      <td>${item.MW}</td>
+                      <td>${item.Date}</td>
+                      <td>${item.Time}</td>
+                  `;
+                  tableBody.appendChild(row);
+              });
 
-            myChart.update();
-            document.getElementById('uploadedData').style.display = 'block';
+              myChart.update();
+              document.getElementById('uploadedData').style.display = 'block';
 
-            // Add max MW container
-            if (maxMWRow) {
-                const maxMWContainer = document.createElement('div');
-                maxMWContainer.classList.add('max-mw-container');
-                maxMWContainer.innerHTML = `
-                    <h2>Maximum MW Reached so far</h2>
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Name of the Feeder</th>
-                                <th>MW</th>
-                                <th>Date</th>
-                                <th>Time</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td>${maxMWRow.feeder}</td>
-                                <td>${maxMWRow.MW}</td>
-                                <td>${formatDate(maxMWRow.date)}</td>
-                                <td>${maxMWRow.time}</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                    <div class="buttons">
-                        <button class="print-button">Print</button>
-                        <button class="excel-button">Download Excel</button>
-                    </div>
-                `;
-                
-                document.body.appendChild(maxMWContainer);
-                maxMWContainer.querySelector('.print-button').addEventListener('click', () => window.print());
-                maxMWContainer.querySelector('.excel-button').addEventListener('click', () => exportToExcel(fetchedData));
-            }
-        }
-    } catch (error) {
-        console.error('Error:', error);
-        alert('Failed to fetch data. Please try again.');
-    } finally {
-        // Hide spinner whether successful or errored
-        fullScreenSpinner.style.display = 'none';
-    }
-}
+              // Add max MW container
+              if (maxMWRow) {
+                  const maxMWContainer = document.createElement('div');
+                  maxMWContainer.classList.add('max-mw-container');
+                  maxMWContainer.innerHTML = `
+                      <h2>Maximum MW Reached so far</h2>
+                      <table>
+                          <thead>
+                              <tr>
+                                  <th>Name of the Feeder</th>
+                                  <th>MW</th>
+                                  <th>Date</th>
+                                  <th>Time</th>
+                              </tr>
+                          </thead>
+                          <tbody>
+                              <tr>
+                                  <td>${maxMWRow.feeder}</td>
+                                  <td>${maxMWRow.MW}</td>
+                                  <td>${formatDate(maxMWRow.date)}</td>
+                                  <td>${maxMWRow.time}</td>
+                              </tr>
+                          </tbody>
+                      </table>
+                      <div class="buttons">
+                          <button class="print-button">Print</button>
+                          <button class="excel-button">Download Excel</button>
+                      </div>
+                  `;
+                  
+                  document.body.appendChild(maxMWContainer);
+                  maxMWContainer.querySelector('.print-button').addEventListener('click', () => window.print());
+                  maxMWContainer.querySelector('.excel-button').addEventListener('click', () => exportToExcel(fetchedData));
+              }
+          }
+      } catch (error) {
+          console.error('Error:', error);
+          alert('Failed to fetch data. Please try again.');
+      } finally {
+          // Hide spinner whether successful or errored
+          fullScreenSpinner.style.display = 'none';
+      }
+  }
 
   function exportToExcel(data, filename = 'data.xlsx') {
     const ws = XLSX.utils.json_to_sheet(data);
