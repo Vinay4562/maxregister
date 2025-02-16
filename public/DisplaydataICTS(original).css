@@ -9,16 +9,26 @@ padding: 0;
 .header {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: center;
   background: linear-gradient(135deg, #0044cc, #007bff); /* Gradient Blue */
   padding: 10px 20px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
   border-bottom: 4px solid #fff;
+  text-align: center;
 }
 
+/* Logo Container */
+.logo-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 15px;
+}
+
+/* Logo */
 .logo {
-  width: 130px;
-  height: 100px;
+  width: 120px;
+  height: auto;
   transition: transform 0.3s ease-in-out;
 }
 
@@ -31,8 +41,7 @@ h1 {
   color: #fff;
   font-size: 24px;
   text-shadow: 2px 2px 5px rgba(255, 255, 255, 0.3);
-  text-align: center;
-  flex-grow: 1;
+  margin: 0;
 }
 
 /* Navigation Bar */
@@ -65,6 +74,14 @@ h1 {
   font-weight: bold;
   transform: translateY(-3px);
   box-shadow: 0 6px 12px rgba(255, 255, 255, 0.3);
+}
+
+/* Active Link */
+.navbar a.active {
+  background: #ffffff;
+  color: #0044cc;
+  font-weight: bold;
+  border: 2px solid #fff;
 }
 
 .container {
