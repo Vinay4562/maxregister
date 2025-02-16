@@ -9,6 +9,23 @@
   <link rel="stylesheet" href="DisplaydataCSS(original).css">
   <link rel="stylesheet" href="DisplaydataICTS(original).css">
 
+  <style>
+    .spinner {
+      border: 4px solid rgba(0, 0, 0, 0.1);
+      border-left-color: #007bff;
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      animation: spin 1s linear infinite;
+      margin: 0 auto;
+    }
+
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+  </style>
 
 </head>
 <body>
@@ -22,6 +39,12 @@
 <div class="navbar">
   <a href="https://400kvssshankarpally.free.nf/">Home</a>
   <a href="https://mrt-register-git-main-vinay-kumars-projects-f1559f4a.vercel.app/LCbox_retrieve.html" class="active">MRT Schedules</a>
+</div>
+
+<!-- Loading Spinner -->
+<div id="loadingSpinner" style="display: none; text-align: center; margin-top: 20px;">
+  <p>Loading data...</p>
+  <div class="spinner"></div>
 </div>
 
   <div class="container">
@@ -199,7 +222,10 @@
   });
 
   document.getElementById('selectForm').addEventListener('submit', function(event) {
-    event.preventDefault(); 
+    event.preventDefault();
+
+    // Show the loading spinner
+    document.getElementById('loadingSpinner').style.display = 'block';
 
     const voltage = document.getElementById('input1').value;
     const feeder1 = document.getElementById('input2').value;
@@ -227,15 +253,22 @@
         }
     }
 
+    // Check for duplicates and validation
     if (!voltage || !feeder1 || !feeder2 || !year || !toYear) {
       alert('Please select all required fields.');
+      document.getElementById('loadingSpinner').style.display = 'none'; // Hide spinner
       return;
     }
 
     const startYear = parseInt(year);
     const endYear = parseInt(toYear);
 
-    fetchAndDisplayData(voltage, feeder1, feeder2, feeder3, feeder4, startYear, endYear);
+    // Fetch and display data
+  fetchAndDisplayData(voltage, feeder1, feeder2, feeder3, feeder4, startYear, endYear)
+    .finally(() => {
+      // Hide the loading spinner when done
+      document.getElementById('loadingSpinner').style.display = 'none';
+    });
   });
 
   function hasDuplicates(array) {
