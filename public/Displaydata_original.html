@@ -436,34 +436,34 @@
     const input2 = document.getElementById('input2');
     input2.innerHTML = ''; // Clear previous options
 
-    if (input1Value === '400KV') {
-      addOptionsToInput2(['Select feeder', '400KV MAHESHWARAM-2', '400KV MAHESHWARAM-1', '400KV NARSAPUR-1', '400KV NARSAPUR-2', '400KV KETHIREDDYPALLY-1', '400KV KETHIREDDYPALLY-2', '400KV NIZAMABAD-1', '400KV NIZAMABAD-2']);
-    } else if (input1Value === '220KV') {
-      addOptionsToInput2(['Select feeder', '220KV PARIGI-1', '220KV PARIGI-2', '220KV TANDUR', '220KV GACHIBOWLI-1', '220KV GACHIBOWLI-2', '220KV KETHIREDDYPALLY', '220KV YEDDUMAILARAM-1', '220KV YEDDUMAILARAM-2', '220KV SADASIVAPET-1', '220KV SADASIVAPET-2']);
-    } else if (input1Value === 'ICTS') {
-      addOptionsToInput2(['Select ICT', '315MVA ICT-1', '315MVA ICT-2', '315MVA ICT-3', '500MVA ICT-4']);
-    }
+      if (input1Value === '400KV') {
+        addOptionsToInput2(['Select feeder', '400KV MAHESHWARAM-2', '400KV MAHESHWARAM-1', '400KV NARSAPUR-1', '400KV NARSAPUR-2', '400KV KETHIREDDYPALLY-1', '400KV KETHIREDDYPALLY-2', '400KV NIZAMABAD-1', '400KV NIZAMABAD-2']);
+      } else if (input1Value === '220KV') {
+        addOptionsToInput2(['Select feeder', '220KV PARIGI-1', '220KV PARIGI-2', '220KV TANDUR', '220KV GACHIBOWLI-1', '220KV GACHIBOWLI-2', '220KV KETHIREDDYPALLY', '220KV YEDDUMAILARAM-1', '220KV YEDDUMAILARAM-2', '220KV SADASIVAPET-1', '220KV SADASIVAPET-2']);
+      } else if (input1Value === 'ICTS') {
+        addOptionsToInput2(['Select ICT', '315MVA ICT-1', '315MVA ICT-2', '315MVA ICT-3', '500MVA ICT-4']);
+      }
   });
 
   document.getElementById('selectForm').addEventListener('submit', function(event) {
-    event.preventDefault(); // Prevent the form from submitting
+      event.preventDefault(); // Prevent the form from submitting
 
-    const voltage = document.getElementById('input1').value;
-    const feeder = document.getElementById('input2').value;
-    const year = document.getElementById('year').value;
-    const toYear = document.getElementById('toYear').value;
+      const voltage = document.getElementById('input1').value;
+      const feeder = document.getElementById('input2').value;
+      const year = document.getElementById('year').value;
+      const toYear = document.getElementById('toYear').value;
 
-    if (!voltage || !feeder || !year || !toYear) {
-      alert('Please select voltage level, feeder/ICT, and year range');
-      return;
-    }
+      if (!voltage || !feeder || !year || !toYear) {
+        alert('Please select voltage level, feeder/ICT, and year range');
+        return;
+      }
 
-    // Convert selected years to integers
-    const startYear = parseInt(year);
-    const endYear = parseInt(toYear);
+      // Convert selected years to integers
+      const startYear = parseInt(year);
+      const endYear = parseInt(toYear);
 
-    // Fetch and display data for the selected feeder and year range
-    fetchAndDisplayData(voltage, feeder, startYear, endYear);
+      // Fetch and display data for the selected feeder and year range
+      fetchAndDisplayData(voltage, feeder, startYear, endYear);
   });
 
   function removeMaxMWContainer() {
