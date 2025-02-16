@@ -3,28 +3,26 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Monitor Data at Multi Circuits in Service</title>
+  <title>Monitor Data at Multi circuits in service</title>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.4/xlsx.full.min.js"></script>
   <link rel="stylesheet" href="DisplaydataCSS(original).css">
   <link rel="stylesheet" href="DisplaydataICTS(original).css">
+
 </head>
 <body>
 <!-- Header -->
 <div class="header">
-  <div class="logo-container">
-      <img src="logo_new.png" alt="TSTRANSCO Logo" class="logo">
-  </div>
-  <h1>TRANSMISSION CORPORATION OF TELANGANA LIMITED</h1>
+  <img src="logo_new.png" alt="Logo" class="logo" width="130px" height="100px">
+  <h1>𝐓𝐑𝐀𝐍𝐒𝐌𝐈𝐒𝐒𝐈𝐎𝐍 𝐂𝐎𝐑𝐏𝐎𝐑𝐀𝐓𝐈𝐎𝐍 𝐎𝐅 𝐓𝐄𝐋𝐀𝐍𝐆𝐀𝐍𝐀 𝐋𝐈𝐌𝐈𝐓𝐄𝐃</h1>
 </div>
 
-<!-- Navigation Bar (Placed Right Below Header) -->
+<!-- Navigation bar -->
 <div class="navbar">
   <a href="https://400kvssshankarpally.free.nf/">Home</a>
   <a href="https://mrt-register-git-main-vinay-kumars-projects-f1559f4a.vercel.app/LCbox_retrieve.html" class="active">MRT Schedules</a>
 </div>
 
-  <!-- Main Container -->
   <div class="container">
     <h2>Loads on Multi Feeders/ICT's in Service</h2>
     <form id="selectForm">
@@ -37,49 +35,42 @@
           <option value="ICTS">ICT'S</option>
         </select>
       </div>
-      
       <div class="form-item" id="input2Container">
-        <label for="input2">Select First Feeder/ICT:</label>
+        <label for="input2" id="input2Label">Select First Feeder/ICT:</label>
         <select name="input2" id="input2">
           <option value="">Select feeder</option>
         </select>
       </div>
-      
       <div class="form-item" id="input3Container">
-        <label for="input3">Select Second Feeder/ICT:</label>
+        <label for="input3" id="input3Label">Select Second Feeder/ICT:</label>
         <select name="input3" id="input3">
           <option value="">Select feeder</option>
         </select>
       </div>
-      
-      <div class="form-item" id="input4Container" style="display: none;">
-        <label for="input4">Select Third Feeder/ICT:</label>
+      <div class="form-item" style="display: none;" id="input4Container">
+        <label for="input4" id="input4Label">Select Third Feeder/ICT:</label>
         <select name="input4" id="input4">
           <option value="">Select feeder</option>
         </select>
       </div>
-      
-      <div class="form-item" id="input5Container" style="display: none;">
-        <label for="input5">Select Fourth Feeder/ICT:</label>
+      <div class="form-item" style="display: none;" id="input5Container">
+        <label for="input5" id="input5Label">Select Fourth Feeder/ICT:</label>
         <select name="input5" id="input5">
           <option value="">Select feeder</option>
         </select>
       </div>
-      
       <div class="form-item">
         <label for="year">Select Year:</label>
         <select name="year" id="year">
           <option value="">Select Year</option>
         </select>
       </div>
-      
       <div class="form-item">
         <label for="toYear">To Year:</label>
         <select name="toYear" id="toYear">
           <option value="">To Year</option>
         </select>
       </div>
-      
       <div class="form-item">
         <input type="submit" id="submitBtn" value="Submit">
       </div>
@@ -87,55 +78,55 @@
   </div>
 
   <!-- Loading Spinner -->
-  <div id="loadingSpinner" style="display: none; text-align: center; margin-top: 20px;">
-    <p>Loading data...</p>
-    <div class="spinner"></div>
-  </div>
+<div id="loadingSpinner" style="display: none; text-align: center; margin-top: 20px;">
+  <p>Loading data...</p>
+  <div class="spinner"></div>
+</div>
 
-  <!-- Uploaded Data Table -->
   <div id="uploadedData" style="display: none;">
     <h2>Uploaded Data</h2>
     <table id="dataTable">
-      <thead>
-        <tr>
-          <th>Serial No.</th>
-          <th>Name of the Feeder</th>
-          <th>MW</th>
-          <th>Date</th>
-          <th>Time</th>
-        </tr>
-      </thead>
-      <tbody></tbody>
-    </table>
-  </div>
-
-  <!-- Matched Data Table -->
-  <div class="centered-table">
-    <div id="matchedData" style="display: none;">
-      <h2>Loads at Same Time of Feeders/ICT'S</h2>
-      <table id="matchedTable">
         <thead>
-          <tr>
-            <th>Date</th>
-            <th>Time</th>
-            <th>Feeder 1</th>
-            <th>MW</th>
-            <th>Feeder 2</th>
-            <th>MW</th>
-            <th>Feeder 3</th>
-            <th>MW</th>
-            <th>Feeder 4</th>
-            <th>MW</th>
-          </tr>
+            <tr>
+                <th>Serial No.</th>
+                <th>Name of the Feeder</th>
+                <th>MW</th>
+                <th>Date</th>
+                <th>Time</th>
+            </tr>
         </thead>
         <tbody></tbody>
-      </table>
-      <div class="button-container">
-        <button id="printButton">Print PDF</button>
-        <button id="downloadExcelButton">Download Excel</button>
-      </div>
-    </div>
+    </table>
+</div>
+</div>
+
+<div class="centered-table">
+  <div id="matchedData" style="display: none;">
+    <h2>Loads at same time of Feeders/ICT'S</h2>
+    <table id="matchedTable">
+        <thead>
+            <tr>
+                <th>Date</th>
+                <th>Time</th>
+                <th>Feeder 1</th>
+                <th>MW</th>
+                <th>Feeder 2</th>
+                <th>MW</th>
+                <th>Feeder 3</th>
+                <th>MW</th>
+                <th>Feeder 4</th>
+                <th>MW</th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+    <div class="button-container">
+      <button id="printButton">Print Pdf</button>
+      <button id="downloadExcelButton">Download Excel</button>
   </div>
+</div>
+
+</div>
 
 <script>
   document.addEventListener('DOMContentLoaded', function() {
