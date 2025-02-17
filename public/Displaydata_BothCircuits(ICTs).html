@@ -6,6 +6,7 @@
   <title>Monitor Data at Multi circuits in service</title>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.4/xlsx.full.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <link rel="stylesheet" href="DisplaydataCSS(original).css">
   <link rel="stylesheet" href="DisplaydataICTS(original).css">
 
@@ -123,7 +124,7 @@
     </table>  
   </div>
 </div>
-<button id="printButton">Print</button>
+<button id="downloadPDFButton">Download as PDF</button>
 <button id="downloadExcelButton">Download as Excel</button>
 
 <script>
@@ -439,21 +440,64 @@ async function fetchAndDisplayData(voltage, feeder1, feeder2, feeder3, feeder4, 
         console.error('Error fetching or displaying data:', error);
     }
 
-    // Print button
-    document.getElementById('printButton').addEventListener('click', function () {
-        const table = document.getElementById('matchedTable');
-        const originalContents = document.body.innerHTML;
-        document.body.innerHTML = table.outerHTML;
-        window.print();
-        document.body.innerHTML = originalContents;
-    });
-
     // Download Excel button
     document.getElementById('downloadExcelButton').addEventListener('click', function () {
-        const table = document.getElementById('matchedTable');
-        const wb = XLSX.utils.table_to_book(table, { sheet: 'Sheet1' });
-        XLSX.writeFile(wb, 'matched_data.xlsx');
+        const uploadedTable = document.getElementById('uploadedTable'); // Table for uploaded data
+        const matchedTable = document.getElementById('matchedTable'); // Table for matched data
+
+        // Create a workbook object using the table data
+        const wb = XLSX.utils.book_new(); // Create a new workbook
+
+        // Convert the uploaded data table to a sheet and append to the workbook
+        const uploadedSheet = XLSX.utils.table_to_sheet(uploadedTable);
+        XLSX.utils.book_append_sheet(wb, uploadedSheet, 'Uploaded Data');
+
+        // Convert the matched data table to a sheet and append to the workbook
+        const matchedSheet = XLSX.utils.table_to_sheet(matchedTable);
+        XLSX.utils.book_append_sheet(wb, matchedSheet, 'Matched Data');
+
+        // Export the workbook to an Excel file
+        XLSX.writeFile(wb, 'data.xlsx');
     });
+
+    document.getElementById('downloadPDFButton').addEventListener('click', function () {
+      const { jsPDF } = window.jspdf;  // Get jsPDF from the window object
+      const doc = new jsPDF();         // Create a new jsPDF instance
+
+      // Get tables for uploaded and matched data
+      const uploadedTable = document.getElementById('uploadedTable');
+      const matchedTable = document.getElementById('matchedTable');
+
+      // Set font and title for PDF
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(12);
+
+      // Add title for uploaded data
+      doc.text("Uploaded Data", 14, 20);
+      doc.autoTable({ 
+          html: uploadedTable, 
+          startY: 30, 
+          theme: "grid", 
+          headStyles: { fontSize: 10 }, 
+          bodyStyles: { fontSize: 9 },
+      });
+
+      // Add a new page for matched data
+      doc.addPage();
+
+      // Add title for matched data
+      doc.text("Matched Data", 14, 20);
+      doc.autoTable({ 
+          html: matchedTable, 
+          startY: 30, 
+          theme: "grid", 
+          headStyles: { fontSize: 10 }, 
+          bodyStyles: { fontSize: 9 },
+      });
+
+      // Save the PDF with the name 'data.pdf'
+      doc.save('data.pdf');
+  });
 }
 
 function updateTableHeaders() {
