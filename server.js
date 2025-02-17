@@ -36,7 +36,7 @@ const dataSchema = new mongoose.Schema({
   feeder: String,
   year: String,
   MW: Number,
-  date: Date,  // Changed to Date for proper date comparison
+  date: String,
   time: String
 });
 
@@ -134,61 +134,23 @@ app.post('/upload', async (req, res) => {
       res.status(201).json({ message: 'Data saved successfully' });
     }
   } catch (err) {
-    console.error('Error during data upload:', err); // Log the error for debugging
-    res.status(400).json({ error: 'An error occurred while saving data. Please try again later.' });
+    res.status(400).json({ error: err.message });
   }
 });
 
+// GET route to fetch data based on feeder and year
 app.get('/data', async (req, res) => {
-  const { feeder, year, fromDate, toDate } = req.query;
+  const { feeder, year } = req.query;
   const collectionName = `Feeder_${feeder}_Year_${year}`;
 
   try {
-    console.log('Fetching data for:', { feeder, year, fromDate, toDate });
-
-    if (!feeder || !year) {
-      return res.status(400).json({ error: 'Feeder and year are required' });
-    }
-
-    // Parse the fromDate and toDate strings into JavaScript Date objects
-    let from = new Date(fromDate);
-    let to = new Date(toDate);
-
-    // Ensure that the dates are valid
-    if (isNaN(from) || isNaN(to)) {
-      return res.status(400).json({ error: 'Invalid date format. Please use YYYY-MM-DD.' });
-    }
-
-    // Normalize fromDate to start of the day and toDate to end of the day
-    from.setHours(0, 0, 0, 0); // Set time to 00:00:00
-    to.setHours(23, 59, 59, 999); // Set time to 23:59:59
-
-    // If only year is provided, create a default date range for the entire year (start to end)
-    if (!fromDate || !toDate) {
-      from = new Date(`${year}-01-01T00:00:00Z`); // Start of the year in UTC
-      to = new Date(`${year}-12-31T23:59:59Z`); // End of the year in UTC
-    }
-
     const Model = getModel(collectionName);
-
-    // Find data within the date range (if dates are provided)
-    const data = await Model.find({
-      date: { $gte: from, $lte: to }
-    });
-
-    console.log('Fetched Data:', data);
-
-    if (data.length === 0) {
-      return res.json({ message: 'No data found for the selected filters.' });
-    }
-
+    const data = await Model.find();
     res.json(data);
   } catch (err) {
-    console.error('Error fetching data:', err);
-    res.status(400).json({ error: 'An error occurred while fetching data. Please try again later.' });
+    res.status(400).json({ error: err.message });
   }
 });
-
 
 // PUT route to update data
 app.put('/update', async (req, res) => {
@@ -201,8 +163,7 @@ app.put('/update', async (req, res) => {
     const updatedData = await Model.findByIdAndUpdate(id, { MW, date, time }, { new: true });
     res.json({ message: 'Data updated successfully', data: updatedData });
   } catch (err) {
-    console.error('Error updating data:', err); // Log the error for debugging
-    res.status(400).json({ error: 'An error occurred while updating data. Please try again later.' });
+    res.status(400).json({ error: err.message });
   }
 });
 
@@ -217,8 +178,7 @@ app.delete('/delete/:id', async (req, res) => {
     await Model.findByIdAndDelete(id);
     res.json({ message: 'Data deleted successfully' });
   } catch (err) {
-    console.error('Error deleting data:', err); // Log the error for debugging
-    res.status(400).json({ error: 'An error occurred while deleting data. Please try again later.' });
+    res.status(400).json({ error: err.message });
   }
 });
 
@@ -232,8 +192,7 @@ app.get('/check-existence', async (req, res) => {
     const exists = await Model.exists({ feeder, year, date, time });
     res.json({ exists: !!exists });
   } catch (err) {
-    console.error('Error checking data existence:', err); // Log the error for debugging
-    res.status(400).json({ error: 'An error occurred while checking data existence. Please try again later.' });
+    res.status(400).json({ error: err.message });
   }
 });
 
