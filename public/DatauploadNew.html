@@ -163,102 +163,103 @@
   </div>
 
   <script>
-    const voltageLevelSelect = document.getElementById('voltageLevel');
-    const feederSection = document.getElementById('feederSection');
-    const feederSelect = document.getElementById('feeder');
-    const dateRangeSection = document.getElementById('dateRangeSection');
-    const fetchDataBtn = document.getElementById('fetchDataBtn');
-    const dataTable = document.getElementById('dataTable');
-    const noDataMessage = document.getElementById('noDataMessage');
+    document.addEventListener("DOMContentLoaded", function () {
+  const voltageLevelSelect = document.getElementById("voltageLevel");
+  const feederSelect = document.getElementById("feeder");
+  const fetchDataBtn = document.getElementById("fetchData");
+  const dataTable = document.getElementById("dataTable");
+  const tableBody = dataTable.querySelector("tbody");
+  const noDataMessage = document.getElementById("noDataMessage");
+  const loadingSpinner = document.getElementById("loadingSpinner");
 
-    // Feeder options for each voltage level
-    const feeders = {
-      '400KV': ['400KV MAHESHWARAM-2', '400KV MAHESHWARAM-1', '400KV NARSAPUR-1', '400KV NARSAPUR-2', '400KV KETHIREDDYPALLY-1', '400KV KETHIREDDYPALLY-2', '400KV NIZAMABAD-1', '400KV NIZAMABAD-2'],
-      '220KV': ['220KV PARIGI-1', '220KV PARIGI-2', '220KV TANDUR', '220KV GACHIBOWLI-1', '220KV GACHIBOWLI-2', '220KV KETHIREDDYPALLY', '220KV YEDDUMAILARAM-1', '220KV YEDDUMAILARAM-2', '220KV SADASIVAPET-1', '220KV SADASIVAPET-2'],
-      'ICTS': ['315MVA ICT-1', '315MVA ICT-2', '315MVA ICT-3', '500MVA ICT-4']
-    };
+  // Define feeders based on voltage levels
+  const feeders = {
+    "400KV Feeders": [
+      "400KV MAHESHWARAM-2", "400KV MAHESHWARAM-1", "400KV NARSAPUR-1", "400KV NARSAPUR-2",
+      "400KV KETHIREDDYPALLY-1", "400KV KETHIREDDYPALLY-2", "400KV NIZAMABAD-1", "400KV NIZAMABAD-2"
+    ],
+    "220KV Feeders": [
+      "220KV PARIGI-1", "220KV PARIGI-2", "220KV THANDUR", "220KV GACHIBOWLI-1", "220KV GACHIBOWLI-2",
+      "220KV KETHIREDDYPALLY", "220KV YEDDUMAILARAM-1", "220KV YEDDUMAILARAM-2", "220KV SADASIVAPET-1", "220KV SADASIVAPET-2"
+    ],
+    "ICT's": ["315MVA ICT-1", "315MVA ICT-2", "315MVA ICT-3", "500MVA ICT-4"]
+  };
 
-    // Event listener for voltage level selection
-    voltageLevelSelect.addEventListener('change', () => {
-      const selectedVoltage = voltageLevelSelect.value;
+  // Populate feeders based on selected voltage level
+  voltageLevelSelect.addEventListener("change", function () {
+    const selectedVoltage = voltageLevelSelect.value;
+    feederSelect.innerHTML = "<option value=''>Select Feeder</option>"; // Reset dropdown
+    
+    if (feeders[selectedVoltage]) {
+      feeders[selectedVoltage].forEach(feeder => {
+        const option = document.createElement("option");
+        option.value = feeder;
+        option.textContent = feeder;
+        feederSelect.appendChild(option);
+      });
+    }
+  });
 
-      if (selectedVoltage) {
-        // Populate feeder options
-        feederSelect.innerHTML = feeders[selectedVoltage].map(feeder => `
-          <option value="${feeder}">${feeder}</option>
-        `).join('');
+  // Fetch data on button click
+  fetchDataBtn.addEventListener("click", async () => {
+    const voltage = voltageLevelSelect.value;
+    const feeder = feederSelect.value;
+    const fromDate = document.getElementById("fromDate").value;
+    const toDate = document.getElementById("toDate").value;
 
-        // Show feeder and date range sections
-        feederSection.classList.remove('hidden');
-        dateRangeSection.classList.remove('hidden');
+    if (!voltage || !feeder || !fromDate || !toDate) {
+      alert("Please select all fields before fetching data.");
+      return;
+    }
+
+    // Show loading spinner
+    loadingSpinner.classList.remove("hidden");
+    dataTable.classList.add("hidden");
+    noDataMessage.classList.add("hidden");
+
+    try {
+      const response = await fetch("/fetch-data", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ voltage, feeder, fromDate, toDate })
+      });
+
+      const data = await response.json();
+
+      // Hide loading spinner
+      loadingSpinner.classList.add("hidden");
+
+      if (data.length > 0) {
+        populateTable(data);
       } else {
-        // Hide sections if no voltage level is selected
-        feederSection.classList.add('hidden');
-        dateRangeSection.classList.add('hidden');
-        dataTable.classList.add('hidden');
-        noDataMessage.classList.add('hidden');
+        noDataMessage.classList.remove("hidden");
       }
+    } catch (error) {
+      console.error("Error fetching data:", error);
+      alert("Failed to fetch data. Please try again.");
+    }
+  });
+
+  function populateTable(data) {
+    tableBody.innerHTML = ""; // Clear existing data
+
+    data.forEach(row => {
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td>${row.voltage}</td>
+        <td>${row.feeder}</td>
+        <td>${row.year}</td>
+        <td>${row.mw}</td>
+        <td>${row.date}</td>
+        <td>${row.time}</td>
+      `;
+      tableBody.appendChild(tr);
     });
 
-    // Event listener for fetch data button
-    fetchDataBtn.addEventListener('click', fetchData);
+    dataTable.classList.remove("hidden");
+  }
+});
 
-    async function fetchData() {
-        const selectedVoltage = voltageLevelSelect.value;
-        const selectedFeeder = feederSelect.value;
-        const fromDate = document.getElementById('fromDate').value;
-        const toDate = document.getElementById('toDate').value;
-
-        if (!selectedVoltage || !selectedFeeder || !fromDate || !toDate) {
-            alert('Please select a voltage level, feeder, and date range.');
-            return;
-        }
-
-        if (new Date(fromDate) > new Date(toDate)) {
-            alert('"From Date" cannot be greater than "To Date".');
-            return;
-        }
-
-        try {
-            // Show loading spinner
-            document.getElementById('loadingSpinner').classList.remove('hidden');
-
-            const response = await fetch(`https://maxregister-git-main-vinay-kumars-projects-f1559f4a.vercel.app/extract-data?voltage=${selectedVoltage}&feeder=${selectedFeeder}&fromDate=${fromDate}&toDate=${toDate}`);
-            if (!response.ok) {
-            throw new Error('Failed to fetch data');
-            }
-            const data = await response.json();
-
-            const tableBody = document.querySelector('#dataTable tbody');
-            tableBody.innerHTML = ''; // Clear previous data
-
-            if (data.length === 0) {
-            noDataMessage.classList.remove('hidden');
-            dataTable.classList.add('hidden');
-            } else {
-            noDataMessage.classList.add('hidden');
-            dataTable.classList.remove('hidden');
-            data.forEach(item => {
-                const row = document.createElement('tr');
-                row.innerHTML = `
-                <td>${item.voltage}</td>
-                <td>${item.feeder}</td>
-                <td>${item.year}</td>
-                <td>${item.MW}</td>
-                <td>${item.date}</td>
-                <td>${item.time}</td>
-                `;
-                tableBody.appendChild(row);
-            });
-            }
-        } catch (error) {
-            console.error('Error fetching data:', error);
-            alert('An error occurred while fetching data. Please try again.');
-        } finally {
-            // Hide loading spinner
-            document.getElementById('loadingSpinner').classList.add('hidden');
-        }
-    }
   </script>
 </body>
 </html>

@@ -16,7 +16,7 @@ app.use(bodyParser.json());
 app.use(cors());
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(session({
-  secret: process.env.SESSION_SECRET || 'your_secret_key', // Use a strong secret for session management
+  secret: process.env.SESSION_SECRET || 'your_secret_key',
   resave: false,
   saveUninitialized: true,
   store: MongoStore.create({ mongoUrl: process.env.MONGO_URI }), // Use MongoDB to store sessions
@@ -24,7 +24,10 @@ app.use(session({
 }));
 
 // MongoDB connection
-mongoose.connect(process.env.MONGO_URI).then(() => {
+mongoose.connect(process.env.MONGO_URI, {
+  useNewUrlParser: true,
+  useUnifiedTopology: true
+}).then(() => {
   console.log('Connected to MongoDB');
 }).catch(err => {
   console.error('Connection error', err);
@@ -54,16 +57,15 @@ const getModel = (collectionName) => {
 // Dummy credentials (hashed password)
 const defaultUser = {
   username: 'Shankarpally400kv',
-  passwordHash: bcrypt.hashSync('Shankarpally@9870', 10) // Replace 'password' with the actual password
+  passwordHash: bcrypt.hashSync('Shankarpally@9870', 10) // Replace with the actual password
 };
 
 // POST route for login
 app.post('/login', (req, res) => {
   const { username, password } = req.body;
 
-  // Check credentials
   if (username === defaultUser.username && bcrypt.compareSync(password, defaultUser.passwordHash)) {
-    req.session.authenticated = true; // Set session flag for authenticated user
+    req.session.authenticated = true; 
     res.json({ success: true });
   } else {
     res.json({ success: false, message: 'Invalid username or password' });
@@ -76,39 +78,38 @@ app.post('/logout', (req, res, next) => {
     if (err) {
       return next(err);
     }
-    res.clearCookie('connect.sid'); // Clear the session cookie
-    res.redirect('/login.html'); // Redirect to login page after logout
+    res.clearCookie('connect.sid');
+    res.redirect('/login.html');
   });
 });
 
-// GET route to check if user is authenticated
+// GET route to check authentication
 app.get('/check-auth', (req, res) => {
   res.json({ authenticated: req.session.authenticated || false });
 });
 
-// Middleware to check if the user is authenticated
+// Middleware to check authentication
 const ensureAuthenticated = (req, res, next) => {
   if (req.session.authenticated) {
     return next();
   }
-  res.redirect('/login.html'); // Redirect to login if not authenticated
+  res.redirect('/login.html');
 };
 
-// Protect the route that serves Dataupload.html
+// Protected route for Dataupload.html
 app.get('/dataupload', ensureAuthenticated, (req, res) => {
-  res.setHeader('Cache-Control', 'no-store'); // Prevent caching of the page
+  res.setHeader('Cache-Control', 'no-store');
   res.sendFile(path.join(__dirname, 'public', 'Dataupload.html'));
 });
 
-// Function to check if data exists in the collection
+// Check if data exists
 const checkDataExists = async (feeder, year, voltage, MW, date, time) => {
   const collectionName = `Feeder_${feeder}_Year_${year}`;
   const Model = getModel(collectionName);
-  const exists = await Model.exists({ voltage, feeder, year, MW, date, time });
-  return !!exists;
+  return await Model.exists({ voltage, feeder, year, MW, date, time });
 };
 
-// Function to insert data into the correct collection
+// Insert data
 const insertDataIntoCollection = async (feeder, year, data) => {
   const collectionName = `Feeder_${feeder}_Year_${year}`;
   const Model = getModel(collectionName);
@@ -138,7 +139,7 @@ app.post('/upload', async (req, res) => {
   }
 });
 
-// GET route to fetch data based on feeder and year
+// GET route to fetch data
 app.get('/data', async (req, res) => {
   const { feeder, year } = req.query;
   const collectionName = `Feeder_${feeder}_Year_${year}`;
@@ -149,43 +150,6 @@ app.get('/data', async (req, res) => {
     res.json(data);
   } catch (err) {
     res.status(400).json({ error: err.message });
-  }
-});
-
-// GET route to extract data based on voltage, feeder, and date range
-app.get('/extract-data', async (req, res) => {
-  const { voltage, feeder, fromDate, toDate } = req.query;
-
-  try {
-    // Validate inputs
-    if (!voltage || !feeder || !fromDate || !toDate) {
-      return res.status(400).json({ error: 'Missing required parameters' });
-    }
-
-    // Get all collections that match the feeder pattern
-    const collections = await mongoose.connection.db.listCollections().toArray();
-    const matchingCollections = collections.filter(collection => 
-      collection.name.startsWith(`Feeder_${feeder}_Year_`)
-    );
-
-    // Query all matching collections
-    const allData = [];
-    for (const collection of matchingCollections) {
-      const Model = getModel(collection.name);
-      const data = await Model.find({
-        voltage,
-        feeder,
-        date: { 
-          $gte: fromDate, 
-          $lte: toDate 
-        }
-      });
-      allData.push(...data);
-    }
-
-    res.json(allData);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
   }
 });
 
@@ -204,7 +168,7 @@ app.put('/update', async (req, res) => {
   }
 });
 
-// DELETE route to delete data
+// DELETE route to remove data
 app.delete('/delete/:id', async (req, res) => {
   const { id } = req.params;
   const { feeder, year } = req.query;
@@ -214,20 +178,6 @@ app.delete('/delete/:id', async (req, res) => {
     const Model = getModel(collectionName);
     await Model.findByIdAndDelete(id);
     res.json({ message: 'Data deleted successfully' });
-  } catch (err) {
-    res.status(400).json({ error: err.message });
-  }
-});
-
-// Combined endpoint to check if data exists
-app.get('/check-existence', async (req, res) => {
-  const { feeder, year, date, time } = req.query;
-  const collectionName = `Feeder_${feeder}_Year_${year}`;
-
-  try {
-    const Model = getModel(collectionName);
-    const exists = await Model.exists({ feeder, year, date, time });
-    res.json({ exists: !!exists });
   } catch (err) {
     res.status(400).json({ error: err.message });
   }
