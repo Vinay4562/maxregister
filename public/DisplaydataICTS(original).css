@@ -383,11 +383,11 @@ height: 60px;
 @media print {
 .navbar, /* Hide the navbar */
 .buttons { /* Hide the print and download Excel buttons */
-display: none !important;
-}
-}
+    display: none !important;
+      }
+    }
 
-}
+  }
 
 #matchedData {
 margin-top: 30px;
@@ -545,8 +545,8 @@ body {
   }
 
   .logo {
-    width: 60px !important;
-    height: 40px !important;
+    width: 40px !important;
+    height: 20px !important;
   }
 
   .navbar {
