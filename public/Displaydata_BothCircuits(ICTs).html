@@ -186,20 +186,20 @@
     const voltage = this.value;
 
     if (voltage === '400KV') {
-      setupVoltageOptions(voltage, ['400KV MAHESHWARAM-2', '400KV MAHESHWARAM-1', '400KV NARSAPUR-1', '400KV NARSAPUR-2', '400KV KETHIREDDYPALLY-1', '400KV KETHIREDDYPALLY-2', '400KV NIZAMABAD-1', '400KV NIZAMABAD-2']);
+        setupVoltageOptions(voltage, ['400KV MAHESHWARAM-2', '400KV MAHESHWARAM-1', '400KV NARSAPUR-1', '400KV NARSAPUR-2', '400KV KETHIREDDYPALLY-1', '400KV KETHIREDDYPALLY-2', '400KV NIZAMABAD-1', '400KV NIZAMABAD-2']);
+        showFeederContainers(true); // Show feeder containers for 400KV
     } else if (voltage === '220KV') {
-      setupVoltageOptions(voltage, ['220KV PARIGI-1', '220KV PARIGI-2', '220KV TANDUR', '220KV GACHIBOWLI-1', '220KV GACHIBOWLI-2', '220KV KETHIREDDYPALLY', '220KV YEDDUMAILARAM-1', '220KV YEDDUMAILARAM-2', '220KV SADASIVAPET-1', '220KV SADASIVAPET-2']);
+        setupVoltageOptions(voltage, ['220KV PARIGI-1', '220KV PARIGI-2', '220KV TANDUR', '220KV GACHIBOWLI-1', '220KV GACHIBOWLI-2', '220KV KETHIREDDYPALLY', '220KV YEDDUMAILARAM-1', '220KV YEDDUMAILARAM-2', '220KV SADASIVAPET-1', '220KV SADASIVAPET-2']);
+        showFeederContainers(true); // Show feeder containers for 220KV
     } else if (voltage === 'ICTS') {
-      setupVoltageOptions(voltage, ['315MVA ICT-1', '315MVA ICT-2', '315MVA ICT-3', '500MVA ICT-4']);
+        setupVoltageOptions(voltage, ['315MVA ICT-1', '315MVA ICT-2', '315MVA ICT-3', '500MVA ICT-4']);
+        showFeederContainers(true); // Show feeder containers for ICTS
     } else {
-      document.getElementById('input2Container').style.display = 'none';
-      document.getElementById('input3Container').style.display = 'none';
-      document.getElementById('input4Container').style.display = 'none';
-      document.getElementById('input5Container').style.display = 'none';
+        showFeederContainers(false); // Hide all feeder containers
     }
-  });
+});
 
-  document.getElementById('selectForm').addEventListener('submit', function(event) {
+document.getElementById('selectForm').addEventListener('submit', function(event) {
     event.preventDefault();
 
     // Show the full-screen spinner
@@ -214,31 +214,19 @@
     const toYear = document.getElementById('toYear').value;
 
     // Show or hide table headers based on the selected voltage level
-    if (voltage === '400KV' || voltage === '220KV') {
-        // Hide the headers for Feeder 3 and Feeder 4
-        document.getElementById('feeder3Header').style.display = 'none';
-        document.getElementById('feeder3MWHeader').style.display = 'none';
-        document.getElementById('feeder4Header').style.display = 'none';
-        document.getElementById('feeder4MWHeader').style.display = 'none';
-    } else if (voltage === 'ICTS') {
-        // Show all the headers for Feeder 1, 2, 3, and 4
-        document.getElementById('feeder3Header').style.display = 'table-cell';
-        document.getElementById('feeder3MWHeader').style.display = 'table-cell';
-        document.getElementById('feeder4Header').style.display = 'table-cell';
-        document.getElementById('feeder4MWHeader').style.display = 'table-cell';
-    }
-    
+    toggleFeederHeaders(voltage);
+
     // Check for duplicate feeders based on voltage type
     if (voltage === '400KV' || voltage === '220KV') {
         if (hasDuplicates([feeder1, feeder2])) {
             alert('Please select different feeders for each input.');
-            document.getElementById('fullScreenSpinner').style.display = 'none'; // Hide full-screen spinner
+            hideSpinnerAndReset(); // Hide spinner and reset form
             return;
         }
     } else if (voltage === 'ICTS') {
         if (hasDuplicates([feeder1, feeder2, feeder3, feeder4])) {
-          alert('Please select different feeders for each input.');
-            document.getElementById('fullScreenSpinner').style.display = 'none'; // Hide full-screen spinner
+            alert('Please select different feeders for each input.');
+            hideSpinnerAndReset(); // Hide spinner and reset form
             return;
         }
     }
@@ -246,7 +234,7 @@
     // Check for required selections
     if (!voltage || !feeder1 || !feeder2 || !year || !toYear) {
       alert('Please select different feeders for each input.');
-      document.getElementById('fullScreenSpinner').style.display = 'none'; // Hide full-screen spinner
+      hideSpinnerAndReset(); // Hide spinner and reset form
       return;
     }
 
@@ -258,11 +246,47 @@
         .catch(error => {
             console.error("Error fetching data:", error);
             alert("Failed to fetch data. Please try again.");
+            hideSpinnerAndReset(); // Hide spinner and reset form on error
         })
         .finally(() => {
-            document.getElementById('fullScreenSpinner').style.display = 'none'; // Hide full-screen spinner
+            // Reset inputs after fetching the data
+            hideSpinnerAndReset(); // Function to hide spinner and reset form
         });
 });
+
+// Helper functions
+function toggleFeederHeaders(voltage) {
+    if (voltage === '400KV' || voltage === '220KV') {
+        document.getElementById('feeder3Header').style.display = 'none';
+        document.getElementById('feeder3MWHeader').style.display = 'none';
+        document.getElementById('feeder4Header').style.display = 'none';
+        document.getElementById('feeder4MWHeader').style.display = 'none';
+    } else if (voltage === 'ICTS') {
+        document.getElementById('feeder3Header').style.display = 'table-cell';
+        document.getElementById('feeder3MWHeader').style.display = 'table-cell';
+        document.getElementById('feeder4Header').style.display = 'table-cell';
+        document.getElementById('feeder4MWHeader').style.display = 'table-cell';
+    }
+}
+
+function showFeederContainers(show) {
+    document.getElementById('input2Container').style.display = show ? 'block' : 'none';
+    document.getElementById('input3Container').style.display = show ? 'block' : 'none';
+    document.getElementById('input4Container').style.display = show ? 'block' : 'none';
+    document.getElementById('input5Container').style.display = show ? 'block' : 'none';
+}
+
+function hideSpinnerAndReset() {
+    document.getElementById('fullScreenSpinner').style.display = 'none'; // Hide full-screen spinner
+    document.getElementById('input1').value = '';  // Voltage level
+    document.getElementById('input2').value = '';  // Feeder 1
+    document.getElementById('input3').value = '';  // Feeder 2
+    document.getElementById('input4').value = '';  // Feeder 3
+    document.getElementById('input5').value = '';  // Feeder 4
+    document.getElementById('year').value = '';    // From Year
+    document.getElementById('toYear').value = '';  // To Year
+    showFeederContainers(false); // Hide all feeder containers
+}
 
 // Function to check for duplicate values
 function hasDuplicates(arr) {
