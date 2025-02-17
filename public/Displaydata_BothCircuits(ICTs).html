@@ -121,8 +121,9 @@
         </thead>
         <tbody></tbody>
     </table>  
-</div>
-
+  </div>
+  <button id="printButton">Print</button>
+  <button id="downloadExcelButton">Download as Excel</button>
 </div>
 
 <script>
@@ -380,7 +381,6 @@ async function fetchAndDisplayData(voltage, feeder1, feeder2, feeder3, feeder4, 
         const tableHeader = document.querySelector('#matchedTable thead');
         tableHeader.innerHTML = ''; // Clear previous headers
 
-        // Determine which headers to show based on voltage selection
         let headerHTML = `
             <th>Date</th>
             <th>Time</th>
@@ -438,6 +438,22 @@ async function fetchAndDisplayData(voltage, feeder1, feeder2, feeder3, feeder4, 
     } catch (error) {
         console.error('Error fetching or displaying data:', error);
     }
+
+    // Print button
+    document.getElementById('printButton').addEventListener('click', function () {
+        const table = document.getElementById('matchedTable');
+        const originalContents = document.body.innerHTML;
+        document.body.innerHTML = table.outerHTML;
+        window.print();
+        document.body.innerHTML = originalContents;
+    });
+
+    // Download Excel button
+    document.getElementById('downloadExcelButton').addEventListener('click', function () {
+        const table = document.getElementById('matchedTable');
+        const wb = XLSX.utils.table_to_book(table, { sheet: 'Sheet1' });
+        XLSX.writeFile(wb, 'matched_data.xlsx');
+    });
 }
 
 function updateTableHeaders() {
