@@ -125,8 +125,8 @@
     </table>  
   </div>
 </div>
-<button id="downloadPDFButton">Download as PDF</button>
-<button id="downloadExcelButton">Download as Excel</button>
+<button id="downloadPDFButton" style="display: none;">Download as PDF</button>
+<button id="downloadExcelButton" style="display: none;">Download as Excel</button>
 
 <script>
   document.addEventListener('DOMContentLoaded', function() {
@@ -203,159 +203,170 @@
     }
   });
 
-  document.getElementById('selectForm').addEventListener('submit', function(event) {
-    event.preventDefault();
+    document.getElementById('selectForm').addEventListener('submit', function(event) {
+      event.preventDefault();
 
-    // Show the full-screen spinner
-    document.getElementById('fullScreenSpinner').style.display = 'flex'; // Changed to fullScreenSpinner
+      // Show the full-screen spinner
+      document.getElementById('fullScreenSpinner').style.display = 'flex'; // Changed to fullScreenSpinner
 
-    const voltage = document.getElementById('input1').value;
-    const feeder1 = document.getElementById('input2').value;
-    const feeder2 = document.getElementById('input3').value;
-    const feeder3 = document.getElementById('input4').value;
-    const feeder4 = document.getElementById('input5').value;
-    const year = document.getElementById('year').value;
-    const toYear = document.getElementById('toYear').value;
+      const voltage = document.getElementById('input1').value;
+      const feeder1 = document.getElementById('input2').value;
+      const feeder2 = document.getElementById('input3').value;
+      const feeder3 = document.getElementById('input4').value;
+      const feeder4 = document.getElementById('input5').value;
+      const year = document.getElementById('year').value;
+      const toYear = document.getElementById('toYear').value;
 
-    // Show or hide table headers based on the selected voltage level
-    if (voltage === '400KV' || voltage === '220KV') {
-        // Hide the headers for Feeder 3 and Feeder 4
-        document.getElementById('feeder3Header').style.display = 'none';
-        document.getElementById('feeder3MWHeader').style.display = 'none';
-        document.getElementById('feeder4Header').style.display = 'none';
-        document.getElementById('feeder4MWHeader').style.display = 'none';
-    } else if (voltage === 'ICTS') {
-        // Show all the headers for Feeder 1, 2, 3, and 4
-        document.getElementById('feeder3Header').style.display = 'table-cell';
-        document.getElementById('feeder3MWHeader').style.display = 'table-cell';
-        document.getElementById('feeder4Header').style.display = 'table-cell';
-        document.getElementById('feeder4MWHeader').style.display = 'table-cell';
+      // Hide the download buttons initially
+      document.getElementById('downloadPDFButton').style.display = 'none';
+      document.getElementById('downloadExcelButton').style.display = 'none';
+
+      // Show or hide table headers based on the selected voltage level
+      if (voltage === '400KV' || voltage === '220KV') {
+          // Hide the headers for Feeder 3 and Feeder 4
+          document.getElementById('feeder3Header').style.display = 'none';
+          document.getElementById('feeder3MWHeader').style.display = 'none';
+          document.getElementById('feeder4Header').style.display = 'none';
+          document.getElementById('feeder4MWHeader').style.display = 'none';
+      } else if (voltage === 'ICTS') {
+          // Show all the headers for Feeder 1, 2, 3, and 4
+          document.getElementById('feeder3Header').style.display = 'table-cell';
+          document.getElementById('feeder3MWHeader').style.display = 'table-cell';
+          document.getElementById('feeder4Header').style.display = 'table-cell';
+          document.getElementById('feeder4MWHeader').style.display = 'table-cell';
+      }
+
+      // Check for duplicate feeders based on voltage type
+      if (voltage === '400KV' || voltage === '220KV') {
+          if (hasDuplicates([feeder1, feeder2])) {
+              alert('Please select different feeders for each input.');
+              document.getElementById('fullScreenSpinner').style.display = 'none'; // Hide full-screen spinner
+              return;
+          }
+      } else if (voltage === 'ICTS') {
+          if (hasDuplicates([feeder1, feeder2, feeder3, feeder4])) {
+              alert('Please select different feeders for each input.');
+              document.getElementById('fullScreenSpinner').style.display = 'none'; // Hide full-screen spinner
+              return;
+          }
+      }
+
+      // Check for required selections
+      if (!voltage || !feeder1 || !feeder2 || !year || !toYear) {
+        alert('Please select different feeders for each input.');
+        document.getElementById('fullScreenSpinner').style.display = 'none'; // Hide full-screen spinner
+        return;
+      }
+
+      const startYear = parseInt(year);
+      const endYear = parseInt(toYear);
+
+      // Fetch and display data
+      fetchAndDisplayData(voltage, feeder1, feeder2, feeder3, feeder4, startYear, endYear)
+          .catch(error => {
+              console.error("Error fetching data:", error);
+              alert("Failed to fetch data. Please try again.");
+          })
+          .finally(() => {
+              // Reset inputs after fetching the data
+              document.getElementById('input1').value = '';  // Voltage level
+              document.getElementById('input2').value = '';  // Feeder 1
+              document.getElementById('input3').value = '';  // Feeder 2
+              document.getElementById('input4').value = '';  // Feeder 3
+              document.getElementById('input5').value = '';  // Feeder 4
+              document.getElementById('year').value = '';    // From Year
+              document.getElementById('toYear').value = '';  // To Year
+
+              document.getElementById('fullScreenSpinner').style.display = 'none'; // Hide full-screen spinner
+
+              // Display the download buttons after data is fetched
+              document.getElementById('downloadPDFButton').style.display = 'inline-block';
+              document.getElementById('downloadExcelButton').style.display = 'inline-block';
+          });
+  });
+
+    // Function to check for duplicate values
+    function hasDuplicates(arr) {
+        let uniqueValues = new Set(arr.filter(item => item !== "")); // Remove empty selections
+        return uniqueValues.size !== arr.filter(item => item !== "").length;
     }
-    
-    // Check for duplicate feeders based on voltage type
-    if (voltage === '400KV' || voltage === '220KV') {
-        if (hasDuplicates([feeder1, feeder2])) {
-            alert('Please select different feeders for each input.');
-            document.getElementById('fullScreenSpinner').style.display = 'none'; // Hide full-screen spinner
-            return;
-        }
-    } else if (voltage === 'ICTS') {
-        if (hasDuplicates([feeder1, feeder2, feeder3, feeder4])) {
-          alert('Please select different feeders for each input.');
-            document.getElementById('fullScreenSpinner').style.display = 'none'; // Hide full-screen spinner
-            return;
-        }
-    }
 
-    // Check for required selections
-    if (!voltage || !feeder1 || !feeder2 || !year || !toYear) {
-      alert('Please select different feeders for each input.');
-      document.getElementById('fullScreenSpinner').style.display = 'none'; // Hide full-screen spinner
-      return;
-    }
+    async function fetchAndDisplayData(voltage, feeder1, feeder2, feeder3, feeder4, startYear, endYear) {
+        const uploadedTableBody = document.querySelector('#dataTable tbody');
+        const matchedTableBody = document.querySelector('#matchedTable tbody');
 
-    const startYear = parseInt(year);
-    const endYear = parseInt(toYear);
+        // Clear previous data
+        uploadedTableBody.innerHTML = '';
+        matchedTableBody.innerHTML = '';
 
-    // Fetch and display data
-    fetchAndDisplayData(voltage, feeder1, feeder2, feeder3, feeder4, startYear, endYear)
-        .catch(error => {
-            console.error("Error fetching data:", error);
-            alert("Failed to fetch data. Please try again.");
-        })
-        .finally(() => {
-            // Reset inputs after fetching the data
-            document.getElementById('input1').value = '';  // Voltage level
-            document.getElementById('input2').value = '';  // Feeder 1
-            document.getElementById('input3').value = '';  // Feeder 2
-            document.getElementById('input4').value = '';  // Feeder 3
-            document.getElementById('input5').value = '';  // Feeder 4
-            document.getElementById('year').value = '';    // From Year
-            document.getElementById('toYear').value = '';  // To Year
+        // Show both sections
+        document.getElementById('uploadedData').style.display = 'block';
+        document.getElementById('matchedData').style.display = 'block';
 
-            document.getElementById('fullScreenSpinner').style.display = 'none'; // Hide full-screen spinner
-        });
-});
+        try {
+            // Fetch data for all selected feeders
+            const feeder1Data = await fetchDataForFeeder(feeder1, startYear, endYear);
+            const feeder2Data = await fetchDataForFeeder(feeder2, startYear, endYear);
+            const feeder3Data = voltage === 'ICTS' ? await fetchDataForFeeder(feeder3, startYear, endYear) : [];
+            const feeder4Data = voltage === 'ICTS' ? await fetchDataForFeeder(feeder4, startYear, endYear) : [];
 
-// Function to check for duplicate values
-function hasDuplicates(arr) {
-    let uniqueValues = new Set(arr.filter(item => item !== "")); // Remove empty selections
-    return uniqueValues.size !== arr.filter(item => item !== "").length;
-}
+            // Combine all data for the uploadedData table
+            const allData = [...feeder1Data, ...feeder2Data, ...feeder3Data, ...feeder4Data];
 
-async function fetchAndDisplayData(voltage, feeder1, feeder2, feeder3, feeder4, startYear, endYear) {
-    const uploadedTableBody = document.querySelector('#dataTable tbody');
-    const matchedTableBody = document.querySelector('#matchedTable tbody');
+            // Populate uploadedData table
+            allData.forEach((item, index) => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${index + 1}</td>
+                    <td>${item.feeder}</td>
+                    <td>${item.MW}</td>
+                    <td>${formatDate(item.date)}</td>
+                    <td>${item.time}</td>
+                `;
+                uploadedTableBody.appendChild(row);
+            });
 
-    // Clear previous data
-    uploadedTableBody.innerHTML = '';
-    matchedTableBody.innerHTML = '';
+            // Find matched rows based on date and time
+            let matchedRows = [];
 
-    // Show both sections
-    document.getElementById('uploadedData').style.display = 'block';
-    document.getElementById('matchedData').style.display = 'block';
-
-    try {
-        // Fetch data for all selected feeders
-        const feeder1Data = await fetchDataForFeeder(feeder1, startYear, endYear);
-        const feeder2Data = await fetchDataForFeeder(feeder2, startYear, endYear);
-        const feeder3Data = voltage === 'ICTS' ? await fetchDataForFeeder(feeder3, startYear, endYear) : [];
-        const feeder4Data = voltage === 'ICTS' ? await fetchDataForFeeder(feeder4, startYear, endYear) : [];
-
-        // Combine all data for the uploadedData table
-        const allData = [...feeder1Data, ...feeder2Data, ...feeder3Data, ...feeder4Data];
-
-        // Populate uploadedData table
-        allData.forEach((item, index) => {
-            const row = document.createElement('tr');
-            row.innerHTML = `
-                <td>${index + 1}</td>
-                <td>${item.feeder}</td>
-                <td>${item.MW}</td>
-                <td>${formatDate(item.date)}</td>
-                <td>${item.time}</td>
-            `;
-            uploadedTableBody.appendChild(row);
-        });
-
-        // Find matched rows based on date and time
-        let matchedRows = [];
-
-        if (voltage !== 'ICTS') {
-            for (let i = 0; i < feeder1Data.length; i++) {
-                const item1 = feeder1Data[i];
-                for (let j = 0; j < feeder2Data.length; j++) {
-                    const item2 = feeder2Data[j];
-                    if (item1.date === item2.date && item1.time === item2.time) {
-                        matchedRows.push({
-                            date: item1.date,
-                            time: item1.time,
-                            feeder1: item1,
-                            feeder2: item2
-                        });
+            // Match data based on feeders
+            if (voltage !== 'ICTS') {
+                for (let i = 0; i < feeder1Data.length; i++) {
+                    const item1 = feeder1Data[i];
+                    for (let j = 0; j < feeder2Data.length; j++) {
+                        const item2 = feeder2Data[j];
+                        if (item1.date === item2.date && item1.time === item2.time) {
+                            matchedRows.push({
+                                date: item1.date,
+                                time: item1.time,
+                                feeder1: item1,
+                                feeder2: item2
+                            });
+                        }
                     }
                 }
-            }
-        } else {
-            for (let i = 0; i < feeder1Data.length; i++) {
-                const item1 = feeder1Data[i];
-                for (let j = 0; j < feeder2Data.length; j++) {
-                    const item2 = feeder2Data[j];
-                    if (item1.date === item2.date && item1.time === item2.time) {
-                        for (let k = 0; k < feeder3Data.length; k++) {
-                            const item3 = feeder3Data[k];
-                            if (item1.date === item3.date && item1.time === item3.time) {
-                                for (let l = 0; l < feeder4Data.length; l++) {
-                                    const item4 = feeder4Data[l];
-                                    if (item1.date === item4.date && item1.time === item4.time) {
-                                        matchedRows.push({
-                                            date: item1.date,
-                                            time: item1.time,
-                                            feeder1: item1,
-                                            feeder2: item2,
-                                            feeder3: item3,
-                                            feeder4: item4
-                                        });
+            } else {
+                // Handle ICTS data matching
+                for (let i = 0; i < feeder1Data.length; i++) {
+                    const item1 = feeder1Data[i];
+                    for (let j = 0; j < feeder2Data.length; j++) {
+                        const item2 = feeder2Data[j];
+                        if (item1.date === item2.date && item1.time === item2.time) {
+                            for (let k = 0; k < feeder3Data.length; k++) {
+                                const item3 = feeder3Data[k];
+                                if (item1.date === item3.date && item1.time === item3.time) {
+                                    for (let l = 0; l < feeder4Data.length; l++) {
+                                        const item4 = feeder4Data[l];
+                                        if (item1.date === item4.date && item1.time === item4.time) {
+                                            matchedRows.push({
+                                                date: item1.date,
+                                                time: item1.time,
+                                                feeder1: item1,
+                                                feeder2: item2,
+                                                feeder3: item3,
+                                                feeder4: item4
+                                            });
+                                        }
                                     }
                                 }
                             }
@@ -363,103 +374,112 @@ async function fetchAndDisplayData(voltage, feeder1, feeder2, feeder3, feeder4, 
                     }
                 }
             }
-        }
 
-        // Highlight the highest MW values in the matched data
-        let maxMW = -Infinity;
-        let maxMWRow = null;
-        matchedRows.forEach(row => {
-            let totalMW = row.feeder1.MW + row.feeder2.MW;
-            if (row.feeder3) totalMW += row.feeder3.MW;
-            if (row.feeder4) totalMW += row.feeder4.MW;
+            // Highlight the highest MW values in the matched data
+            let maxMW = -Infinity;
+            let maxMWRow = null;
+            matchedRows.forEach(row => {
+                let totalMW = row.feeder1.MW + row.feeder2.MW;
+                if (row.feeder3) totalMW += row.feeder3.MW;
+                if (row.feeder4) totalMW += row.feeder4.MW;
 
-            if (totalMW > maxMW) {
-                maxMW = totalMW;
-                maxMWRow = row;
-            }
-        });
+                if (totalMW > maxMW) {
+                    maxMW = totalMW;
+                    maxMWRow = row;
+                }
+            });
 
-        // Create the table header dynamically based on the voltage selection
-        const tableHeader = document.querySelector('#matchedTable thead');
-        tableHeader.innerHTML = ''; // Clear previous headers
+            // Dynamically create table header based on voltage type
+            const tableHeader = document.querySelector('#matchedTable thead');
+            tableHeader.innerHTML = ''; // Clear previous headers
 
-        let headerHTML = `
-            <th>Date</th>
-            <th>Time</th>
-            <th>${feeder1}</th>
-            <th>MW</th>
-            <th>${feeder2}</th>
-            <th>MW</th>
-        `;
-
-        if (voltage === 'ICTS') {
-            headerHTML += `
-                <th>${feeder3}</th>
+            let headerHTML = `
+                <th>Date</th>
+                <th>Time</th>
+                <th>${feeder1}</th>
                 <th>MW</th>
-                <th>${feeder4}</th>
+                <th>${feeder2}</th>
                 <th>MW</th>
-            `;
-        }
-
-        tableHeader.innerHTML = headerHTML;
-
-        // Set the header based on voltage selection
-        const tableTitle = document.querySelector('#tableTitle');
-        if (voltage === 'ICTS') {
-            tableTitle.innerHTML = `Maximum MW of ${feeder1}, ${feeder2}, ${feeder3}, and ${feeder4} from ${startYear} to ${endYear}`;
-        } else {
-            tableTitle.innerHTML = `Maximum MW of ${feeder1} and ${feeder2} from ${startYear} to ${endYear}`;
-        }
-
-        // Display the rows with dynamic data
-        if (maxMWRow) {
-            const tableRow = document.createElement('tr');
-            let rowHTML = `
-                <td>${formatDate(maxMWRow.date)}</td>
-                <td>${maxMWRow.time}</td>
-                <td>${feeder1}</td>
-                <td>${maxMWRow.feeder1.MW}</td>
-                <td>${feeder2}</td>
-                <td>${maxMWRow.feeder2.MW}</td>
             `;
 
             if (voltage === 'ICTS') {
-                rowHTML += `
-                    <td>${feeder3}</td>
-                    <td>${maxMWRow.feeder3 ? maxMWRow.feeder3.MW : '-'}</td>
-                    <td>${feeder4}</td>
-                    <td>${maxMWRow.feeder4 ? maxMWRow.feeder4.MW : '-'}</td>
+                headerHTML += `
+                    <th>${feeder3}</th>
+                    <th>MW</th>
+                    <th>${feeder4}</th>
+                    <th>MW</th>
                 `;
             }
 
-            tableRow.innerHTML = rowHTML;
-            matchedTableBody.appendChild(tableRow);
-            tableRow.classList.add('highlight');
-        }
+            tableHeader.innerHTML = headerHTML;
 
-    } catch (error) {
-        console.error('Error fetching or displaying data:', error);
-    }
+            // Set the table title
+            const tableTitle = document.querySelector('#tableTitle');
+            if (voltage === 'ICTS') {
+                tableTitle.innerHTML = `Maximum MW of ${feeder1}, ${feeder2}, ${feeder3}, and ${feeder4} from ${startYear} to ${endYear}`;
+            } else {
+                tableTitle.innerHTML = `Maximum MW of ${feeder1} and ${feeder2} from ${startYear} to ${endYear}`;
+            }
+
+            // Display the row with the highest MW
+            if (maxMWRow) {
+                const tableRow = document.createElement('tr');
+                let rowHTML = `
+                    <td>${formatDate(maxMWRow.date)}</td>
+                    <td>${maxMWRow.time}</td>
+                    <td>${feeder1}</td>
+                    <td>${maxMWRow.feeder1.MW}</td>
+                    <td>${feeder2}</td>
+                    <td>${maxMWRow.feeder2.MW}</td>
+                `;
+
+                if (voltage === 'ICTS') {
+                    rowHTML += `
+                        <td>${feeder3}</td>
+                        <td>${maxMWRow.feeder3 ? maxMWRow.feeder3.MW : '-'}</td>
+                        <td>${feeder4}</td>
+                        <td>${maxMWRow.feeder4 ? maxMWRow.feeder4.MW : '-'}</td>
+                    `;
+                }
+
+                tableRow.innerHTML = rowHTML;
+                matchedTableBody.appendChild(tableRow);
+                tableRow.classList.add('highlight');
+            }
+
+        } catch (error) {
+            console.error('Error fetching or displaying data:', error);
+            alert('Error fetching or displaying data.');
+        }
+    
 
     document.getElementById('downloadPDFButton').addEventListener('click', function () {
         const { jsPDF } = window.jspdf;  // Get jsPDF from the window object
         const doc = new jsPDF();         // Create a new jsPDF instance
 
+        // Add Logo to PDF (assumes logo_new.png is accessible)
+        doc.addImage('logo_new.png', 'PNG', 14, 10, 30, 30);  // x, y, width, height
+
+        // Add custom header text
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(16);
+        doc.text("TRANSMISSION CORPORATION OF TELANGANA LIMITED", 60, 20);  // Adjust x, y position of the text
+
+        // Set font for the rest of the content
+        doc.setFont("helvetica", "normal");
+        doc.setFontSize(12);
+
         // Get tables for uploaded and matched data
         const uploadedTable = document.getElementById('dataTable');
         const matchedTable = document.getElementById('matchedTable');
 
-        // Set font and title for PDF
-        doc.setFont("helvetica", "normal");
-        doc.setFontSize(12);
-
         // Add title for uploaded data
-        doc.text("Uploaded Data", 14, 20);
-        doc.autoTable({ 
-            html: uploadedTable, 
-            startY: 30, 
-            theme: "grid", 
-            headStyles: { fontSize: 10 }, 
+        doc.text("Uploaded Data", 14, 40);
+        doc.autoTable({
+            html: uploadedTable,
+            startY: 50,
+            theme: "grid",
+            headStyles: { fontSize: 10 },
             bodyStyles: { fontSize: 9 },
         });
 
@@ -468,11 +488,11 @@ async function fetchAndDisplayData(voltage, feeder1, feeder2, feeder3, feeder4, 
 
         // Add title for matched data
         doc.text("Matched Data", 14, 20);
-        doc.autoTable({ 
-            html: matchedTable, 
-            startY: 30, 
-            theme: "grid", 
-            headStyles: { fontSize: 10 }, 
+        doc.autoTable({
+            html: matchedTable,
+            startY: 30,
+            theme: "grid",
+            headStyles: { fontSize: 10 },
             bodyStyles: { fontSize: 9 },
         });
 
