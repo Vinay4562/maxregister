@@ -98,168 +98,151 @@
   </style>
 </head>
 <body>
-  <!-- Header -->
-  <div class="header">
-    <h1>Extract Saved Data</h1>
+  <h1>Data Upload</h1>
+
+  <div>
+    <label for="voltageLevel">Select Voltage Level:</label>
+    <select id="voltageLevel">
+      <option value="">Select Voltage Level</option>
+      <option value="400KV Feeders">400KV Feeders</option>
+      <option value="220KV Feeders">220KV Feeders</option>
+      <option value="ICT's">ICT's</option>
+    </select>
   </div>
 
-  <!-- Container -->
-  <div class="container">
-    <!-- Voltage Level Selection -->
-    <div class="filter-section">
-      <label for="voltageLevel">Select Voltage Level:</label>
-      <select id="voltageLevel">
-        <option value="">Select Voltage</option>
-        <option value="400KV">400KV</option>
-        <option value="220KV">220KV</option>
-        <option value="ICTS">ICT'S</option>
-      </select>
-    </div>
-
-    <!-- Feeder Selection (Hidden by Default) -->
-    <div class="filter-section hidden" id="feederSection">
-      <label for="feeder">Select Feeder/ICT:</label>
-      <select id="feeder">
-        <!-- Options will be dynamically populated based on voltage level -->
-      </select>
-    </div>
-
-    <!-- Date Range Selection (Hidden by Default) -->
-    <div class="filter-section hidden" id="dateRangeSection">
-      <label for="fromDate">From Date:</label>
-      <input type="date" id="fromDate">
-      <label for="toDate">To Date:</label>
-      <input type="date" id="toDate">
-      <button id="fetchDataBtn">Fetch Data</button>
-    </div>
-
-    <!-- Loading Spinner -->
-    <div id="loadingSpinner" class="hidden" style="text-align: center; margin-top: 20px;">
-        <i class="fas fa-spinner fa-spin fa-2x"></i>
-        <p>Loading data...</p>
-      </div>
-
-    <!-- Data Table -->
-    <table class="data-table hidden" id="dataTable">
-      <thead>
-        <tr>
-          <th>Voltage</th>
-          <th>Feeder/ICT</th>
-          <th>Year</th>
-          <th>MW</th>
-          <th>Date</th>
-          <th>Time</th>
-        </tr>
-      </thead>
-      <tbody>
-        <!-- Data rows will be dynamically added here -->
-      </tbody>
-    </table>
-
-    <!-- No Data Message -->
-    <div class="no-data hidden" id="noDataMessage">
-      No data available for the selected date range.
-    </div>
+  <div>
+    <label for="feeder">Select Feeder:</label>
+    <select id="feeder">
+      <option value="">Select Feeder</option>
+    </select>
   </div>
+
+  <div>
+    <label for="fromDate">From Date:</label>
+    <input type="date" id="fromDate">
+  </div>
+
+  <div>
+    <label for="toDate">To Date:</label>
+    <input type="date" id="toDate">
+  </div>
+
+  <button id="fetchData">Fetch Data</button>
+
+  <div id="loadingSpinner" class="hidden">Loading...</div>
+  <div id="noDataMessage" class="hidden">No data available.</div>
+
+  <table id="dataTable" class="hidden">
+    <thead>
+      <tr>
+        <th>Voltage</th>
+        <th>Feeder</th>
+        <th>Year</th>
+        <th>MW</th>
+        <th>Date</th>
+        <th>Time</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
 
   <script>
     document.addEventListener("DOMContentLoaded", function () {
-  const voltageLevelSelect = document.getElementById("voltageLevel");
-  const feederSelect = document.getElementById("feeder");
-  const fetchDataBtn = document.getElementById("fetchData");
-  const dataTable = document.getElementById("dataTable");
-  const tableBody = dataTable.querySelector("tbody");
-  const noDataMessage = document.getElementById("noDataMessage");
-  const loadingSpinner = document.getElementById("loadingSpinner");
+      const voltageLevelSelect = document.getElementById("voltageLevel");
+      const feederSelect = document.getElementById("feeder");
+      const fetchDataBtn = document.getElementById("fetchData");
+      const dataTable = document.getElementById("dataTable");
+      const tableBody = dataTable.querySelector("tbody");
+      const noDataMessage = document.getElementById("noDataMessage");
+      const loadingSpinner = document.getElementById("loadingSpinner");
 
-  // Define feeders based on voltage levels
-  const feeders = {
-    "400KV Feeders": [
-      "400KV MAHESHWARAM-2", "400KV MAHESHWARAM-1", "400KV NARSAPUR-1", "400KV NARSAPUR-2",
-      "400KV KETHIREDDYPALLY-1", "400KV KETHIREDDYPALLY-2", "400KV NIZAMABAD-1", "400KV NIZAMABAD-2"
-    ],
-    "220KV Feeders": [
-      "220KV PARIGI-1", "220KV PARIGI-2", "220KV THANDUR", "220KV GACHIBOWLI-1", "220KV GACHIBOWLI-2",
-      "220KV KETHIREDDYPALLY", "220KV YEDDUMAILARAM-1", "220KV YEDDUMAILARAM-2", "220KV SADASIVAPET-1", "220KV SADASIVAPET-2"
-    ],
-    "ICT's": ["315MVA ICT-1", "315MVA ICT-2", "315MVA ICT-3", "500MVA ICT-4"]
-  };
+      // Define feeders based on voltage levels
+      const feeders = {
+        "400KV Feeders": [
+          "400KV MAHESHWARAM-2", "400KV MAHESHWARAM-1", "400KV NARSAPUR-1", "400KV NARSAPUR-2",
+          "400KV KETHIREDDYPALLY-1", "400KV KETHIREDDYPALLY-2", "400KV NIZAMABAD-1", "400KV NIZAMABAD-2"
+        ],
+        "220KV Feeders": [
+          "220KV PARIGI-1", "220KV PARIGI-2", "220KV THANDUR", "220KV GACHIBOWLI-1", "220KV GACHIBOWLI-2",
+          "220KV KETHIREDDYPALLY", "220KV YEDDUMAILARAM-1", "220KV YEDDUMAILARAM-2", "220KV SADASIVAPET-1", "220KV SADASIVAPET-2"
+        ],
+        "ICT's": ["315MVA ICT-1", "315MVA ICT-2", "315MVA ICT-3", "500MVA ICT-4"]
+      };
 
-  // Populate feeders based on selected voltage level
-  voltageLevelSelect.addEventListener("change", function () {
-    const selectedVoltage = voltageLevelSelect.value;
-    feederSelect.innerHTML = "<option value=''>Select Feeder</option>"; // Reset dropdown
-    
-    if (feeders[selectedVoltage]) {
-      feeders[selectedVoltage].forEach(feeder => {
-        const option = document.createElement("option");
-        option.value = feeder;
-        option.textContent = feeder;
-        feederSelect.appendChild(option);
-      });
-    }
-  });
-
-  // Fetch data on button click
-  fetchDataBtn.addEventListener("click", async () => {
-    const voltage = voltageLevelSelect.value;
-    const feeder = feederSelect.value;
-    const fromDate = document.getElementById("fromDate").value;
-    const toDate = document.getElementById("toDate").value;
-
-    if (!voltage || !feeder || !fromDate || !toDate) {
-      alert("Please select all fields before fetching data.");
-      return;
-    }
-
-    // Show loading spinner
-    loadingSpinner.classList.remove("hidden");
-    dataTable.classList.add("hidden");
-    noDataMessage.classList.add("hidden");
-
-    try {
-      const response = await fetch("/fetch-data", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ voltage, feeder, fromDate, toDate })
+      // Populate feeders based on selected voltage level
+      voltageLevelSelect.addEventListener("change", function () {
+        const selectedVoltage = voltageLevelSelect.value;
+        feederSelect.innerHTML = "<option value=''>Select Feeder</option>"; // Reset dropdown
+        
+        if (feeders[selectedVoltage]) {
+          feeders[selectedVoltage].forEach(feeder => {
+            const option = document.createElement("option");
+            option.value = feeder;
+            option.textContent = feeder;
+            feederSelect.appendChild(option);
+          });
+        }
       });
 
-      const data = await response.json();
+      // Fetch data on button click
+      fetchDataBtn.addEventListener("click", async () => {
+        const voltage = voltageLevelSelect.value;
+        const feeder = feederSelect.value;
+        const fromDate = document.getElementById("fromDate").value;
+        const toDate = document.getElementById("toDate").value;
 
-      // Hide loading spinner
-      loadingSpinner.classList.add("hidden");
+        if (!voltage || !feeder || !fromDate || !toDate) {
+          alert("Please select all fields before fetching data.");
+          return;
+        }
 
-      if (data.length > 0) {
-        populateTable(data);
-      } else {
-        noDataMessage.classList.remove("hidden");
+        // Show loading spinner
+        loadingSpinner.classList.remove("hidden");
+        dataTable.classList.add("hidden");
+        noDataMessage.classList.add("hidden");
+
+        try {
+          const response = await fetch("/fetch-data", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ voltage, feeder, fromDate, toDate })
+          });
+
+          const data = await response.json();
+
+          // Hide loading spinner
+          loadingSpinner.classList.add("hidden");
+
+          if (data.length > 0) {
+            populateTable(data);
+          } else {
+            noDataMessage.classList.remove("hidden");
+          }
+        } catch (error) {
+          console.error("Error fetching data:", error);
+          alert("Failed to fetch data. Please try again.");
+        }
+      });
+
+      function populateTable(data) {
+        tableBody.innerHTML = ""; // Clear existing data
+
+        data.forEach(row => {
+          const tr = document.createElement("tr");
+          tr.innerHTML = `
+            <td>${row.voltage}</td>
+            <td>${row.feeder}</td>
+            <td>${row.year}</td>
+            <td>${row.mw}</td>
+            <td>${row.date}</td>
+            <td>${row.time}</td>
+          `;
+          tableBody.appendChild(tr);
+        });
+
+        dataTable.classList.remove("hidden");
       }
-    } catch (error) {
-      console.error("Error fetching data:", error);
-      alert("Failed to fetch data. Please try again.");
-    }
-  });
-
-  function populateTable(data) {
-    tableBody.innerHTML = ""; // Clear existing data
-
-    data.forEach(row => {
-      const tr = document.createElement("tr");
-      tr.innerHTML = `
-        <td>${row.voltage}</td>
-        <td>${row.feeder}</td>
-        <td>${row.year}</td>
-        <td>${row.mw}</td>
-        <td>${row.date}</td>
-        <td>${row.time}</td>
-      `;
-      tableBody.appendChild(tr);
     });
-
-    dataTable.classList.remove("hidden");
-  }
-});
-
   </script>
 </body>
 </html>
