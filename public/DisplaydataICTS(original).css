@@ -348,28 +348,6 @@ cursor: pointer;
 transition: background-color 0.3s ease, transform 0.3s ease, padding 0.3s ease;
 }
 
-.buttons button.print-button {
-background-color: #db4e4e;
-color: white;
-box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-}
-
-.buttons button.print-button:hover {
-background-color: #a70f04;
-transform: scale(1.05);
-}
-
-.buttons button.excel-button {
-background-color: #7cda25;
-color: #333;
-box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-}
-
-.buttons button.excel-button:hover {
-background-color: #2c8f04;
-transform: scale(1.05);
-}
-
 @media print {
 .header h1 {
 font-size: 18px; /* Adjust the font size as needed */

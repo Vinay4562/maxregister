@@ -120,10 +120,6 @@
         </thead>
         <tbody></tbody>
     </table>  
-    <div class="button-container">
-      <button id="printButton">Print Pdf</button>
-      <button id="downloadExcelButton">Download Excel</button>
-  </div>
 </div>
 
 </div>
@@ -396,18 +392,6 @@ async function fetchAndDisplayData(voltage, feeder1, feeder2, feeder3, feeder4, 
         matchedTableBody.appendChild(tableRow);
         tableRow.classList.add('highlight');
 
-        // Add print functionality
-        const printButton = document.getElementById('printButton');
-        printButton.addEventListener('click', function() {
-            window.print();
-        });
-
-        // Add Excel download functionality
-        const downloadExcelButton = document.getElementById('downloadExcelButton');
-        downloadExcelButton.addEventListener('click', function() {
-            downloadExcel(matchedRows);
-        });
-
     } catch (error) {
         console.error('Error fetching or displaying data:', error);
     }
@@ -442,20 +426,6 @@ document.getElementById("voltageLevel").addEventListener("change", updateTableHe
 
 // Call function on page load
 window.onload = updateTableHeaders;
-
-
-function downloadExcel(data) {
-    const fileName = 'matched_data.xlsx';
-
-    // Prepare data for Excel
-    const worksheet = XLSX.utils.json_to_sheet(data);
-    const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet, 'Matched Data');
-
-    // Generate Excel file and trigger download
-    XLSX.writeFile(workbook, fileName);
-}
-
 
 async function fetchDataForFeeder(feeder, startYear, endYear) {
     let fetchedData = [];
