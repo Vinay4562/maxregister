@@ -440,64 +440,64 @@ async function fetchAndDisplayData(voltage, feeder1, feeder2, feeder3, feeder4, 
         console.error('Error fetching or displaying data:', error);
     }
 
-    // Download Excel button
-    document.getElementById('downloadExcelButton').addEventListener('click', function () {
-        const uploadedTable = document.getElementById('uploadedTable'); // Table for uploaded data
-        const matchedTable = document.getElementById('matchedTable'); // Table for matched data
+    document.getElementById('downloadPDFButton').addEventListener('click', function () {
+    const { jsPDF } = window.jspdf;  // Get jsPDF from the window object
+    const doc = new jsPDF();         // Create a new jsPDF instance
 
-        // Create a workbook object using the table data
-        const wb = XLSX.utils.book_new(); // Create a new workbook
+    // Get tables for uploaded and matched data
+    const uploadedTable = document.getElementById('dataTable');
+    const matchedTable = document.getElementById('matchedTable');
 
-        // Convert the uploaded data table to a sheet and append to the workbook
-        const uploadedSheet = XLSX.utils.table_to_sheet(uploadedTable);
-        XLSX.utils.book_append_sheet(wb, uploadedSheet, 'Uploaded Data');
+    // Set font and title for PDF
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(12);
 
-        // Convert the matched data table to a sheet and append to the workbook
-        const matchedSheet = XLSX.utils.table_to_sheet(matchedTable);
-        XLSX.utils.book_append_sheet(wb, matchedSheet, 'Matched Data');
-
-        // Export the workbook to an Excel file
-        XLSX.writeFile(wb, 'data.xlsx');
+    // Add title for uploaded data
+    doc.text("Uploaded Data", 14, 20);
+    doc.autoTable({ 
+        html: uploadedTable, 
+        startY: 30, 
+        theme: "grid", 
+        headStyles: { fontSize: 10 }, 
+        bodyStyles: { fontSize: 9 },
     });
 
-    document.getElementById('downloadPDFButton').addEventListener('click', function () {
-      const { jsPDF } = window.jspdf;  // Get jsPDF from the window object
-      const doc = new jsPDF();         // Create a new jsPDF instance
+    // Add a new page for matched data
+    doc.addPage();
 
-      // Get tables for uploaded and matched data
-      const uploadedTable = document.getElementById('uploadedTable');
-      const matchedTable = document.getElementById('matchedTable');
+    // Add title for matched data
+    doc.text("Matched Data", 14, 20);
+    doc.autoTable({ 
+        html: matchedTable, 
+        startY: 30, 
+        theme: "grid", 
+        headStyles: { fontSize: 10 }, 
+        bodyStyles: { fontSize: 9 },
+    });
 
-      // Set font and title for PDF
-      doc.setFont("helvetica", "normal");
-      doc.setFontSize(12);
+    // Save the PDF with the name 'data.pdf'
+    doc.save('data.pdf');
+});
 
-      // Add title for uploaded data
-      doc.text("Uploaded Data", 14, 20);
-      doc.autoTable({ 
-          html: uploadedTable, 
-          startY: 30, 
-          theme: "grid", 
-          headStyles: { fontSize: 10 }, 
-          bodyStyles: { fontSize: 9 },
-      });
+document.getElementById('downloadExcelButton').addEventListener('click', function () {
+    // Get tables for uploaded and matched data
+    const uploadedTable = document.getElementById('dataTable');
+    const matchedTable = document.getElementById('matchedTable');
 
-      // Add a new page for matched data
-      doc.addPage();
+    // Convert HTML tables to Excel format using xlsx
+    const wb = XLSX.utils.book_new();  // Create a new workbook
 
-      // Add title for matched data
-      doc.text("Matched Data", 14, 20);
-      doc.autoTable({ 
-          html: matchedTable, 
-          startY: 30, 
-          theme: "grid", 
-          headStyles: { fontSize: 10 }, 
-          bodyStyles: { fontSize: 9 },
-      });
+    // Create worksheets for both tables
+    const uploadedSheet = XLSX.utils.table_to_sheet(uploadedTable);
+    const matchedSheet = XLSX.utils.table_to_sheet(matchedTable);
 
-      // Save the PDF with the name 'data.pdf'
-      doc.save('data.pdf');
-  });
+    // Append worksheets to the workbook
+    XLSX.utils.book_append_sheet(wb, uploadedSheet, 'Uploaded Data');
+    XLSX.utils.book_append_sheet(wb, matchedSheet, 'Matched Data');
+
+    // Export the workbook as Excel
+    XLSX.writeFile(wb, 'data.xlsx');
+});
 }
 
 function updateTableHeaders() {
