@@ -85,6 +85,7 @@
 
   <div id="uploadedData" style="display: none;">
     <h2>Uploaded Data</h2>
+    <div id="tableTitle"></div>
     <table id="dataTable">
         <thead>
             <tr>
@@ -376,6 +377,14 @@ async function fetchAndDisplayData(voltage, feeder1, feeder2, feeder3, feeder4, 
         }
 
         tableHeader.innerHTML = headerHTML;
+
+        // Set the header based on voltage selection
+        const tableTitle = document.querySelector('#tableTitle');
+        if (voltage === 'ICTS') {
+            tableTitle.innerHTML = `Maximum MW of ${feeder1}, ${feeder2}, ${feeder3}, and ${feeder4} from ${startYear} to ${endYear}`;
+        } else {
+            tableTitle.innerHTML = `Maximum MW of ${feeder1} and ${feeder2} from ${startYear} to ${endYear}`;
+        }
 
         // Display the rows with dynamic data
         const tableRow = document.createElement('tr');
