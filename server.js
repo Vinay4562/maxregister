@@ -140,17 +140,33 @@ app.post('/upload', async (req, res) => {
 
 // GET route to fetch data based on feeder and year
 app.get('/data', async (req, res) => {
-  const { feeder, year } = req.query;
+  const { feeder, year, fromDate, toDate } = req.query;
   const collectionName = `Feeder_${feeder}_Year_${year}`;
 
   try {
+    // Parse the fromDate and toDate strings into JavaScript Date objects
+    const from = new Date(fromDate);
+    const to = new Date(toDate);
+
+    // Make sure the dates are valid
+    if (isNaN(from) || isNaN(to)) {
+      return res.status(400).json({ error: 'Invalid date format. Please use YYYY-MM-DD.' });
+    }
+
     const Model = getModel(collectionName);
-    const data = await Model.find();
+
+    // Find data within the date range (if dates are provided)
+    const data = await Model.find({
+      date: { $gte: from, $lte: to }
+    });
+
     res.json(data);
   } catch (err) {
+    console.error(err);
     res.status(400).json({ error: err.message });
   }
 });
+
 
 // PUT route to update data
 app.put('/update', async (req, res) => {
