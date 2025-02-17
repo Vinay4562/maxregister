@@ -155,23 +155,35 @@ app.get('/data', async (req, res) => {
 // GET route to extract data based on voltage, feeder, and date range
 app.get('/extract-data', async (req, res) => {
   const { voltage, feeder, fromDate, toDate } = req.query;
-  
+
   try {
     // Validate inputs
     if (!voltage || !feeder || !fromDate || !toDate) {
       return res.status(400).json({ error: 'Missing required parameters' });
     }
 
-    // Query database
-    const collectionName = `Feeder_${feeder}_Year_*`;
-    const Model = getModel(collectionName);
-    const data = await Model.find({
-      voltage,
-      feeder,
-      date: { $gte: fromDate, $lte: toDate }
-    });
+    // Get all collections that match the feeder pattern
+    const collections = await mongoose.connection.db.listCollections().toArray();
+    const matchingCollections = collections.filter(collection => 
+      collection.name.startsWith(`Feeder_${feeder}_Year_`)
+    );
 
-    res.json(data);
+    // Query all matching collections
+    const allData = [];
+    for (const collection of matchingCollections) {
+      const Model = getModel(collection.name);
+      const data = await Model.find({
+        voltage,
+        feeder,
+        date: { 
+          $gte: fromDate, 
+          $lte: toDate 
+        }
+      });
+      allData.push(...data);
+    }
+
+    res.json(allData);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
