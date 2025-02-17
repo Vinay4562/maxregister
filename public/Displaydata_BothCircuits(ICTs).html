@@ -103,23 +103,23 @@
 <div class="centered-table">
   <div id="matchedData" style="display: none;">
     <h2>Loads at same time of Feeders/ICT'S</h2>
-    <table id="matchedTable">
+      <table id="matchedTable">
         <thead>
             <tr>
-              <th>Date</th>
-              <th>Time</th>
-              <th>Feeder 1</th>
-              <th>MW</th>
-              <th>Feeder 2</th>
-              <th>MW</th>
-              <th id="feeder3Header">Feeder 3</th>
-              <th id="feeder3MWHeader">MW</th>
-              <th id="feeder4Header">Feeder 4</th>
-              <th id="feeder4MWHeader">MW</th>              
+                <th>Date</th>
+                <th>Time</th>
+                <th>Feeder 1</th>
+                <th>MW</th>
+                <th>Feeder 2</th>
+                <th>MW</th>
+                <th id="feeder3Header">Feeder 3</th>
+                <th id="feeder3MWHeader">MW</th>
+                <th id="feeder4Header">Feeder 4</th>
+                <th id="feeder4MWHeader">MW</th>              
             </tr>
         </thead>
         <tbody></tbody>
-    </table>
+    </table>  
     <div class="button-container">
       <button id="printButton">Print Pdf</button>
       <button id="downloadExcelButton">Download Excel</button>
@@ -216,6 +216,21 @@
     const feeder4 = document.getElementById('input5').value;
     const year = document.getElementById('year').value;
     const toYear = document.getElementById('toYear').value;
+
+    // Show or hide table headers based on the selected voltage level
+    if (voltage === '400KV' || voltage === '220KV') {
+        // Hide the headers for Feeder 3 and Feeder 4
+        document.getElementById('feeder3Header').style.display = 'none';
+        document.getElementById('feeder3MWHeader').style.display = 'none';
+        document.getElementById('feeder4Header').style.display = 'none';
+        document.getElementById('feeder4MWHeader').style.display = 'none';
+    } else if (voltage === 'ICTS') {
+        // Show all the headers for Feeder 1, 2, 3, and 4
+        document.getElementById('feeder3Header').style.display = 'table-cell';
+        document.getElementById('feeder3MWHeader').style.display = 'table-cell';
+        document.getElementById('feeder4Header').style.display = 'table-cell';
+        document.getElementById('feeder4MWHeader').style.display = 'table-cell';
+    }
     
     // Check for duplicate feeders based on voltage type
     if (voltage === '400KV' || voltage === '220KV') {
