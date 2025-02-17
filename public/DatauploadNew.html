@@ -185,45 +185,61 @@
       });
 
       // Fetch data on button click
-      fetchDataBtn.addEventListener("click", async () => {
-        const voltage = voltageLevelSelect.value;
-        const feeder = feederSelect.value;
-        const fromDate = document.getElementById("fromDate").value;
-        const toDate = document.getElementById("toDate").value;
+fetchDataBtn.addEventListener("click", async () => {
+  const voltage = voltageLevelSelect.value;
+  const feeder = feederSelect.value;
+  const fromDate = document.getElementById("fromDate").value;
+  const toDate = document.getElementById("toDate").value;
 
-        if (!voltage || !feeder || !fromDate || !toDate) {
-          alert("Please select all fields before fetching data.");
-          return;
-        }
+  // Check if all fields are filled
+  if (!voltage || !feeder || !fromDate || !toDate) {
+    alert("Please select all fields before fetching data.");
+    return;
+  }
 
-        // Show loading spinner
-        loadingSpinner.classList.remove("hidden");
-        dataTable.classList.add("hidden");
-        noDataMessage.classList.add("hidden");
+  // Convert fromDate and toDate to JavaScript Date objects
+  const fromDateObj = new Date(fromDate);
+  const toDateObj = new Date(toDate);
 
-        try {
-            const response = await fetch("/fetch-data", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ voltage, feeder, fromDate, toDate })
-            });
+  // Validate if the dates are correct
+  if (isNaN(fromDateObj) || isNaN(toDateObj)) {
+    alert("Please enter valid dates.");
+    return;
+  }
 
-            if (!response.ok) {
-                throw new Error('Failed to fetch data');
-            }
+  // Show loading spinner and hide data table/no data message
+  loadingSpinner.classList.remove("hidden");
+  dataTable.classList.add("hidden");
+  noDataMessage.classList.add("hidden");
 
-            const data = await response.json();
-            
-            if (data.length > 0) {
-                populateTable(data);
-            } else {
-                noDataMessage.classList.remove("hidden");
-            }
-            } catch (error) {
-            console.error("Error fetching data:", error);
-            alert("Failed to fetch data. Please try again.");
-            }
-      });
+  try {
+    const response = await fetch("/fetch-data", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ voltage, feeder, fromDate: fromDateObj.toISOString(), toDate: toDateObj.toISOString() })
+    });
+
+    // Hide the loading spinner once the request is complete
+    loadingSpinner.classList.add("hidden");
+
+    if (!response.ok) {
+      throw new Error('Failed to fetch data');
+    }
+
+    const data = await response.json();
+    
+    if (data.length > 0) {
+      populateTable(data);
+    } else {
+      noDataMessage.classList.remove("hidden");
+    }
+  } catch (error) {
+    console.error("Error fetching data:", error);
+    alert("Failed to fetch data. Please try again.");
+    loadingSpinner.classList.add("hidden");
+  }
+});
+
 
       function populateTable(data) {
         tableBody.innerHTML = ""; // Clear existing data

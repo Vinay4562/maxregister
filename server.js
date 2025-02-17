@@ -139,11 +139,30 @@ app.post('/upload', async (req, res) => {
   }
 });
 
+// Define the getData function to fetch data
+const getData = async (voltage, feeder, fromDate, toDate) => {
+  const collectionName = `Feeder_${feeder}_Year_${fromDate.getFullYear()}`;
+  const Model = getModel(collectionName);
+
+  // Fetch data based on the provided filters (voltage, feeder, and date range)
+  return await Model.find({
+    voltage,
+    feeder,
+    date: { $gte: fromDate.toISOString(), $lte: toDate.toISOString() }
+  });
+};
+
+// POST route to fetch data
 app.post('/fetch-data', async (req, res) => {
   const { voltage, feeder, fromDate, toDate } = req.body;
+
   try {
-    // Simulate fetching data, replace this with actual data retrieval logic
-    const data = await getData(voltage, feeder, fromDate, toDate); // Ensure this function exists and works
+    // Parse the dates into JavaScript Date objects
+    const from = new Date(fromDate);
+    const to = new Date(toDate);
+
+    // Fetch data using the getData function
+    const data = await getData(voltage, feeder, from, to);
     res.json(data);
   } catch (error) {
     console.error('Error in fetching data:', error); // Log the error to the server console
