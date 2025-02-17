@@ -144,7 +144,6 @@ app.get('/data', async (req, res) => {
   const collectionName = `Feeder_${feeder}_Year_${year}`;
 
   try {
-    // Log query parameters for debugging
     console.log('Fetching data for:', { feeder, year, fromDate, toDate });
 
     if (!feeder || !year) {
@@ -160,10 +159,14 @@ app.get('/data', async (req, res) => {
       return res.status(400).json({ error: 'Invalid date format. Please use YYYY-MM-DD.' });
     }
 
+    // Normalize fromDate to start of the day and toDate to end of the day
+    from.setHours(0, 0, 0, 0); // Set time to 00:00:00
+    to.setHours(23, 59, 59, 999); // Set time to 23:59:59
+
     // If only year is provided, create a default date range for the entire year (start to end)
     if (!fromDate || !toDate) {
-      from = new Date(`${year}-01-01`);
-      to = new Date(`${year}-12-31`);
+      from = new Date(`${year}-01-01T00:00:00Z`); // Start of the year in UTC
+      to = new Date(`${year}-12-31T23:59:59Z`); // End of the year in UTC
     }
 
     const Model = getModel(collectionName);
@@ -173,7 +176,6 @@ app.get('/data', async (req, res) => {
       date: { $gte: from, $lte: to }
     });
 
-    // Log the resulting data
     console.log('Fetched Data:', data);
 
     if (data.length === 0) {
@@ -182,10 +184,11 @@ app.get('/data', async (req, res) => {
 
     res.json(data);
   } catch (err) {
-    console.error('Error fetching data:', err); // Log the error for debugging
+    console.error('Error fetching data:', err);
     res.status(400).json({ error: 'An error occurred while fetching data. Please try again later.' });
   }
 });
+
 
 // PUT route to update data
 app.put('/update', async (req, res) => {
