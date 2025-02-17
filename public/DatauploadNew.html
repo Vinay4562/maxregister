@@ -33,6 +33,15 @@
       border-radius: 8px;
       box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     }
+
+    #loadingSpinner {
+      color: #3498db;
+      font-size: 1.2rem;
+    }
+    .fa-spinner {
+      margin-bottom: 10px;
+    }
+
     .filter-section {
       margin-bottom: 20px;
     }
@@ -123,6 +132,12 @@
       <input type="date" id="toDate">
       <button id="fetchDataBtn">Fetch Data</button>
     </div>
+
+    <!-- Loading Spinner -->
+    <div id="loadingSpinner" class="hidden" style="text-align: center; margin-top: 20px;">
+        <i class="fas fa-spinner fa-spin fa-2x"></i>
+        <p>Loading data...</p>
+      </div>
 
     <!-- Data Table -->
     <table class="data-table hidden" id="dataTable">

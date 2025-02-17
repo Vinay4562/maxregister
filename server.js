@@ -155,14 +155,15 @@ app.get('/data', async (req, res) => {
 // GET route to extract data based on voltage, feeder, and date range
 app.get('/extract-data', async (req, res) => {
   const { voltage, feeder, fromDate, toDate } = req.query;
-
+  
   try {
+    // Validate inputs
     if (!voltage || !feeder || !fromDate || !toDate) {
-      throw new Error('Missing required query parameters.');
+      return res.status(400).json({ error: 'Missing required parameters' });
     }
 
-    // Fetch data from the specific collection
-    const collectionName = `Feeder_${feeder}_Year_*`; // Adjust based on your naming convention
+    // Query database
+    const collectionName = `Feeder_${feeder}_Year_*`;
     const Model = getModel(collectionName);
     const data = await Model.find({
       voltage,
@@ -172,7 +173,7 @@ app.get('/extract-data', async (req, res) => {
 
     res.json(data);
   } catch (err) {
-    res.status(400).json({ error: err.message });
+    res.status(500).json({ error: err.message });
   }
 });
 
