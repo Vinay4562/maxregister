@@ -142,15 +142,14 @@ app.post('/upload', async (req, res) => {
 app.post('/fetch-data', async (req, res) => {
   const { voltage, feeder, fromDate, toDate } = req.body;
   try {
-    // Fetch data from database or source based on the provided parameters
-    const data = await getData(voltage, feeder, fromDate, toDate);
-    res.json(data); // Send back JSON response
+    // Simulate fetching data, replace this with actual data retrieval logic
+    const data = await getData(voltage, feeder, fromDate, toDate); // Ensure this function exists and works
+    res.json(data);
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: 'Failed to fetch data' });
+    console.error('Error in fetching data:', error); // Log the error to the server console
+    res.status(500).json({ error: 'Internal server error. Please try again later.' });
   }
 });
-
 
 // GET route to fetch data
 app.get('/data', async (req, res) => {
