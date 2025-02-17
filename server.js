@@ -36,7 +36,7 @@ const dataSchema = new mongoose.Schema({
   feeder: String,
   year: String,
   MW: Number,
-  date: String,
+  date: Date,  // Changed to Date for proper date comparison
   time: String
 });
 
@@ -134,7 +134,8 @@ app.post('/upload', async (req, res) => {
       res.status(201).json({ message: 'Data saved successfully' });
     }
   } catch (err) {
-    res.status(400).json({ error: err.message });
+    console.error('Error during data upload:', err); // Log the error for debugging
+    res.status(400).json({ error: 'An error occurred while saving data. Please try again later.' });
   }
 });
 
@@ -144,6 +145,13 @@ app.get('/data', async (req, res) => {
   const collectionName = `Feeder_${feeder}_Year_${year}`;
 
   try {
+    // Log query parameters for debugging
+    console.log('Fetching data for:', { feeder, year, fromDate, toDate });
+
+    if (!feeder || !year) {
+      return res.status(400).json({ error: 'Feeder and year are required' });
+    }
+
     // Parse the fromDate and toDate strings into JavaScript Date objects
     const from = new Date(fromDate);
     const to = new Date(toDate);
@@ -162,11 +170,10 @@ app.get('/data', async (req, res) => {
 
     res.json(data);
   } catch (err) {
-    console.error(err);
-    res.status(400).json({ error: err.message });
+    console.error('Error fetching data:', err); // Log the error for debugging
+    res.status(400).json({ error: 'An error occurred while fetching data. Please try again later.' });
   }
 });
-
 
 // PUT route to update data
 app.put('/update', async (req, res) => {
@@ -179,7 +186,8 @@ app.put('/update', async (req, res) => {
     const updatedData = await Model.findByIdAndUpdate(id, { MW, date, time }, { new: true });
     res.json({ message: 'Data updated successfully', data: updatedData });
   } catch (err) {
-    res.status(400).json({ error: err.message });
+    console.error('Error updating data:', err); // Log the error for debugging
+    res.status(400).json({ error: 'An error occurred while updating data. Please try again later.' });
   }
 });
 
@@ -194,7 +202,8 @@ app.delete('/delete/:id', async (req, res) => {
     await Model.findByIdAndDelete(id);
     res.json({ message: 'Data deleted successfully' });
   } catch (err) {
-    res.status(400).json({ error: err.message });
+    console.error('Error deleting data:', err); // Log the error for debugging
+    res.status(400).json({ error: 'An error occurred while deleting data. Please try again later.' });
   }
 });
 
@@ -208,7 +217,8 @@ app.get('/check-existence', async (req, res) => {
     const exists = await Model.exists({ feeder, year, date, time });
     res.json({ exists: !!exists });
   } catch (err) {
-    res.status(400).json({ error: err.message });
+    console.error('Error checking data existence:', err); // Log the error for debugging
+    res.status(400).json({ error: 'An error occurred while checking data existence. Please try again later.' });
   }
 });
 
