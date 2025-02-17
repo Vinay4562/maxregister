@@ -16,7 +16,7 @@ app.use(bodyParser.json());
 app.use(cors());
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(session({
-  secret: process.env.SESSION_SECRET || 'your_secret_key',
+  secret: process.env.SESSION_SECRET || 'your_secret_key', // Use a strong secret for session management
   resave: false,
   saveUninitialized: true,
   store: MongoStore.create({ mongoUrl: process.env.MONGO_URI }), // Use MongoDB to store sessions
@@ -24,10 +24,7 @@ app.use(session({
 }));
 
 // MongoDB connection
-mongoose.connect(process.env.MONGO_URI, {
-  useNewUrlParser: true,
-  useUnifiedTopology: true
-}).then(() => {
+mongoose.connect(process.env.MONGO_URI).then(() => {
   console.log('Connected to MongoDB');
 }).catch(err => {
   console.error('Connection error', err);
@@ -57,15 +54,16 @@ const getModel = (collectionName) => {
 // Dummy credentials (hashed password)
 const defaultUser = {
   username: 'Shankarpally400kv',
-  passwordHash: bcrypt.hashSync('Shankarpally@9870', 10) // Replace with the actual password
+  passwordHash: bcrypt.hashSync('Shankarpally@9870', 10) // Replace 'password' with the actual password
 };
 
 // POST route for login
 app.post('/login', (req, res) => {
   const { username, password } = req.body;
 
+  // Check credentials
   if (username === defaultUser.username && bcrypt.compareSync(password, defaultUser.passwordHash)) {
-    req.session.authenticated = true; 
+    req.session.authenticated = true; // Set session flag for authenticated user
     res.json({ success: true });
   } else {
     res.json({ success: false, message: 'Invalid username or password' });
@@ -78,38 +76,39 @@ app.post('/logout', (req, res, next) => {
     if (err) {
       return next(err);
     }
-    res.clearCookie('connect.sid');
-    res.redirect('/login.html');
+    res.clearCookie('connect.sid'); // Clear the session cookie
+    res.redirect('/login.html'); // Redirect to login page after logout
   });
 });
 
-// GET route to check authentication
+// GET route to check if user is authenticated
 app.get('/check-auth', (req, res) => {
   res.json({ authenticated: req.session.authenticated || false });
 });
 
-// Middleware to check authentication
+// Middleware to check if the user is authenticated
 const ensureAuthenticated = (req, res, next) => {
   if (req.session.authenticated) {
     return next();
   }
-  res.redirect('/login.html');
+  res.redirect('/login.html'); // Redirect to login if not authenticated
 };
 
-// Protected route for Dataupload.html
+// Protect the route that serves Dataupload.html
 app.get('/dataupload', ensureAuthenticated, (req, res) => {
-  res.setHeader('Cache-Control', 'no-store');
+  res.setHeader('Cache-Control', 'no-store'); // Prevent caching of the page
   res.sendFile(path.join(__dirname, 'public', 'Dataupload.html'));
 });
 
-// Check if data exists
+// Function to check if data exists in the collection
 const checkDataExists = async (feeder, year, voltage, MW, date, time) => {
   const collectionName = `Feeder_${feeder}_Year_${year}`;
   const Model = getModel(collectionName);
-  return await Model.exists({ voltage, feeder, year, MW, date, time });
+  const exists = await Model.exists({ voltage, feeder, year, MW, date, time });
+  return !!exists;
 };
 
-// Insert data
+// Function to insert data into the correct collection
 const insertDataIntoCollection = async (feeder, year, data) => {
   const collectionName = `Feeder_${feeder}_Year_${year}`;
   const Model = getModel(collectionName);
@@ -139,50 +138,7 @@ app.post('/upload', async (req, res) => {
   }
 });
 
-// Define the getData function to fetch data
-const getData = async (voltage, feeder, fromDate, toDate) => {
-  const collectionName = `Feeder_${feeder}_Year_${fromDate.getFullYear()}`;
-  const Model = getModel(collectionName);
-
-  // Fetch data based on the provided filters (voltage, feeder, and date range)
-  return await Model.find({
-    voltage,
-    feeder,
-    date: { $gte: fromDate.toISOString(), $lte: toDate.toISOString() }
-  });
-};
-
-// POST route to fetch data
-app.post('/fetch-data', async (req, res) => {
-  const { voltage, feeder, fromDate, toDate } = req.body;
-
-  try {
-    const fromDateObj = new Date(fromDate);
-    const toDateObj = new Date(toDate);
-
-    // Check if fromDate and toDate are valid Date objects
-    if (isNaN(fromDateObj) || isNaN(toDateObj)) {
-      return res.status(400).json({ error: 'Invalid date range' });
-    }
-
-    // Convert dates to MongoDB Date format
-    const collectionName = `Feeder_${feeder}_Year_${new Date(fromDate).getFullYear()}`;
-    const Model = getModel(collectionName);
-    
-    // Fetch data within the date range
-    const data = await Model.find({
-      date: { $gte: fromDateObj, $lte: toDateObj }
-    });
-
-    res.json(data);
-  } catch (error) {
-    console.error('Error fetching data:', error);
-    res.status(500).json({ error: 'Internal server error. Please try again later.' });
-  }
-});
-
-
-// GET route to fetch data
+// GET route to fetch data based on feeder and year
 app.get('/data', async (req, res) => {
   const { feeder, year } = req.query;
   const collectionName = `Feeder_${feeder}_Year_${year}`;
@@ -211,7 +167,7 @@ app.put('/update', async (req, res) => {
   }
 });
 
-// DELETE route to remove data
+// DELETE route to delete data
 app.delete('/delete/:id', async (req, res) => {
   const { id } = req.params;
   const { feeder, year } = req.query;
@@ -221,6 +177,20 @@ app.delete('/delete/:id', async (req, res) => {
     const Model = getModel(collectionName);
     await Model.findByIdAndDelete(id);
     res.json({ message: 'Data deleted successfully' });
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
+});
+
+// Combined endpoint to check if data exists
+app.get('/check-existence', async (req, res) => {
+  const { feeder, year, date, time } = req.query;
+  const collectionName = `Feeder_${feeder}_Year_${year}`;
+
+  try {
+    const Model = getModel(collectionName);
+    const exists = await Model.exists({ feeder, year, date, time });
+    res.json({ exists: !!exists });
   } catch (err) {
     res.status(400).json({ error: err.message });
   }
