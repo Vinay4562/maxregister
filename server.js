@@ -139,6 +139,19 @@ app.post('/upload', async (req, res) => {
   }
 });
 
+app.post('/fetch-data', async (req, res) => {
+  const { voltage, feeder, fromDate, toDate } = req.body;
+  try {
+    // Fetch data from database or source based on the provided parameters
+    const data = await getData(voltage, feeder, fromDate, toDate);
+    res.json(data); // Send back JSON response
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Failed to fetch data' });
+  }
+});
+
+
 // GET route to fetch data
 app.get('/data', async (req, res) => {
   const { feeder, year } = req.query;
