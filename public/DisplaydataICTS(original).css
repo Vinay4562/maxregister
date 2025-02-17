@@ -436,56 +436,75 @@ align-items: center;
 height: 40vh; /* Adjust height to fit your content */
 }
 
-
-/* CSS for Print and Download Excel buttons */
-.button-container {
-display: flex;
-justify-content: center;
-margin-bottom: 20px; /* Optional: Add some space between buttons and table */
+/* Base styles for buttons */
+.download-button {
+  font-size: 16px;
+  padding: 12px 24px;
+  margin: 10px;
+  cursor: pointer;
+  border: none;
+  border-radius: 8px;
+  color: #fff;
+  background-color: #4CAF50;
+  transition: all 0.3s ease;
+  position: relative;
+  opacity: 0;  /* Initially hidden */
+  transform: scale(0.8); /* Slightly smaller initially */
+  transition: opacity 0.5s ease, transform 0.5s ease; /* Smooth transitions */
 }
 
-#printButton {
-background-color: #ec4843; /* Green */
-border: none;
-color: white;
-padding: 10px 20px;
-text-align: center;
-text-decoration: none;
-display: inline-block;
-font-size: 16px;
-margin: 10px 5px;
-cursor: pointer;
-border-radius: 5px;
-transition: background-color 0.3s ease;
+/* Button Hover Animation */
+.download-button:hover {
+  transform: translateY(-5px); /* Moves the button up slightly */
+  box-shadow: 0 8px 15px rgba(0, 0, 0, 0.2); /* Adds a shadow effect */
 }
 
-#downloadExcelButton {
-background-color: #4CAF50; /* Green */
-border: none;
-color: white;
-padding: 10px 20px;
-text-align: center;
-text-decoration: none;
-display: inline-block;
-font-size: 16px;
-margin: 10px 5px;
-cursor: pointer;
-border-radius: 5px;
-transition: background-color 0.3s ease;
+/* Pulse Animation */
+.download-button:active {
+  animation: pulse 0.3s ease-out;
 }
 
-#printButton:hover {
-background-color: #810606; /* Darker green */
+/* Pulse effect for the button */
+@keyframes pulse {
+  0% {
+      transform: scale(1);
+  }
+  50% {
+      transform: scale(1.1); /* Slightly increase size */
+  }
+  100% {
+      transform: scale(1);
+  }
 }
 
-#downloadExcelButton:hover {
-background-color: #056109; /* Darker green */
+/* Glowing animation on hover */
+.download-button:hover::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: 8px;
+  box-shadow: 0 0 15px rgba(255, 255, 255, 0.6);
+  animation: glowing 1.5s infinite alternate;
 }
 
-#printButton:focus,
-#downloadExcelButton:focus {
-outline: none;
-box-shadow: 0 0 5px rgba(0, 0, 0, 0.3);
+/* Glowing effect */
+@keyframes glowing {
+  0% {
+      box-shadow: 0 0 5px #fff, 0 0 10px #fff, 0 0 15px #ff8c00;
+  }
+  100% {
+      box-shadow: 0 0 20px #fff, 0 0 30px #fff, 0 0 40px #ff8c00;
+  }
+}
+
+/* Show the buttons with animation */
+.show-button {
+  opacity: 1;   /* Make the button visible */
+  transform: scale(1); /* Scale it to original size */
 }
 
 @media print {
