@@ -152,6 +152,30 @@ app.get('/data', async (req, res) => {
   }
 });
 
+// GET route to extract data based on voltage, feeder, and date range
+app.get('/extract-data', async (req, res) => {
+  const { voltage, feeder, fromDate, toDate } = req.query;
+
+  try {
+    if (!voltage || !feeder || !fromDate || !toDate) {
+      throw new Error('Missing required query parameters.');
+    }
+
+    // Fetch data from the specific collection
+    const collectionName = `Feeder_${feeder}_Year_*`; // Adjust based on your naming convention
+    const Model = getModel(collectionName);
+    const data = await Model.find({
+      voltage,
+      feeder,
+      date: { $gte: fromDate, $lte: toDate }
+    });
+
+    res.json(data);
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
+});
+
 // PUT route to update data
 app.put('/update', async (req, res) => {
   const { id, MW, date, time } = req.body;
