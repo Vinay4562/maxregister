@@ -1,8 +1,8 @@
 body {
-  font-family: Arial, sans-serif;
-  background-color: #f4f4f9;
-  margin: 0;
-  padding: 0;
+font-family: Arial, sans-serif;
+background-color: #f4f4f9;
+margin: 0;
+padding: 0;
 }
 
 .header {
@@ -18,7 +18,7 @@ body {
   animation: slideDown 1s ease-in-out;
 }
 
-.header h1 {
+.header h1{
   font-size: 30px;
 }
 
@@ -26,9 +26,9 @@ body {
 .logo {
   width: 130px;
   height: 100px;
-  background-color: white;
-  padding: 10px;
-  border-radius: 10px;
+  background-color: white; /* Set background color to white */
+  padding: 10px; /* Optional: Add some padding around the logo */
+  border-radius: 10px; /* Optional: Add rounded corners */
 }
 
 .logo:hover {
@@ -179,159 +179,358 @@ h2 {
   background-color: #004494;
 }
 
-/* Input4 and Input5 styling */
-#input4Container, #input5Container {
-  display: flex;
-  align-items: center;
+
+/* Added styles for input4 and input5 */
+#input4Container {
+display: flex;
+align-items: center;
 }
 
-#input4Container label, #input5Container label {
-  flex: 1;
-  margin-right: 10px;
-  font-weight: bold;
-  color: #555;
+#input4Container label {
+flex: 1;
+margin-right: 10px;
+font-weight: bold;
+color: #555;
 }
 
-#input4Container select, #input5Container select {
-  flex: 2;
-  padding: 8px;
-  font-size: 15px;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+#input4Container select {
+flex: 2;
+padding: 8px;
+font-size: 15px;
+border: 1px solid #ccc;
+border-radius: 4px;
+transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+#input5Container {
+display: flex;
+align-items: center;
+}
+
+#input5Container label {
+flex: 1;
+margin-right: 10px;
+font-weight: bold;
+color: #555;
+}
+
+#input5Container select {
+flex: 2;
+padding: 8px;
+font-size: 15px;
+border: 1px solid #ccc;
+border-radius: 4px;
+transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+/* Keep the animation for input4 and input5 consistent with other form items */
+@keyframes slideIn {
+from {
+  transform: translateX(-100%);
+}
+
+to {
+  transform: translateX(0);
+}
 }
 
 #uploadedData {
-  margin-top: 20px;
-  margin-bottom: 20px;
+margin-top: 20px;
+margin-bottom: 20px; /* Add margin-bottom to create space */
 }
 
 #uploadedData h2 {
-  margin-bottom: 10px;
+margin-bottom: 10px;
 }
 
 #tableTitle {
-  font-size: 20px;
-  font-weight: bold;
-  margin-bottom: 15px;
-  text-align: center;
-  color: #333;
-  padding: 10px 0;
-  background-color: #f0f0f0;
-  border-radius: 5px;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  font-size: 20px; /* Set the font size for the title */
+  font-weight: bold; /* Make the title bold */
+  margin-bottom: 15px; /* Add some space below the title */
+  text-align: center; /* Center the title */
+  color: #333; /* Set the text color */
+  padding: 10px 0; /* Add padding above and below the title */
+  background-color: #f0f0f0; /* Set a light background color */
+  border-radius: 5px; /* Add rounded corners to the background */
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); /* Add a subtle shadow */
 }
 
 #tableTitle span {
-  color: #007BFF;
+  color: #007BFF; /* Optionally, add color to specific parts of the title */
 }
+
 
 #dataTable {
-  width: 100%;
-  border-collapse: collapse;
+width: 100%;
+border-collapse: collapse;
 }
 
-#dataTable th, #dataTable td {
-  border: 1px solid #ddd;
-  padding: 8px;
-  text-align: left;
+#dataTable th,
+#dataTable td {
+border: 1px solid #ddd;
+padding: 8px;
+text-align: left;
 }
 
 #dataTable th {
-  background-color: #f2f2f2;
+background-color: #f2f2f2;
 }
 
 #dataTable tr:nth-child(even) {
-  background-color: #f9f9f9;
+background-color: #f9f9f9;
 }
 
 #dataTable tr:hover {
-  background-color: #f1f1f1;
+background-color: #f1f1f1;
 }
 
-.max-mw-container, .matched-date-time-container {
-  margin-top: 20px;
-  padding: 20px;
-  background-color: #f9f9f9;
-  border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  text-align: center;
+/* Add these styles to your existing CSS */
+
+.max-mw-container {
+margin-top: 20px;
+padding: 20px;
+background-color: #f9f9f9;
+border-radius: 8px;
+box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+text-align: center;
 }
 
-.max-mw-container h2, .matched-date-time-container h2 {
-  color: red;
+.max-mw-container h2 {
+color: red; /* Set the title color to red */
 }
 
-.max-mw-container table, .matched-date-time-container table {
-  width: 100%;
-  border-collapse: collapse;
+.max-mw-container table {
+width: 100%;
+border-collapse: collapse;
 }
 
-.max-mw-container th, .matched-date-time-container th,
-.max-mw-container td, .matched-date-time-container td {
-  border: 1px solid #ddd;
-  padding: 8px;
-  text-align: left;
+.max-mw-container th,
+.max-mw-container td {
+border: 1px solid #ddd;
+padding: 8px;
+text-align: left;
 }
 
-.max-mw-container th, .matched-date-time-container th {
-  background-color: #f2f2f2;
+.max-mw-container th {
+background-color: #f2f2f2;
 }
 
-.max-mw-container tr:nth-child(even), .matched-date-time-container tr:nth-child(even) {
-  background-color: #f9f9f9;
+.max-mw-container tr:nth-child(even) {
+background-color: #f9f9f9;
 }
 
-.max-mw-container tr:hover, .matched-date-time-container tr:hover {
-  background-color: #f1f1f1;
+.max-mw-container tr:hover {
+background-color: #f1f1f1;
+}
+
+.matched-date-time-container h2 {
+color: red; /* Set the title color to red */
+}
+
+.matched-date-time-container table {
+width: 100%;
+border-collapse: collapse;
+}
+
+.matched-date-time-container th,
+.matched-date-time-container td {
+border: 1px solid #ddd;
+padding: 8px;
+text-align: left;
+}
+
+.matched-date-time-container th {
+background-color: #f2f2f2;
+}
+
+.matched-date-time-container tr:nth-child(even) {
+background-color: #f9f9f9;
+}
+
+.matched-date-time-container tr:hover {
+background-color: #f1f1f1;
 }
 
 .buttons {
-  margin-top: 20px;
-  text-align: center;
+margin-top: 20px;
+text-align: center;
 }
 
 .buttons button {
-  padding: 10px 20px;
-  margin-right: 10px;
-  border: none;
-  border-radius: 5px;
-  cursor: pointer;
-  transition: background-color 0.3s ease, transform 0.3s ease, padding 0.3s ease;
+padding: 10px 20px;
+margin-right: 10px;
+border: none;
+border-radius: 5px;
+cursor: pointer;
+transition: background-color 0.3s ease, transform 0.3s ease, padding 0.3s ease;
 }
 
-/* Base styles for buttons */
-.download-button {
-  font-size: 16px;
-  padding: 12px 24px;
-  margin: 10px;
-  cursor: pointer;
-  border: none;
-  border-radius: 8px;
-  color: #fff;
-  background-color: #4CAF50;
-  transition: all 0.3s ease;
-  position: relative;
-  opacity: 0;  
-  transform: scale(0.8); 
-  transition: opacity 0.5s ease, transform 0.5s ease; 
+@media print {
+.header h1 {
+font-size: 18px; /* Adjust the font size as needed */
 }
 
-/* Button Hover Animation */
-.download-button:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 8px 15px rgba(0, 0, 0, 0.2);
+.header img {
+width: 80px;
+height: 60px;
 }
 
-/* Pulse Animation */
-.download-button:active {
-  animation: pulse 0.3s ease-out;
+@media print {
+.navbar, /* Hide the navbar */
+.buttons { /* Hide the print and download Excel buttons */
+    display: none !important;
+      }
+    }
+
+  }
+
+  #matchedData {
+    margin-top: 30px;
+    display: flex;
+    justify-content: center; /* Center the content horizontally */
+    flex-direction: column; /* Ensure the title and table are stacked vertically */
+    align-items: center; /* Center the table and title vertically */
+  }
+  
+  #matchedData h2 {
+    color: #4CAF50;
+    text-align: center; /* Ensure the title is centered */
+  }
+  
+  #matchedTable {
+    width: 80%; /* Adjust the width of the table to your preference */
+    border: 2px solid #4CAF50;
+    margin-top: 20px; /* Add some space between the title and table */
+    border-collapse: collapse;
+  }
+  
+  #matchedTable th {
+    background-color: #4CAF50;
+    color: white;
+  }
+  
+  #matchedTable tr:hover {
+    background-color: #e0f7e0;
+    transition: background-color 0.3s ease;
+  }
+  
+  #matchedTable td, #matchedTable th {
+    border: 1px solid #ddd;
+    padding: 8px;
+  }  
+
+.max-mw-row {
+background-color: #f0f8ff; /* Light blue */
 }
 
-@keyframes pulse {
-  0% { transform: scale(1); }
-  50% { transform: scale(1.1); }
-  100% { transform: scale(1); }
+.highlight {
+background-color: #ffeb3b; /* Light yellow background for highlighted rows */
+font-weight: bold;
+transition: background-color 0.3s ease;
+}
+
+.centered-table {
+display: flex;
+justify-content: center;
+align-items: center;
+height: 40vh; /* Adjust height to fit your content */
+}
+
+
+/* CSS for Print and Download Excel buttons */
+.button-container {
+display: flex;
+justify-content: center;
+margin-bottom: 20px; /* Optional: Add some space between buttons and table */
+}
+
+#printButton {
+background-color: #ec4843; /* Green */
+border: none;
+color: white;
+padding: 10px 20px;
+text-align: center;
+text-decoration: none;
+display: inline-block;
+font-size: 16px;
+margin: 10px 5px;
+cursor: pointer;
+border-radius: 5px;
+transition: background-color 0.3s ease;
+}
+
+#downloadExcelButton {
+background-color: #4CAF50; /* Green */
+border: none;
+color: white;
+padding: 10px 20px;
+text-align: center;
+text-decoration: none;
+display: inline-block;
+font-size: 16px;
+margin: 10px 5px;
+cursor: pointer;
+border-radius: 5px;
+transition: background-color 0.3s ease;
+}
+
+#printButton:hover {
+background-color: #810606; /* Darker green */
+}
+
+#downloadExcelButton:hover {
+background-color: #056109; /* Darker green */
+}
+
+#printButton:focus,
+#downloadExcelButton:focus {
+outline: none;
+box-shadow: 0 0 5px rgba(0, 0, 0, 0.3);
+}
+
+@media print {
+body {
+    font-family: Arial, sans-serif;
+    font-size: 12px;
+}
+
+#matchedData {
+    display: block !important; /* Ensure matched data section is visible */
+    margin: 0 auto; /* Center content horizontally */
+    max-width: 100%; /* Ensure content fits within printable area */
+    page-break-after: always; /* Ensure each section starts on a new page */
+}
+
+#matchedTable {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px; /* Optional: Add space between header and table */
+}
+
+#matchedTable th,
+#matchedTable td {
+    border: 1px solid #ddd;
+    padding: 8px;
+    text-align: center;
+}
+
+#matchedTable th {
+    background-color: #f2f2f2;
+}
+
+#matchedTable td {
+    background-color: #fff;
+}
+
+/* Ensure table headers are repeated on each printed page */
+#matchedTable thead {
+    display: table-header-group;
+}
+
+/* Hide Print and Download buttons on print */
+.button-container {
+    display: none;
+}
 }
 
 @media screen and (max-width: 768px) {
