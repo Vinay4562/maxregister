@@ -244,24 +244,21 @@ margin-bottom: 10px;
 }
 
 #tableTitle {
-  text-align: center;
-  font-size: 24px;
-  font-weight: bold;
-  color: #fff;
-  background: linear-gradient(135deg, #3498db, #8e44ad); /* Gradient background */
-  padding: 20px;
-  border-radius: 10px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-  margin-bottom: 20px;
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  font-size: 20px; /* Set the font size for the title */
+  font-weight: bold; /* Make the title bold */
+  margin-bottom: 15px; /* Add some space below the title */
+  text-align: center; /* Center the title */
+  color: #333; /* Set the text color */
+  padding: 10px 0; /* Add padding above and below the title */
+  background-color: #f0f0f0; /* Set a light background color */
+  border-radius: 5px; /* Add rounded corners to the background */
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); /* Add a subtle shadow */
 }
 
-/* Hover effect for table title */
-#tableTitle:hover {
-  transform: scale(1.05); /* Slight zoom on hover */
-  box-shadow: 0 8px 12px rgba(0, 0, 0, 0.2);
-  cursor: pointer;
+#tableTitle span {
+  color: #007BFF; /* Optionally, add color to specific parts of the title */
 }
+
 
 #dataTable {
 width: 100%;
@@ -600,25 +597,6 @@ body {
     text-align: center;
   }
 
-  #tableTitle {
-    font-size: 20px;
-    padding: 15px;
-}
-
-  /* Title text animations */
-  @keyframes fadeIn {
-  0% {
-      opacity: 0;
-      transform: translateY(-20px);
-  }
-  100% {
-      opacity: 1;
-      transform: translateY(0);
-  }
-  }
-
-  #tableTitle {
-  animation: fadeIn 0.6s ease-out;
-  }
+  
 }
 
