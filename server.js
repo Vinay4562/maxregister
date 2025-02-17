@@ -157,18 +157,30 @@ app.post('/fetch-data', async (req, res) => {
   const { voltage, feeder, fromDate, toDate } = req.body;
 
   try {
-    // Parse the dates into JavaScript Date objects
-    const from = new Date(fromDate);
-    const to = new Date(toDate);
+    const fromDateObj = new Date(fromDate);
+    const toDateObj = new Date(toDate);
 
-    // Fetch data using the getData function
-    const data = await getData(voltage, feeder, from, to);
+    // Check if fromDate and toDate are valid Date objects
+    if (isNaN(fromDateObj) || isNaN(toDateObj)) {
+      return res.status(400).json({ error: 'Invalid date range' });
+    }
+
+    // Convert dates to MongoDB Date format
+    const collectionName = `Feeder_${feeder}_Year_${new Date(fromDate).getFullYear()}`;
+    const Model = getModel(collectionName);
+    
+    // Fetch data within the date range
+    const data = await Model.find({
+      date: { $gte: fromDateObj, $lte: toDateObj }
+    });
+
     res.json(data);
   } catch (error) {
-    console.error('Error in fetching data:', error); // Log the error to the server console
+    console.error('Error fetching data:', error);
     res.status(500).json({ error: 'Internal server error. Please try again later.' });
   }
 });
+
 
 // GET route to fetch data
 app.get('/data', async (req, res) => {
