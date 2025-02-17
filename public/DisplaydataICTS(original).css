@@ -243,6 +243,26 @@ margin-bottom: 20px; /* Add margin-bottom to create space */
 margin-bottom: 10px;
 }
 
+#tableTitle {
+  text-align: center;
+  font-size: 24px;
+  font-weight: bold;
+  color: #fff;
+  background: linear-gradient(135deg, #3498db, #8e44ad); /* Gradient background */
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  margin-bottom: 20px;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+/* Hover effect for table title */
+#tableTitle:hover {
+  transform: scale(1.05); /* Slight zoom on hover */
+  box-shadow: 0 8px 12px rgba(0, 0, 0, 0.2);
+  cursor: pointer;
+}
+
 #dataTable {
 width: 100%;
 border-collapse: collapse;
@@ -578,6 +598,27 @@ body {
   .max-mw-container {
     padding: 15px;
     text-align: center;
+  }
+
+  #tableTitle {
+    font-size: 20px;
+    padding: 15px;
+}
+
+  /* Title text animations */
+  @keyframes fadeIn {
+  0% {
+      opacity: 0;
+      transform: translateY(-20px);
+  }
+  100% {
+      opacity: 1;
+      transform: translateY(0);
+  }
+  }
+
+  #tableTitle {
+  animation: fadeIn 0.6s ease-out;
   }
 }
 
