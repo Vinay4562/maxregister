@@ -556,7 +556,6 @@ body {
     flex-wrap: wrap; /* Allow wrapping if space is limited */
     gap: 10px;
     padding: 10px 0;
-    margin-top: 20px;
   }
 
   .navbar a {
