@@ -539,13 +539,14 @@ body {
   }
 
   .header h1 {
-    font-size: 24px;
+    font-size: 15px;
     text-align: center;
+    padding-left: 90px;
   }
 
   .logo {
-    width: 100px;
-    height: 80px;
+    width: 60px !important;
+    height: 40px !important;
   }
 
   .navbar {
@@ -556,8 +557,8 @@ body {
   }
 
   .navbar a {
-    font-size: 16px;
-    padding: 8px 15px;
+    font-size: 10px;
+    padding: 4px 8px;
   }
 
   .container {
