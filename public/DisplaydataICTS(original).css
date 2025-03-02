@@ -398,7 +398,7 @@ height: 60px;
   }
   
   #matchedTable {
-    width: 80%; /* Adjust the width of the table to your preference */
+    width: 100%; /* Adjust the width of the table to your preference */
     border: 2px solid #4CAF50;
     margin-top: 20px; /* Add some space between the title and table */
     border-collapse: collapse;
