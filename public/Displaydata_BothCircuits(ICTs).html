@@ -29,37 +29,33 @@
     <h2>Loads on Multi Feeders/ICT's in Service</h2>
     <form id="selectForm">
       <div class="form-item">
-        <label for="input1">Select Voltage:</label>
+        <label for="input1">Select Voltage Level:</label>
         <select name="input1" id="input1">
-          <option value="">Select voltage</option>
+          <option value="">Select Voltage</option>
           <option value="400KV">400KV</option>
           <option value="220KV">220KV</option>
-          <option value="ICTS">ICTS</option>
+          <option value="ICTS">ICT'S</option>
         </select>
       </div>
-      
-      <div class="form-item hidden" id="input2Container">
+      <div class="form-item" id="input2Container">
         <label for="input2" id="input2Label">Select First Feeder/ICT:</label>
         <select name="input2" id="input2">
           <option value="">Select feeder</option>
         </select>
       </div>
-      
-      <div class="form-item hidden" id="input3Container">
+      <div class="form-item" id="input3Container">
         <label for="input3" id="input3Label">Select Second Feeder/ICT:</label>
         <select name="input3" id="input3">
           <option value="">Select feeder</option>
         </select>
       </div>
-      
-      <div class="form-item hidden" id="input4Container">
+      <div class="form-item" style="display: none;" id="input4Container">
         <label for="input4" id="input4Label">Select Third Feeder/ICT:</label>
         <select name="input4" id="input4">
           <option value="">Select feeder</option>
         </select>
       </div>
-      
-      <div class="form-item hidden" id="input5Container">
+      <div class="form-item" style="display: none;" id="input5Container">
         <label for="input5" id="input5Label">Select Fourth Feeder/ICT:</label>
         <select name="input5" id="input5">
           <option value="">Select feeder</option>
@@ -133,116 +129,79 @@
 <button id="downloadExcelButton" style="display: none;">Download as Excel</button>
 
 <script>
-  document.addEventListener('DOMContentLoaded', function () {
-    // Populate year dropdowns
-    const currentYear = new Date().getFullYear();
-    const yearSelect = document.getElementById('year');
-    const toYearSelect = document.getElementById('toYear');
+  document.addEventListener('DOMContentLoaded', function() {
+  const currentYear = new Date().getFullYear();
+  const yearSelect = document.getElementById('year');
+  const toYearSelect = document.getElementById('toYear');
 
-    for (let year = 2012; year <= currentYear; year++) {
-      const option = document.createElement('option');
-      option.value = year;
-      option.textContent = year;
-      yearSelect.appendChild(option);
+  for (let year = 2012; year <= currentYear; year++) {
+    const option = document.createElement('option');
+    option.value = year;
+    option.textContent = year;
+    yearSelect.appendChild(option);
 
-      const toYearOption = document.createElement('option');
-      toYearOption.value = year;
-      toYearOption.textContent = year;
-      toYearSelect.appendChild(toYearOption);
-    }
+    const toYearOption = document.createElement('option');
+    toYearOption.value = year;
+    toYearOption.textContent = year;
+    toYearSelect.appendChild(toYearOption);
+  }
 
-    // Helper function to add options to a dropdown
-    function addOptions(selectElement, options) {
-      options.forEach((option) => {
-        const opt = document.createElement('option');
-        opt.value = option;
-        opt.textContent = option;
-        selectElement.appendChild(opt);
-      });
-    }
-
-    // Helper function to clear options in a dropdown
-    function clearOptions(selectElement) {
-      selectElement.innerHTML = '<option value="">Select feeder</option>';
-    }
-
-    // Function to set up feeder/ICT dropdowns based on voltage
-    function setupVoltageOptions(voltage, feeders) {
-      const input2 = document.getElementById('input2');
-      const input3 = document.getElementById('input3');
-      const input4 = document.getElementById('input4');
-      const input5 = document.getElementById('input5');
-
-      // Clear existing options
-      clearOptions(input2);
-      clearOptions(input3);
-      clearOptions(input4);
-      clearOptions(input5);
-
-      // Add new options
-      addOptions(input2, feeders);
-      addOptions(input3, feeders);
-
-      // Show/hide additional dropdowns based on voltage
-      if (voltage === 'ICTS') {
-        addOptions(input4, feeders);
-        addOptions(input5, feeders);
-        document.getElementById('input4Container').classList.add('visible');
-        document.getElementById('input5Container').classList.add('visible');
-      } else {
-        document.getElementById('input4Container').classList.remove('visible');
-        document.getElementById('input5Container').classList.remove('visible');
-      }
-
-      // Ensure the first two dropdowns are always visible
-      document.getElementById('input2Container').classList.add('visible');
-      document.getElementById('input3Container').classList.add('visible');
-    }
-
-    // Event listener for voltage selection
-    document.getElementById('input1').addEventListener('change', function () {
-      const voltage = this.value;
-
-      // Set up feeder/ICT options based on selected voltage
-      if (voltage === '400KV') {
-        setupVoltageOptions(voltage, [
-          '400KV MAHESHWARAM-2',
-          '400KV MAHESHWARAM-1',
-          '400KV NARSAPUR-1',
-          '400KV NARSAPUR-2',
-          '400KV KETHIREDDYPALLY-1',
-          '400KV KETHIREDDYPALLY-2',
-          '400KV NIZAMABAD-1',
-          '400KV NIZAMABAD-2',
-        ]);
-      } else if (voltage === '220KV') {
-        setupVoltageOptions(voltage, [
-          '220KV PARIGI-1',
-          '220KV PARIGI-2',
-          '220KV TANDUR',
-          '220KV GACHIBOWLI-1',
-          '220KV GACHIBOWLI-2',
-          '220KV KETHIREDDYPALLY',
-          '220KV YEDDUMAILARAM-1',
-          '220KV YEDDUMAILARAM-2',
-          '220KV SADASIVAPET-1',
-          '220KV SADASIVAPET-2',
-        ]);
-      } else if (voltage === 'ICTS') {
-        setupVoltageOptions(voltage, [
-          '315MVA ICT-1',
-          '315MVA ICT-2',
-          '315MVA ICT-3',
-          '500MVA ICT-4',
-        ]);
-      } else {
-        // Hide all feeder/ICT dropdowns if no valid voltage is selected
-        document.getElementById('input2Container').classList.remove('visible');
-        document.getElementById('input3Container').classList.remove('visible');
-        document.getElementById('input4Container').classList.remove('visible');
-        document.getElementById('input5Container').classList.remove('visible');
-      }
+  function addOptions(selectElement, options) {
+    options.forEach(option => {
+      const opt = document.createElement('option');
+      opt.value = option;
+      opt.textContent = option;
+      selectElement.appendChild(opt);
     });
+  }
+
+  function clearOptions(selectElement) {
+    selectElement.innerHTML = '<option value="">Select feeder</option>';
+  }
+
+  function setupVoltageOptions(voltage, feeders) {
+    const input2 = document.getElementById('input2');
+    const input3 = document.getElementById('input3');
+    const input4 = document.getElementById('input4');
+    const input5 = document.getElementById('input5');
+
+    clearOptions(input2);
+    clearOptions(input3);
+    clearOptions(input4);
+    clearOptions(input5);
+
+    addOptions(input2, feeders);
+    addOptions(input3, feeders);
+    if (voltage === 'ICTS') {
+      addOptions(input4, feeders);
+      addOptions(input5, feeders);
+      document.getElementById('input4Container').style.display = 'flex';
+      document.getElementById('input5Container').style.display = 'flex';
+    } else {
+      document.getElementById('input4Container').style.display = 'none';
+      document.getElementById('input5Container').style.display = 'none';
+    }
+
+    document.getElementById('input2Container').style.display = 'flex';
+    document.getElementById('input3Container').style.display = 'flex';
+  }
+
+  document.getElementById('input1').addEventListener('change', function() {
+    const voltage = this.value;
+
+    if (voltage === '400KV') {
+      setupVoltageOptions(voltage, ['400KV MAHESHWARAM-2', '400KV MAHESHWARAM-1', '400KV NARSAPUR-1', '400KV NARSAPUR-2', '400KV KETHIREDDYPALLY-1', '400KV KETHIREDDYPALLY-2', '400KV NIZAMABAD-1', '400KV NIZAMABAD-2']);
+    } else if (voltage === '220KV') {
+      setupVoltageOptions(voltage, ['220KV PARIGI-1', '220KV PARIGI-2', '220KV TANDUR', '220KV GACHIBOWLI-1', '220KV GACHIBOWLI-2', '220KV KETHIREDDYPALLY', '220KV YEDDUMAILARAM-1', '220KV YEDDUMAILARAM-2', '220KV SADASIVAPET-1', '220KV SADASIVAPET-2']);
+    } else if (voltage === 'ICTS') {
+      setupVoltageOptions(voltage, ['315MVA ICT-1', '315MVA ICT-2', '315MVA ICT-3', '500MVA ICT-4']);
+    } else {
+      document.getElementById('input2Container').style.display = 'none';
+      document.getElementById('input3Container').style.display = 'none';
+      document.getElementById('input4Container').style.display = 'none';
+      document.getElementById('input5Container').style.display = 'none';
+    }
+  });
 
     document.getElementById('selectForm').addEventListener('submit', function(event) {
         event.preventDefault();
