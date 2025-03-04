@@ -211,8 +211,8 @@
 
       try {
         const response = await fetch(
-          `https://maxregister-git-main-vinay-kumars-projects-f1559f4a.vercel.app/data?voltageLevel=${voltageLevel}&feeder=${feeder}&startMonth=${startMonth}&startYear=${startYear}&endMonth=${endMonth}&endYear=${endYear}`
-        );
+            `https://maxregister-git-main-vinay-kumars-projects-f1559f4a.vercel.app/data?voltageLevel=${voltageLevel}&feeder=${feeder}&year=${startYear}&startMonth=${startMonth}&startYear=${startYear}&endMonth=${endMonth}&endYear=${endYear}`
+            );
         const data = await response.json();
 
         const tableBody = document.querySelector('#dataTable tbody');

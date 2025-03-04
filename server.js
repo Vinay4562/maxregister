@@ -140,30 +140,41 @@ app.post('/upload', async (req, res) => {
 
 // GET route to fetch data based on feeder and year
 app.get('/data', async (req, res) => {
-  const { feeder, year, startMonth, startYear, endMonth, endYear } = req.query;
-  const collectionName = `Feeder_${feeder}_Year_${year}`;
-
   try {
-    // Validate inputs
+    // Log received query parameters
+    console.log("Received Query Params:", req.query);
+
+    // Destructure query parameters
+    const { feeder, year, startMonth, startYear, endMonth, endYear } = req.query;
+
+    // Validate query parameters
     if (!feeder || !year || !startMonth || !startYear || !endMonth || !endYear) {
-      throw new Error('Missing required query parameters.');
+      return res.status(400).json({ 
+        error: "Missing required query parameters.",
+        received: req.query // Show received parameters for debugging
+      });
     }
 
+    // Format feeder name to prevent collection naming issues
+    const formattedFeeder = feeder.replace(/\s+/g, '_'); 
+    const collectionName = `Feeder_${formattedFeeder}_Year_${year}`;
+
+    // Validate dates
     const startDate = new Date(`${startYear}-${startMonth}-01`);
     const endDate = new Date(`${endYear}-${endMonth}-31`);
 
-    if (isNaN(startDate.getTime())) {
-      throw new Error('Invalid start date.');
-    }
-    if (isNaN(endDate.getTime())) {
-      throw new Error('Invalid end date.');
-    }
-    if (startDate > endDate) {
-      throw new Error('Start date cannot be greater than end date.');
+    if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
+      return res.status(400).json({ error: "Invalid start or end date format." });
     }
 
+    if (startDate > endDate) {
+      return res.status(400).json({ error: "Start date cannot be greater than end date." });
+    }
+
+    // Get the correct MongoDB model
     const Model = getModel(collectionName);
 
+    // Fetch data from MongoDB
     const data = await Model.find({
       date: {
         $gte: startDate.toISOString().split('T')[0],
@@ -171,9 +182,12 @@ app.get('/data', async (req, res) => {
       }
     });
 
+    // Return the data
     res.json(data);
+
   } catch (err) {
-    res.status(400).json({ error: err.message });
+    console.error("Error fetching data:", err.message);
+    res.status(500).json({ error: "Internal server error." });
   }
 });
 
