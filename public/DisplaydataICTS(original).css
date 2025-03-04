@@ -108,6 +108,14 @@ h2 {
   to { transform: translateX(0); }
 }
 
+.hidden {
+  display: none;
+}
+
+.visible {
+  display: flex; /* or 'block' depending on your layout */
+}
+
 #fullScreenSpinner {
   position: fixed;
   top: 0;
