@@ -7,6 +7,7 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.4/xlsx.full.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.4/xlsx.full.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.5/xlsx.full.min.js"></script>
   <link rel="stylesheet" href="DisplaydataCSS(original).css">
   <style>
     body {
@@ -709,24 +710,55 @@
       }
   }
 
-  function exportToExcel(data, filename = 'data.xlsx') {
-    const ws = XLSX.utils.json_to_sheet(data);
+  function exportToExcel(data, filename = 'feeder_data.xlsx') {
+    // Add S.No to the data
+    const formattedData = data.map((item, index) => ({
+      'S.No': index + 1,
+      'Feeder Name': item.NameOfTheFeeder,
+      'MW': item.MW,
+      'Date': item.Date,
+      'Time': item.Time
+    }));
+
+    // Create a worksheet
+    const ws = XLSX.utils.json_to_sheet(formattedData);
+
+    // Create a workbook
     const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, 'Sheet1');
+    XLSX.utils.book_append_sheet(wb, ws, 'Feeder Data');
+
+    // Export the file
     XLSX.writeFile(wb, filename);
   }
 
-function addOptionsToInput2(options) {
-    const input2 = document.getElementById('input2');
-    options.forEach(optionText => {
-      const option = document.createElement('option');
-      option.value = optionText;
-      option.textContent = optionText;
-      input2.appendChild(option);
+  document.querySelector('.excel-button').addEventListener('click', () => {
+    const tableRows = document.querySelectorAll('#dataTable tbody tr');
+    const data = [];
+
+    tableRows.forEach(row => {
+      const cells = row.querySelectorAll('td');
+      data.push({
+        NameOfTheFeeder: cells[1].textContent,
+        MW: cells[2].textContent,
+        Date: cells[3].textContent,
+        Time: cells[4].textContent
+      });
     });
-    input2.style.display = 'block';
-    document.getElementById('input2Label').style.display = 'block';
-  }
+
+    exportToExcel(data);
+  });
+
+  function addOptionsToInput2(options) {
+      const input2 = document.getElementById('input2');
+      options.forEach(optionText => {
+        const option = document.createElement('option');
+        option.value = optionText;
+        option.textContent = optionText;
+        input2.appendChild(option);
+      });
+      input2.style.display = 'block';
+      document.getElementById('input2Label').style.display = 'block';
+    }
 
   function formatDate(dateString) {
     const date = new Date(dateString);
