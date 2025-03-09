@@ -8,6 +8,7 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.17/jspdf.plugin.autotable.min.js"></script>
   <style>
+    /* [Previous CSS unchanged] */
     body {
       font-family: 'Arial', sans-serif;
       background-color: #f4f7fa;
@@ -286,7 +287,6 @@
         const voltage = this.value;
         console.log('Voltage selected:', voltage);
 
-        // Reset and hide all feeder inputs
         [feeder1Select, feeder2Select, feeder3Select, feeder4Select].forEach(select => {
           select.innerHTML = '<option value="">Select Feeder</option>';
           select.parentElement.classList.add('hidden');
@@ -306,7 +306,6 @@
             }
           });
 
-          // Show appropriate number of feeder inputs
           document.getElementById('feeder1Container').classList.remove('hidden');
           document.getElementById('feeder2Container').classList.remove('hidden');
           if (voltage === 'ICTS') {
@@ -395,6 +394,7 @@
           feederData[feeder] = allData[index];
         });
 
+        console.log('Fetched feeder data:', feederData);
         displayData(voltage, feederData, fromDate, toDate);
       }
 
@@ -416,13 +416,15 @@
         const dataContainer = document.getElementById('dataContainer');
         tableBody.innerHTML = '';
         dataContainer.style.display = 'block';
+        console.log('Data container set to block');
 
         // Adjust table headers
-        document.getElementById('feeder1Header').textContent = Object.keys(feederData)[0];
-        document.getElementById('feeder2Header').textContent = Object.keys(feederData)[1];
+        const feeders = Object.keys(feederData);
+        document.getElementById('feeder1Header').textContent = feeders[0];
+        document.getElementById('feeder2Header').textContent = feeders[1];
         if (voltage === 'ICTS') {
-          document.getElementById('feeder3Header').textContent = Object.keys(feederData)[2];
-          document.getElementById('feeder4Header').textContent = Object.keys(feederData)[3];
+          document.getElementById('feeder3Header').textContent = feeders[2];
+          document.getElementById('feeder4Header').textContent = feeders[3];
           document.getElementById('feeder3Header').classList.remove('hidden');
           document.getElementById('feeder3MWHeader').classList.remove('hidden');
           document.getElementById('feeder4Header').classList.remove('hidden');
@@ -434,14 +436,15 @@
           document.getElementById('feeder4MWHeader').classList.add('hidden');
         }
 
-        // Find matched rows (same date and time across feeders)
         const matchedRows = findMatchedRows(voltage, feederData);
+        console.log('Matched rows:', matchedRows);
+
         if (matchedRows.length === 0) {
           tableBody.innerHTML = `<tr><td colspan="${voltage === 'ICTS' ? 10 : 6}" style="text-align: center; color: red;">No matching records found.</td></tr>`;
+          console.log('No matching rows found');
           return;
         }
 
-        // Display max MW row
         displayMaxMWRow(tableBody, matchedRows, voltage, fromDate, toDate);
       }
 
@@ -452,6 +455,7 @@
 
         if (voltage !== 'ICTS') {
           const [data1, data2] = dataArrays;
+          console.log('Comparing data for 2 feeders:', { data1, data2 });
           for (const item1 of data1) {
             for (const item2 of data2) {
               if (item1.date === item2.date && item1.time === item2.time) {
@@ -461,6 +465,7 @@
           }
         } else {
           const [data1, data2, data3, data4] = dataArrays;
+          console.log('Comparing data for 4 feeders:', { data1, data2, data3, data4 });
           for (const item1 of data1) {
             for (const item2 of data2) {
               if (item1.date === item2.date && item1.time === item2.time) {
@@ -488,6 +493,7 @@
       }
 
       function displayMaxMWRow(tableBody, matchedRows, voltage, fromDate, toDate) {
+        console.log('Displaying max MW row with:', matchedRows);
         let maxMW = -Infinity;
         let maxMWRow = null;
 
@@ -504,22 +510,28 @@
           `Maximum MW from ${fromDate} to ${toDate}`;
 
         if (maxMWRow) {
+          console.log('Max MW row:', maxMWRow);
           const row = document.createElement('tr');
+          const feeders = Object.keys(maxMWRow).filter(key => key !== 'date' && key !== 'time');
           row.innerHTML = `
             <td>${formatDate(maxMWRow.date)}</td>
             <td>${maxMWRow.time}</td>
-            <td>${Object.keys(maxMWRow)[2]}</td>
-            <td>${Math.round(Number(maxMWRow[Object.keys(maxMWRow)[2]].MW))}</td>
-            <td>${Object.keys(maxMWRow)[3]}</td>
-            <td>${Math.round(Number(maxMWRow[Object.keys(maxMWRow)[3]].MW))}</td>
+            <td>${feeders[0]}</td>
+            <td>${Math.round(Number(maxMWRow[feeders[0]].MW))}</td>
+            <td>${feeders[1]}</td>
+            <td>${Math.round(Number(maxMWRow[feeders[1]].MW))}</td>
             ${voltage === 'ICTS' ? `
-              <td>${Object.keys(maxMWRow)[4]}</td>
-              <td>${Math.round(Number(maxMWRow[Object.keys(maxMWRow)[4]].MW))}</td>
-              <td>${Object.keys(maxMWRow)[5]}</td>
-              <td>${Math.round(Number(maxMWRow[Object.keys(maxMWRow)[5]].MW))}</td>
+              <td>${feeders[2]}</td>
+              <td>${Math.round(Number(maxMWRow[feeders[2]].MW))}</td>
+              <td>${feeders[3]}</td>
+              <td>${Math.round(Number(maxMWRow[feeders[3]].MW))}</td>
             ` : ''}
           `;
           tableBody.appendChild(row);
+          console.log('Row appended to table');
+        } else {
+          console.log('No max MW row found');
+          tableBody.innerHTML = `<tr><td colspan="${voltage === 'ICTS' ? 10 : 6}" style="text-align: center; color: red;">No data to display.</td></tr>`;
         }
       }
 
