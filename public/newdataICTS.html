@@ -188,6 +188,10 @@
     .max-mw-section {
       margin-top: 40px;
     }
+
+    .highlight-max-row {
+      background-color: yellow;
+    }
   </style>
 </head>
 <body>
@@ -228,7 +232,7 @@
       </div>
       <div class="form-item hidden" id="feeder4Container">
         <label for="feeder4">Fourth Feeder:</label>
-        <select id="feeder4" name="feeder4">
+        <select id="feeder4" name="feederloga4">
           <option value="">Select Fourth Feeder</option>
         </select>
       </div>
@@ -256,6 +260,7 @@
     <table id="dataTable">
       <thead>
         <tr>
+          <th>S.No</th>
           <th>Date</th>
           <th>Time</th>
           <th id="feeder1Header">Feeder 1</th>
@@ -378,7 +383,7 @@
           return;
         }
 
-        if ((voltage === '400KV' || voltage === '220KV') && Ffeeder1 === feeder2) {
+        if ((voltage === '400KV' || voltage === '220KV') && feeder1 === feeder2) {
           alert('Please select different feeders.');
           spinner.style.display = 'none';
           return;
@@ -489,22 +494,45 @@
 
         const allRows = Object.values(dataByTimestamp);
         if (allRows.length === 0) {
-          dataTableBody.innerHTML = `<tr><td colspan="${voltage === 'ICTS' ? 10 : 6}" style="text-align: center; color: red;">No data found for the selected range.</td></tr>`;
+          dataTableBody.innerHTML = `<tr><td colspan="${voltage === 'ICTS' ? 11 : 7}" style="text-align: center; color: red;">No data found for the selected range.</td></tr>`;
           maxMWTableBody.innerHTML = `<tr><td colspan="${voltage === 'ICTS' ? 10 : 6}" style="text-align: center; color: red;">No data found.</td></tr>`;
           console.log('No rows to display');
           return;
         }
 
-        // Sort and display all rows in the first table
+        // Find max MW row from matched rows
+        const matchedRows = findMatchedRows(voltage, feederData);
+        let maxMWRow = null;
+        if (matchedRows.length > 0) {
+          let maxMW = -Infinity;
+          matchedRows.forEach(row => {
+            const totalMW = Object.values(row).reduce((sum, item) => 
+              item.MW ? sum + Math.round(Number(item.MW)) : sum, 0);
+            if (totalMW > maxMW) {
+              maxMW = totalMW;
+              maxMWRow = row;
+            }
+          });
+        }
+        console.log('Max MW row for highlighting:', maxMWRow);
+
+        // Sort and display all rows with serial numbers and highlighting
         allRows.sort((a, b) => {
           const dateA = new Date(a.date + ' ' + a.time);
           const dateB = new Date(b.date + ' ' + b.time);
           return dateA - dateB;
         });
 
-        allRows.forEach(row => {
+        allRows.forEach((row, index) => {
           const tr = document.createElement('tr');
+          const serialNo = index + 1;
+          const isMaxMWRow = maxMWRow && row.date === maxMWRow.date && row.time === maxMWRow.time &&
+            feeders.every(feeder => row[feeder] === Math.round(Number(maxMWRow[feeder]?.MW || '-')));
+          if (isMaxMWRow) {
+            tr.classList.add('highlight-max-row');
+          }
           tr.innerHTML = `
+            <td>${serialNo}</td>
             <td>${formatDate(row.date)}</td>
             <td>${row.time}</td>
             <td>${feeders[0]}</td>
@@ -523,10 +551,7 @@
 
         console.log('All data table body HTML:', dataTableBody.innerHTML);
 
-        // Find matched rows for max MW
-        const matchedRows = findMatchedRows(voltage, feederData);
-        console.log('Matched rows for max MW:', matchedRows);
-
+        // Display max MW table
         if (matchedRows.length === 0) {
           maxMWTableBody.innerHTML = `<tr><td colspan="${voltage === 'ICTS' ? 10 : 6}" style="text-align: center; color: red;">No matching records found for max MW.</td></tr>`;
           console.log('No matched rows for max MW');
@@ -534,7 +559,7 @@
           displayMaxMWRow(maxMWTableBody, matchedRows, voltage, fromDate, toDate);
         }
 
-        // Update table titles with feeder names and DD-MM-YYYY format
+        // Update table titles
         const fromDateFormatted = formatDate(fromDate);
         const toDateFormatted = formatDate(toDate);
         document.getElementById('tableTitle').textContent = 
@@ -639,7 +664,23 @@
         doc.setFont("helvetica", "normal");
         doc.setFontSize(12);
         doc.text("Multi-Feeder Data", 14, 40);
-        doc.autoTable({ html: '#dataTable', startY: 50, theme: "grid", headStyles: { fontSize: 10 }, bodyStyles: { fontSize: 9 } });
+        doc.autoTable({ 
+          html: '#dataTable', 
+          startY: 50, 
+          theme: "grid", 
+          headStyles: { fontSize: 10 }, 
+          bodyStyles: { fontSize: 9 },
+          didParseCell: function(data) {
+            if (data.section === 'body') {
+              const rowData = allRows[data.row.index];
+              const isMaxMWRow = maxMWRow && rowData.date === maxMWRow.date && rowData.time === maxMWRow.time &&
+                feeders.every(feeder => rowData[feeder] === Math.round(Number(maxMWRow[feeder]?.MW || '-')));
+              if (isMaxMWRow) {
+                data.cell.styles.fillColor = [255, 255, 0]; // Yellow
+              }
+            }
+          }
+        });
         doc.autoTable({ html: '#maxMWTable', startY: doc.lastAutoTable.finalY + 10, theme: "grid", headStyles: { fontSize: 10 }, bodyStyles: { fontSize: 9 } });
         doc.save('multi_feeder_data.pdf');
       });
