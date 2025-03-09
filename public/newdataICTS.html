@@ -378,7 +378,7 @@
           return;
         }
 
-        if ((voltage === '400KV' || voltage === '220KV') && feeder1 === feeder2) {
+        if ((voltage === '400KV' || voltage === '220KV') && Ffeeder1 === feeder2) {
           alert('Please select different feeders.');
           spinner.style.display = 'none';
           return;
@@ -441,10 +441,10 @@
         });
 
         console.log('Processed feeder data:', feederData);
-        displayData(voltage, feederData, fromDate, toDate);
+        displayData(voltage, feederData, fromDate, toDate, feeders);
       }
 
-      function displayData(voltage, feederData, fromDate, toDate) {
+      function displayData(voltage, feederData, fromDate, toDate, feeders) {
         const dataTableBody = document.querySelector('#dataTable tbody');
         const maxMWTableBody = document.querySelector('#maxMWTable tbody');
         const dataContainer = document.getElementById('dataContainer');
@@ -454,7 +454,6 @@
         console.log('Data container set to block');
 
         // Update headers for both tables
-        const feeders = Object.keys(feederData);
         document.getElementById('feeder1Header').textContent = feeders[0];
         document.getElementById('feeder2Header').textContent = feeders[1];
         document.getElementById('maxFeeder1Header').textContent = feeders[0];
@@ -535,8 +534,13 @@
           displayMaxMWRow(maxMWTableBody, matchedRows, voltage, fromDate, toDate);
         }
 
-        document.getElementById('tableTitle').textContent = `Feeder Data from ${fromDate} to ${toDate}`;
-        document.getElementById('maxMWTitle').textContent = `Maximum MW from ${fromDate} to ${toDate}`;
+        // Update table titles with feeder names and DD-MM-YYYY format
+        const fromDateFormatted = formatDate(fromDate);
+        const toDateFormatted = formatDate(toDate);
+        document.getElementById('tableTitle').textContent = 
+          `MAX MW of ${feeders[0]} & ${feeders[1]}${voltage === 'ICTS' ? ` & ${feeders[2]} & ${feeders[3]}` : ''} from ${fromDateFormatted} to ${toDateFormatted}`;
+        document.getElementById('maxMWTitle').textContent = 
+          `Maximum MW from ${fromDateFormatted} to ${toDateFormatted}`;
       }
 
       function findMatchedRows(voltage, feederData) {
