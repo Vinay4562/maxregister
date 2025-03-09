@@ -7,6 +7,7 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.4/xlsx.full.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.17/jspdf.plugin.autotable.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
     body {
       font-family: 'Arial', sans-serif;
@@ -174,6 +175,13 @@
     button:hover {
       background-color: #27ae60;
     }
+
+    .chart-container {
+        background-color: #f9f9f9;
+        border-radius: 8px;
+        padding: 10px;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    }
   </style>
 </head>
 <body>
@@ -209,7 +217,7 @@
         <input type="date" id="toDate" name="toDate">
       </div>
       <div class="form-item">
-        <input type="submit" value="Fetch Data">
+        <input type="submit" value="Get Data">
       </div>
     </form>
   </div>
@@ -234,10 +242,14 @@
       <tbody></tbody>
     </table>
     <div class="buttons">
-      <button id="downloadPDFButton" style="display: none;">Download as PDF</button>
-      <button id="downloadExcelButton" style="display: none;">Download as Excel</button>
+        <button id="downloadPDFButton" style="display: none;">Download as PDF</button>
+        <button id="downloadExcelButton" style="display: none;">Download as Excel</button>
+      </div>
+      <!-- Add this canvas for the chart -->
+      <div class="chart-container" style="width: 80%; margin: 20px auto;">
+        <canvas id="mwChart" style="height: 300px;"></canvas>
+      </div>
     </div>
-  </div>
 
   <script>
     document.addEventListener('DOMContentLoaded', function() {
@@ -349,23 +361,105 @@
         dataContainer.style.display = 'block';
 
         if (data.length === 0) {
-          tableBody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: red;">No data found for the selected period.</td></tr>`;
-          return;
+            tableBody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: red;">No data found for the selected period.</td></tr>`;
+            return;
         }
 
+        // Sort data by date and time
         data.sort((a, b) => new Date(a.date + ' ' + a.time) - new Date(b.date + ' ' + b.time));
+
+        // Calculate MAX MW
+        let maxMW = Math.max(...data.map(item => Number(item.MW)));
+        let maxMWRow = data.find(item => Number(item.MW) === maxMW);
+
+        // Display fetched data
         data.forEach((item, index) => {
-          const row = document.createElement('tr');
-          row.innerHTML = `
+            const row = document.createElement('tr');
+            row.innerHTML = `
             <td>${index + 1}</td>
             <td>${item.feeder}</td>
             <td>${Math.round(Number(item.MW))}</td>
             <td>${formatDate(item.date)}</td>
             <td>${item.time}</td>
-          `;
-          tableBody.appendChild(row);
+            `;
+            tableBody.appendChild(row);
         });
-      }
+
+        // Add MAX MW row
+        const maxRow = document.createElement('tr');
+        maxRow.style.backgroundColor = '#f0f8ff'; // Light blue background for emphasis
+        maxRow.innerHTML = `
+            <td colspan="2" style="text-align: center; font-weight: bold;">MAX MW</td>
+            <td>${Math.round(maxMW)}</td>
+            <td>${formatDate(maxMWRow.date)}</td>
+            <td>${maxMWRow.time}</td>
+        `;
+        tableBody.appendChild(maxRow);
+
+        // Render the chart
+        renderChart(data);
+        }
+
+        function renderChart(data) {
+        const ctx = document.getElementById('mwChart').getContext('2d');
+
+        // Extract labels (date + time) and MW values
+        const labels = data.map(item => `${formatDate(item.date)} ${item.time}`);
+        const mwValues = data.map(item => Math.round(Number(item.MW)));
+
+        // Destroy existing chart instance if it exists
+        if (window.mwChartInstance) {
+            window.mwChartInstance.destroy();
+        }
+
+        // Create a new chart
+        window.mwChartInstance = new Chart(ctx, {
+            type: 'line', // Line chart
+            data: {
+            labels: labels, // X-axis labels (date + time)
+            datasets: [{
+                label: 'MW',
+                data: mwValues, // Y-axis values (MW)
+                borderColor: '#3498db', // Line color
+                backgroundColor: 'rgba(52, 152, 219, 0.2)', // Fill color
+                borderWidth: 2,
+                pointRadius: 3,
+                pointBackgroundColor: '#3498db',
+                fill: true,
+            }]
+            },
+            options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                x: {
+                title: {
+                    display: true,
+                    text: 'Date & Time',
+                },
+                ticks: {
+                    autoSkip: true,
+                    maxTicksLimit: 10, // Limit the number of labels on the X-axis
+                }
+                },
+                y: {
+                title: {
+                    display: true,
+                    text: 'MW',
+                },
+                beginAtZero: true,
+                }
+            },
+            plugins: {
+                tooltip: {
+                callbacks: {
+                    label: (context) => `MW: ${context.raw}`,
+                }
+                }
+            }
+            }
+        });
+    }
 
       function formatDate(dateString) {
         const date = new Date(dateString);
