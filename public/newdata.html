@@ -20,22 +20,61 @@
     }
 
     .header {
-      background-color: #2c3e50;
+      background-color: #3498db;
       color: white;
       width: 100%;
       padding: 20px;
       text-align: center;
       box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .header-content {
+      display: flex;
+      align-items: center;
+      gap: 10px;
     }
 
     .header img {
       vertical-align: middle;
-      margin-right: 10px;
+      background-color: white;
+      border-radius: 10px;
     }
 
     .header h1 {
       margin: 0;
-      font-size: 24px;
+      font-size: 32px;
+      text-decoration: underline;
+    }
+
+    .navbar {
+      margin-top: 10px;
+    }
+
+    .navbar ul {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      gap: 20px;
+    }
+
+    .navbar ul li {
+      display: inline;
+    }
+
+    .navbar ul li a {
+      color: white;
+      text-decoration: none;
+      font-size: 16px;
+      font-weight: bold;
+      transition: color 0.3s;
+    }
+
+    .navbar ul li a:hover {
+      color: #f73021;
     }
 
     .container {
@@ -186,12 +225,20 @@
 </head>
 <body>
   <div class="header">
-    <img src="logo_new.png" alt="Logo" width="60px" height="60px">
-    <h1>Transmission Corporation of Telangana Limited</h1>
+    <div class="header-content">
+      <img src="logo_new.png" alt="Logo" width="60px" height="60px">
+      <h1>𝐓𝐑𝐀𝐍𝐒𝐌𝐈𝐒𝐒𝐈𝐎𝐍 𝐂𝐎𝐑𝐏𝐎𝐑𝐀𝐓𝐈𝐎𝐍 𝐎𝐅 𝐓𝐄𝐋𝐀𝐍𝐆𝐀𝐍𝐀 𝐋𝐈𝐌𝐈𝐓𝐄𝐃</h1>
+    </div>
+    <nav class="navbar">
+      <ul>
+        <li><a href="#">Home</a></li>
+        <li><a href="#">MRT Schedules</a></li>
+      </ul>
+    </nav>
   </div>
 
   <div class="container">
-    <h2>Fetch Feeder Data by Date Range</h2>
+    <h2>Single Feeder MAX MW Data</h2>
     <form id="dataForm">
       <div class="form-item">
         <label for="voltage">Select Voltage Level:</label>
@@ -228,7 +275,7 @@
   </div>
 
   <div class="data-container" id="dataContainer">
-    <h2>Data Results</h2>
+    <h2 id="dataHeader"></h2>
     <table id="dataTable">
       <thead>
         <tr>
@@ -242,14 +289,14 @@
       <tbody></tbody>
     </table>
     <div class="buttons">
-        <button id="downloadPDFButton" style="display: none;">Download as PDF</button>
-        <button id="downloadExcelButton" style="display: none;">Download as Excel</button>
-      </div>
-      <!-- Add this canvas for the chart -->
-      <div class="chart-container" style="width: 80%; margin: 20px auto;">
-        <canvas id="mwChart" style="height: 300px;"></canvas>
-      </div>
+      <button id="downloadPDFButton" style="display: none;">Download as PDF</button>
+      <button id="downloadExcelButton" style="display: none;">Download as Excel</button>
     </div>
+    <!-- Add the chart canvas -->
+    <div class="chart-container" style="width: 100%; margin: 20px auto;">
+      <canvas id="mwChart" style="height: 400px;"></canvas>
+    </div>
+  </div>
 
   <script>
     document.addEventListener('DOMContentLoaded', function() {
@@ -358,11 +405,12 @@
         const tableBody = document.querySelector('#dataTable tbody');
         tableBody.innerHTML = '';
         const dataContainer = document.getElementById('dataContainer');
+        const dataHeader = document.getElementById('dataHeader');
         dataContainer.style.display = 'block';
 
         if (data.length === 0) {
-            tableBody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: red;">No data found for the selected period.</td></tr>`;
-            return;
+          tableBody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: red;">No data found for the selected period.</td></tr>`;
+          return;
         }
 
         // Sort data by date and time
@@ -372,94 +420,95 @@
         let maxMW = Math.max(...data.map(item => Number(item.MW)));
         let maxMWRow = data.find(item => Number(item.MW) === maxMW);
 
+        // Get the selected feeder, from date, and to date
+        const feeder = document.getElementById('feeder').value;
+        const fromDate = document.getElementById('fromDate').value;
+        const toDate = document.getElementById('toDate').value;
+
+        // Format dates as DD-MM-YYYY
+        const formattedFromDate = formatDate(fromDate);
+        const formattedToDate = formatDate(toDate);
+
+        // Set the header text
+        dataHeader.textContent = `${feeder} MAX MW From: ${formattedFromDate} To: ${formattedToDate}`;
+
         // Display fetched data
         data.forEach((item, index) => {
-            const row = document.createElement('tr');
-            row.innerHTML = `
+          const row = document.createElement('tr');
+
+          // Highlight the MAX MW row with a yellow background
+          if (Number(item.MW) === maxMW) {
+            row.style.backgroundColor = '#ffff00'; // Yellow background
+          }
+
+          row.innerHTML = `
             <td>${index + 1}</td>
             <td>${item.feeder}</td>
             <td>${Math.round(Number(item.MW))}</td>
             <td>${formatDate(item.date)}</td>
             <td>${item.time}</td>
-            `;
-            tableBody.appendChild(row);
+          `;
+          tableBody.appendChild(row);
         });
-
-        // Add MAX MW row
-        const maxRow = document.createElement('tr');
-        maxRow.style.backgroundColor = '#f0f8ff'; // Light blue background for emphasis
-        maxRow.innerHTML = `
-            <td colspan="2" style="text-align: center; font-weight: bold;">MAX MW</td>
-            <td>${Math.round(maxMW)}</td>
-            <td>${formatDate(maxMWRow.date)}</td>
-            <td>${maxMWRow.time}</td>
-        `;
-        tableBody.appendChild(maxRow);
 
         // Render the chart
         renderChart(data);
-        }
+      }
 
         function renderChart(data) {
         const ctx = document.getElementById('mwChart').getContext('2d');
 
-        // Extract labels (date + time) and MW values
+        // Destroy existing chart instance (if any)
+        if (window.mwChartInstance) {
+          window.mwChartInstance.destroy();
+        }
+
+        // Prepare data for the chart
         const labels = data.map(item => `${formatDate(item.date)} ${item.time}`);
         const mwValues = data.map(item => Math.round(Number(item.MW)));
 
-        // Destroy existing chart instance if it exists
-        if (window.mwChartInstance) {
-            window.mwChartInstance.destroy();
-        }
-
-        // Create a new chart
+        // Create the chart
         window.mwChartInstance = new Chart(ctx, {
-            type: 'line', // Line chart
-            data: {
-            labels: labels, // X-axis labels (date + time)
+          type: 'line',
+          data: {
+            labels: labels,
             datasets: [{
-                label: 'MW',
-                data: mwValues, // Y-axis values (MW)
-                borderColor: '#3498db', // Line color
-                backgroundColor: 'rgba(52, 152, 219, 0.2)', // Fill color
-                borderWidth: 2,
-                pointRadius: 3,
-                pointBackgroundColor: '#3498db',
-                fill: true,
+              label: 'MW Over Time',
+              data: mwValues,
+              borderColor: '#3498db',
+              backgroundColor: 'rgba(52, 152, 219, 0.2)',
+              borderWidth: 2,
+              pointRadius: 3,
+              fill: true,
             }]
-            },
-            options: {
+          },
+          options: {
             responsive: true,
             maintainAspectRatio: false,
             scales: {
-                x: {
-                title: {
-                    display: true,
-                    text: 'Date & Time',
-                },
+              x: {
+                title: { display: true, text: 'Date & Time' },
                 ticks: {
-                    autoSkip: true,
-                    maxTicksLimit: 10, // Limit the number of labels on the X-axis
+                  autoSkip: false, // Show all labels (no skipping)
+                  maxRotation: 90, // Rotate labels for readability
+                  minRotation: 90,
                 }
-                },
-                y: {
-                title: {
-                    display: true,
-                    text: 'MW',
-                },
+              },
+              y: {
+                title: { display: true, text: 'MW' },
                 beginAtZero: true,
-                }
+              }
             },
             plugins: {
-                tooltip: {
-                callbacks: {
-                    label: (context) => `MW: ${context.raw}`,
-                }
-                }
+              tooltip: {
+                mode: 'index',
+                intersect: false,
+              },
+              legend: { display: true }
             }
-            }
+          }
         });
-    }
+      }
 
       function formatDate(dateString) {
         const date = new Date(dateString);

@@ -13,7 +13,10 @@ const app = express();
 
 // Middleware
 app.use(bodyParser.json());
-app.use(cors());
+app.use(cors({
+  origin: ['http://400kvssshankarpally.free.nf', 'https://maxregister-git-main-vinay-kumars-projects-f1559f4a.vercel.app/'],
+  credentials: true
+}));
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(session({
   secret: process.env.SESSION_SECRET || 'your_secret_key',
