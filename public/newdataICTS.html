@@ -508,7 +508,7 @@
       function displayData(voltage, feederData, fromDate, toDate, feeders) {
         // Clear previous data
         allRows = [];
-        maxMWRow = null; // Update the global maxMWRow
+        maxMWRow = null;
         currentFeeders = feeders;
 
         const dataTableBody = document.querySelector('#dataTable tbody');
@@ -517,116 +517,166 @@
         dataTableBody.innerHTML = '';
         maxMWTableBody.innerHTML = '';
         dataContainer.style.display = 'block';
-        console.log('Data container set to block');
 
-        // Update headers for both tables
+        // Update headers
         document.getElementById('feeder1Header').textContent = feeders[0];
         document.getElementById('feeder2Header').textContent = feeders[1];
         document.getElementById('maxFeeder1Header').textContent = feeders[0];
         document.getElementById('maxFeeder2Header').textContent = feeders[1];
+        
         if (voltage === 'ICTS') {
-          document.getElementById('feeder3Header').textContent = feeders[2];
-          document.getElementById('feeder4Header').textContent = feeders[3];
-          document.getElementById('maxFeeder3Header').textContent = feeders[2];
-          document.getElementById('maxFeeder4Header').textContent = feeders[3];
-          ['feeder3Header', 'feeder3MWHeader', 'feeder4Header', 'feeder4MWHeader', 'maxFeeder3Header', 'maxFeeder3MWHeader', 'maxFeeder4Header', 'maxFeeder4MWHeader'].forEach(id => {
-            document.getElementById(id).classList.remove('hidden');
-          });
+            document.getElementById('feeder3Header').textContent = feeders[2];
+            document.getElementById('feeder4Header').textContent = feeders[3];
+            document.getElementById('maxFeeder3Header').textContent = feeders[2];
+            document.getElementById('maxFeeder4Header').textContent = feeders[3];
+            ['feeder3Header', 'feeder3MWHeader', 'feeder4Header', 'feeder4MWHeader', 
+            'maxFeeder3Header', 'maxFeeder3MWHeader', 'maxFeeder4Header', 'maxFeeder4MWHeader']
+            .forEach(id => document.getElementById(id).classList.remove('hidden'));
         } else {
-          ['feeder3Header', 'feeder3MWHeader', 'feeder4Header', 'feeder4MWHeader', 'maxFeeder3Header', 'maxFeeder3MWHeader', 'maxFeeder4Header', 'maxFeeder4MWHeader'].forEach(id => {
-            document.getElementById(id).classList.add('hidden');
-          });
+            ['feeder3Header', 'feeder3MWHeader', 'feeder4Header', 'feeder4MWHeader', 
+            'maxFeeder3Header', 'maxFeeder3MWHeader', 'maxFeeder4Header', 'maxFeeder4MWHeader']
+            .forEach(id => document.getElementById(id).classList.add('hidden'));
         }
 
-        // Aggregate all data by timestamp
+        // Aggregate data by timestamp
         const dataByTimestamp = {};
         feeders.forEach(feeder => {
-          feederData[feeder].forEach(item => {
-            const key = `${item.date}_${item.time}`;
-            if (!dataByTimestamp[key]) {
-              dataByTimestamp[key] = { date: item.date, time: item.time };
-              feeders.forEach(f => dataByTimestamp[key][f] = '-');
-            }
-            dataByTimestamp[key][feeder] = Math.round(Number(item.MW));
-          });
+            feederData[feeder].forEach(item => {
+                const key = `${item.date}_${item.time}`;
+                if (!dataByTimestamp[key]) {
+                    dataByTimestamp[key] = { date: item.date, time: item.time };
+                    feeders.forEach(f => dataByTimestamp[key][f] = '-');
+                }
+                dataByTimestamp[key][feeder] = Math.round(Number(item.MW));
+            });
         });
 
-        console.log('Aggregated data by timestamp:', dataByTimestamp);
-
-        allRows = Object.values(dataByTimestamp); // Update global allRows
+        allRows = Object.values(dataByTimestamp);
         if (allRows.length === 0) {
-          dataTableBody.innerHTML = `<tr><td colspan="${voltage === 'ICTS' ? 11 : 7}" style="text-align: center; color: red;">No data found for the selected range.</td></tr>`;
-          maxMWTableBody.innerHTML = `<tr><td colspan="${voltage === 'ICTS' ? 10 : 6}" style="text-align: center; color: red;">No data found.</td></tr>`;
-          console.log('No rows to display');
-          return;
+            dataTableBody.innerHTML = `<tr><td colspan="${voltage === 'ICTS' ? 11 : 7}" style="text-align: center; color: red;">No data found for the selected range.</td></tr>`;
+            maxMWTableBody.innerHTML = `<tr><td colspan="${voltage === 'ICTS' ? 10 : 6}" style="text-align: center; color: red;">No data found.</td></tr>`;
+            return;
         }
 
-        // Find max MW row from matched rows
-        const matchedRows = findMatchedRows(voltage, feederData);
-        if (matchedRows.length > 0) {
-          let maxMW = -Infinity;
-          matchedRows.forEach(row => {
-            const totalMW = Object.values(row).reduce((sum, item) => 
-              item.MW ? sum + Math.round(Number(item.MW)) : sum, 0);
-            if (totalMW > maxMW) {
-              maxMW = totalMW;
-              maxMWRow = row; // Update global maxMWRow
+        // Find max MW row across all data
+        let maxTotalMW = -Infinity;
+        allRows.forEach(row => {
+            const totalMW = feeders.reduce((sum, feeder) => {
+                const mw = Number(row[feeder]) || 0;
+                return sum + mw;
+            }, 0);
+            row.totalMW = totalMW;
+            if (totalMW > maxTotalMW) {
+                maxTotalMW = totalMW;
+                maxMWRow = row;
             }
-          });
-        }
-        console.log('Max MW row for highlighting:', maxMWRow);
+        });
 
-        // Sort and display all rows with serial numbers and highlighting
+        // Sort and display all rows
         allRows.sort((a, b) => {
-          const dateA = new Date(a.date + ' ' + a.time);
-          const dateB = new Date(b.date + ' ' + b.time);
-          return dateA - dateB;
+            const dateA = new Date(a.date + ' ' + a.time);
+            const dateB = new Date(b.date + ' ' + b.time);
+            return dateA - dateB;
         });
 
         allRows.forEach((row, index) => {
-          const tr = document.createElement('tr');
-          const serialNo = index + 1;
-          const isMaxMWRow = maxMWRow && row.date === maxMWRow.date && row.time === maxMWRow.time &&
-            feeders.every(feeder => row[feeder] === Math.round(Number(maxMWRow[feeder]?.MW || '-')));
-          if (isMaxMWRow) {
-            tr.classList.add('highlight-max-row');
-          }
-          tr.innerHTML = `
-            <td>${serialNo}</td>
-            <td>${formatDate(row.date)}</td>
-            <td>${row.time}</td>
-            <td>${feeders[0]}</td>
-            <td>${row[feeders[0]]}</td>
-            <td>${feeders[1]}</td>
-            <td>${row[feeders[1]]}</td>
-            ${voltage === 'ICTS' ? `
-              <td>${feeders[2]}</td>
-              <td>${row[feeders[2]]}</td>
-              <td>${feeders[3]}</td>
-              <td>${row[feeders[3]]}</td>
-            ` : ''}
-          `;
-          dataTableBody.appendChild(tr);
+            const tr = document.createElement('tr');
+            const serialNo = index + 1;
+            const isMaxMWRow = row === maxMWRow;
+            
+            if (isMaxMWRow) {
+                tr.classList.add('highlight-max-row');
+            }
+
+            tr.innerHTML = `
+                <td>${serialNo}</td>
+                <td>${formatDate(row.date)}</td>
+                <td>${row.time}</td>
+                <td>${feeders[0]}</td>
+                <td>${row[feeders[0]]}</td>
+                <td>${feeders[1]}</td>
+                <td>${row[feeders[1]]}</td>
+                ${voltage === 'ICTS' ? `
+                    <td>${feeders[2]}</td>
+                    <td>${row[feeders[2]]}</td>
+                    <td>${feeders[3]}</td>
+                    <td>${row[feeders[3]]}</td>
+                ` : ''}
+            `;
+            dataTableBody.appendChild(tr);
         });
 
-        console.log('All data table body HTML:', dataTableBody.innerHTML);
-
         // Display max MW table
-        if (matchedRows.length === 0) {
-          maxMWTableBody.innerHTML = `<tr><td colspan="${voltage === 'ICTS' ? 10 : 6}" style="text-align: center; color: red;">No matching records found for max MW.</td></tr>`;
-          console.log('No matched rows for max MW');
+        if (!maxMWRow) {
+            maxMWTableBody.innerHTML = `<tr><td colspan="${voltage === 'ICTS' ? 10 : 6}" style="text-align: center; color: red;">No matching records found for max MW.</td></tr>`;
         } else {
-          displayMaxMWRow(maxMWTableBody, matchedRows, voltage, fromDate, toDate);
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td>${formatDate(maxMWRow.date)}</td>
+                <td>${maxMWRow.time}</td>
+                <td>${feeders[0]}</td>
+                <td>${maxMWRow[feeders[0]]}</td>
+                <td>${feeders[1]}</td>
+                <td>${maxMWRow[feeders[1]]}</td>
+                ${voltage === 'ICTS' ? `
+                    <td>${feeders[2]}</td>
+                    <td>${maxMWRow[feeders[2]]}</td>
+                    <td>${feeders[3]}</td>
+                    <td>${maxMWRow[feeders[3]]}</td>
+                ` : ''}
+            `;
+            maxMWTableBody.appendChild(tr);
         }
 
         // Update table titles
         const fromDateFormatted = formatDate(fromDate);
         const toDateFormatted = formatDate(toDate);
         document.getElementById('tableTitle').textContent = 
-          `MAX MW of ${feeders[0]} & ${feeders[1]}${voltage === 'ICTS' ? ` & ${feeders[2]} & ${feeders[3]}` : ''} from ${fromDateFormatted} to ${toDateFormatted}`;
+            `MAX MW of ${feeders[0]} & ${feeders[1]}${voltage === 'ICTS' ? ` & ${feeders[2]} & ${feeders[3]}` : ''} from ${fromDateFormatted} to ${toDateFormatted}`;
         document.getElementById('maxMWTitle').textContent = 
-          `Maximum MW from ${fromDateFormatted} to ${toDateFormatted}`;
-      }
+            `Maximum MW from ${fromDateFormatted} to ${toDateFormatted}`;
+    }
+
+    // Update PDF download to maintain highlighting
+    document.getElementById('downloadPDFButton').addEventListener('click', function() {
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF();
+        
+        doc.addImage('logo_new.png', 'PNG', 14, 10, 30, 30);
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(16);
+        doc.text("TRANSMISSION CORPORATION OF TELANGANA LIMITED", 60, 20);
+        doc.setFont("helvetica", "normal");
+        doc.setFontSize(12);
+        doc.text("Multi-Feeder Data", 14, 40);
+
+        doc.autoTable({
+            html: '#dataTable',
+            startY: 50,
+            theme: "grid",
+            headStyles: { fontSize: 10 },
+            bodyStyles: { fontSize: 9 },
+            didParseCell: function(data) {
+                if (data.section === 'body' && allRows.length > 0) {
+                    const rowData = allRows[data.row.index];
+                    const isMaxMWRow = rowData === maxMWRow;
+                    if (isMaxMWRow) {
+                        data.cell.styles.fillColor = [255, 255, 0]; // Yellow
+                    }
+                }
+            }
+        });
+
+        doc.autoTable({
+            html: '#maxMWTable',
+            startY: doc.lastAutoTable.finalY + 10,
+            theme: "grid",
+            headStyles: { fontSize: 10 },
+            bodyStyles: { fontSize: 9 }
+        });
+
+        doc.save('multi_feeder_data.pdf');
+    });
 
       function findMatchedRows(voltage, feederData) {
         const feeders = Object.keys(feederData);
@@ -713,54 +763,6 @@
         const year = date.getFullYear();
         return `${day}-${month}-${year}`;
       }
-
-      document.getElementById('downloadPDFButton').addEventListener('click', function() {
-        const { jsPDF } = window.jspdf;
-        const doc = new jsPDF();
-        
-        // Add logo and header
-        doc.addImage('logo_new.png', 'PNG', 14, 10, 30, 30);
-        doc.setFont("helvetica", "bold");
-        doc.setFontSize(16);
-        doc.text("TRANSMISSION CORPORATION OF TELANGANA LIMITED", 60, 20);
-        doc.setFont("helvetica", "normal");
-        doc.setFontSize(12);
-        doc.text("Multi-Feeder Data", 14, 40);
-
-        // Create main table
-        doc.autoTable({
-          html: '#dataTable',
-          startY: 50,
-          theme: "grid",
-          headStyles: { fontSize: 10 },
-          bodyStyles: { fontSize: 9 },
-          didParseCell: function(data) {
-            if (data.section === 'body' && allRows.length > 0) {
-              const rowData = allRows[data.row.index];
-              const isMaxMWRow = maxMWRow && 
-                rowData.date === maxMWRow.date && 
-                rowData.time === maxMWRow.time &&
-                currentFeeders.every(feeder => 
-                  rowData[feeder] === Math.round(Number(maxMWRow[feeder]?.MW || 0)
-                ));
-              if (isMaxMWRow) {
-                data.cell.styles.fillColor = [255, 255, 0]; // Yellow
-              }
-            }
-          }
-        });
-
-        // Add max MW table
-        doc.autoTable({
-          html: '#maxMWTable',
-          startY: doc.lastAutoTable.finalY + 10,
-          theme: "grid",
-          headStyles: { fontSize: 10 },
-          bodyStyles: { fontSize: 9 }
-        });
-
-        doc.save('multi_feeder_data.pdf');
-      });
     
       document.getElementById('downloadExcelButton').addEventListener('click', function() {
         const wb = XLSX.utils.book_new();
