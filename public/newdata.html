@@ -525,16 +525,69 @@
       document.getElementById('downloadPDFButton').addEventListener('click', function() {
         const { jsPDF } = window.jspdf;
         const doc = new jsPDF();
+        
+        // Add logo and header
         doc.addImage('logo_new.png', 'PNG', 14, 10, 30, 30);
         doc.setFont("helvetica", "bold");
-        doc.setFontSize(16);
-        doc.text("TRANSMISSION CORPORATION OF TELANGANA LIMITED", 60, 20);
+        doc.setFontSize(14); // Adjusted to fit beside logo
+        doc.text("TRANSMISSION CORPORATION OF TELANGANA LIMITED", 48, 20); // Positioned beside logo
+        
+        // Get form input values for dynamic title
+        const voltage = document.getElementById('voltage').value;
+        const feeder1 = document.getElementById('feeder1').value;
+        const feeder2 = document.getElementById('feeder2').value;
+        const feeder3 = document.getElementById('feeder3').value;
+        const feeder4 = document.getElementById('feeder4').value;
+        const fromDate = document.getElementById('fromDate').value;
+        const toDate = document.getElementById('toDate').value;
+        
+        // Format dates
+        const fromDateFormatted = formatDate(fromDate);
+        const toDateFormatted = formatDate(toDate);
+        
+        // Construct dynamic title
+        let feedersText = `${feeder1} & ${feeder2}`;
+        if (voltage === 'ICTS') {
+            feedersText += ` & ${feeder3} & ${feeder4}`;
+        }
+        const dynamicTitle = `${feedersText} from ${fromDateFormatted} to ${toDateFormatted}`;
+        
+        // Calculate page width and center the title
+        const pageWidth = doc.internal.pageSize.getWidth();
         doc.setFont("helvetica", "normal");
-        doc.setFontSize(12);
-        doc.text("Feeder Data", 14, 40);
-        doc.autoTable({ html: '#dataTable', startY: 50, theme: "grid", headStyles: { fontSize: 10 }, bodyStyles: { fontSize: 9 } });
+        doc.setFontSize(10);
+        const titleWidth = doc.getTextWidth(dynamicTitle);
+        const titleX = (pageWidth - titleWidth) / 2; // Center position
+        
+        // Set table position and add title
+        const tableStartY = 35;
+        doc.text(dynamicTitle, titleX, tableStartY - 2); // 2 units above table
+
+        // Create main table
+        doc.autoTable({
+            html: '#dataTable',
+            startY: tableStartY,
+            theme: "grid",
+            headStyles: { 
+                fontSize: 10,
+                fillColor: [52, 73, 94], // Matching table header color
+                textColor: 255
+            },
+            bodyStyles: { fontSize: 9 },
+            margin: { top: 0 },
+            didParseCell: function(data) {
+                if (data.section === 'body' && allRows.length > 0) {
+                    const rowData = allRows[data.row.index];
+                    const isMaxMWRow = rowData === maxMWRow;
+                    if (isMaxMWRow) {
+                        data.cell.styles.fillColor = [255, 255, 0]; // Yellow highlight
+                    }
+                }
+            }
+        });
+
         doc.save('feeder_data.pdf');
-      });
+    });
 
       document.getElementById('downloadExcelButton').addEventListener('click', function() {
         const wb = XLSX.utils.book_new();
