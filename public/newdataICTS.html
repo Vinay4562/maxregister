@@ -356,6 +356,11 @@
   </div>
 
   <script>
+
+    let allRows = [];
+    let maxMWRow = null;
+    let currentFeeders = [];
+
     document.addEventListener('DOMContentLoaded', function() {
       console.log('DOM fully loaded');
 
@@ -501,6 +506,11 @@
       }
 
       function displayData(voltage, feederData, fromDate, toDate, feeders) {
+        // Clear previous data
+        allRows = [];
+        maxMWRow = null;
+        currentFeeders = feeders;
+
         const dataTableBody = document.querySelector('#dataTable tbody');
         const maxMWTableBody = document.querySelector('#maxMWTable tbody');
         const dataContainer = document.getElementById('dataContainer');
@@ -543,7 +553,7 @@
 
         console.log('Aggregated data by timestamp:', dataByTimestamp);
 
-        const allRows = Object.values(dataByTimestamp);
+        allRows = Object.values(dataByTimestamp);
         if (allRows.length === 0) {
           dataTableBody.innerHTML = `<tr><td colspan="${voltage === 'ICTS' ? 11 : 7}" style="text-align: center; color: red;">No data found for the selected range.</td></tr>`;
           maxMWTableBody.innerHTML = `<tr><td colspan="${voltage === 'ICTS' ? 10 : 6}" style="text-align: center; color: red;">No data found.</td></tr>`;
@@ -708,6 +718,8 @@
       document.getElementById('downloadPDFButton').addEventListener('click', function() {
         const { jsPDF } = window.jspdf;
         const doc = new jsPDF();
+        
+        // Add logo and header
         doc.addImage('logo_new.png', 'PNG', 14, 10, 30, 30);
         doc.setFont("helvetica", "bold");
         doc.setFontSize(16);
@@ -715,27 +727,42 @@
         doc.setFont("helvetica", "normal");
         doc.setFontSize(12);
         doc.text("Multi-Feeder Data", 14, 40);
-        doc.autoTable({ 
-          html: '#dataTable', 
-          startY: 50, 
-          theme: "grid", 
-          headStyles: { fontSize: 10 }, 
+
+        // Create main table
+        doc.autoTable({
+          html: '#dataTable',
+          startY: 50,
+          theme: "grid",
+          headStyles: { fontSize: 10 },
           bodyStyles: { fontSize: 9 },
           didParseCell: function(data) {
-            if (data.section === 'body') {
+            if (data.section === 'body' && allRows.length > 0) {
               const rowData = allRows[data.row.index];
-              const isMaxMWRow = maxMWRow && rowData.date === maxMWRow.date && rowData.time === maxMWRow.time &&
-                feeders.every(feeder => rowData[feeder] === Math.round(Number(maxMWRow[feeder]?.MW || '-')));
+              const isMaxMWRow = maxMWRow && 
+                rowData.date === maxMWRow.date && 
+                rowData.time === maxMWRow.time &&
+                currentFeeders.every(feeder => 
+                  rowData[feeder] === Math.round(Number(maxMWRow[feeder]?.MW || 0)
+                ));
               if (isMaxMWRow) {
                 data.cell.styles.fillColor = [255, 255, 0]; // Yellow
               }
             }
           }
         });
-        doc.autoTable({ html: '#maxMWTable', startY: doc.lastAutoTable.finalY + 10, theme: "grid", headStyles: { fontSize: 10 }, bodyStyles: { fontSize: 9 } });
+
+        // Add max MW table
+        doc.autoTable({
+          html: '#maxMWTable',
+          startY: doc.lastAutoTable.finalY + 10,
+          theme: "grid",
+          headStyles: { fontSize: 10 },
+          bodyStyles: { fontSize: 9 }
+        });
+
         doc.save('multi_feeder_data.pdf');
       });
-
+    
       document.getElementById('downloadExcelButton').addEventListener('click', function() {
         const wb = XLSX.utils.book_new();
         const dataSheet = XLSX.utils.table_to_sheet(document.getElementById('dataTable'));
