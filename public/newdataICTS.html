@@ -637,73 +637,88 @@
             `Maximum MW from ${fromDateFormatted} to ${toDateFormatted}`;
     }
 
-    // Update PDF download to maintain highlighting
-    document.getElementById('downloadPDFButton').addEventListener('click', function() {
-        const { jsPDF } = window.jspdf;
-        const doc = new jsPDF();
-        
-        // Add logo
-        doc.addImage('logo_new.png', 'PNG', 14, 10, 30, 30);
-        
-        // Add header beside logo
-        doc.setFont("helvetica", "bold");
-        doc.setFontSize(14); // Reduced size to fit beside logo
-        doc.text("TRANSMISSION CORPORATION OF TELANGANA LIMITED", 48, 20); // Adjusted x-position to be beside logo
-        
-        // Get form input values for dynamic title
-        const voltage = document.getElementById('voltage').value;
-        const feeder1 = document.getElementById('feeder1').value;
-        const feeder2 = document.getElementById('feeder2').value;
-        const feeder3 = document.getElementById('feeder3').value;
-        const feeder4 = document.getElementById('feeder4').value;
-        const fromDate = document.getElementById('fromDate').value;
-        const toDate = document.getElementById('toDate').value;
-        
-        // Format dates
-        const fromDateFormatted = formatDate(fromDate);
-        const toDateFormatted = formatDate(toDate);
-        
-        // Construct dynamic title
-        let feedersText = `${feeder1} & ${feeder2}`;
-        if (voltage === 'ICTS') {
-            feedersText += ` & ${feeder3} & ${feeder4}`;
-        }
-        const dynamicTitle = `${feedersText} from ${fromDateFormatted} to ${toDateFormatted}`;
-        
-        // Add dynamic title
-        doc.setFont("helvetica", "normal");
-        doc.setFontSize(10); // Slightly smaller to fit longer text
-        doc.text(dynamicTitle, 14, 40);
+        // Update PDF download to maintain highlighting
+        document.getElementById('downloadPDFButton').addEventListener('click', function() {
+          const { jsPDF } = window.jspdf;
+          const doc = new jsPDF();
+          
+          // Add logo and header
+          doc.addImage('logo_new.png', 'PNG', 14, 10, 30, 30);
+          doc.setFont("helvetica", "bold");
+          doc.setFontSize(14);
+          doc.text("TRANSMISSION CORPORATION OF TELANGANA LIMITED", 48, 20);
+          
+          // Get form input values for dynamic title
+          const voltage = document.getElementById('voltage').value;
+          const feeder1 = document.getElementById('feeder1').value;
+          const feeder2 = document.getElementById('feeder2').value;
+          const feeder3 = document.getElementById('feeder3').value;
+          const feeder4 = document.getElementById('feeder4').value;
+          const fromDate = document.getElementById('fromDate').value;
+          const toDate = document.getElementById('toDate').value;
+          
+          // Format dates
+          const fromDateFormatted = formatDate(fromDate);
+          const toDateFormatted = formatDate(toDate);
+          
+          // Construct dynamic title
+          let feedersText = `${feeder1} & ${feeder2}`;
+          if (voltage === 'ICTS') {
+              feedersText += ` & ${feeder3} & ${feeder4}`;
+          }
+          const dynamicTitle = `${feedersText} from ${fromDateFormatted} to ${toDateFormatted}`;
+          
+          // Calculate page width and center the title
+          const pageWidth = doc.internal.pageSize.getWidth(); // Typically 210mm for A4
+          doc.setFont("helvetica", "normal");
+          doc.setFontSize(10);
+          const titleWidth = doc.getTextWidth(dynamicTitle);
+          const titleX = (pageWidth - titleWidth) / 2; // Center position
+          
+          // Set initial table position
+          const tableStartY = 35; // Adjusted to be closer to header
+          
+          // Add centered title immediately above table
+          doc.text(dynamicTitle, titleX, tableStartY - 2); // 2 units above table start
 
-        // Create main table
-        doc.autoTable({
-            html: '#dataTable',
-            startY: 50,
-            theme: "grid",
-            headStyles: { fontSize: 10 },
-            bodyStyles: { fontSize: 9 },
-            didParseCell: function(data) {
-                if (data.section === 'body' && allRows.length > 0) {
-                    const rowData = allRows[data.row.index];
-                    const isMaxMWRow = rowData === maxMWRow;
-                    if (isMaxMWRow) {
-                        data.cell.styles.fillColor = [255, 255, 0]; // Yellow
-                    }
-                }
-            }
-        });
+          // Create main table
+          doc.autoTable({
+              html: '#dataTable',
+              startY: tableStartY, // Start table right after title
+              theme: "grid",
+              headStyles: { 
+                  fontSize: 10,
+                  fillColor: [52, 73, 94], // Match table header color (#34495e)
+                  textColor: 255
+              },
+              bodyStyles: { fontSize: 9 },
+              margin: { top: 0 }, // Remove top margin
+              didParseCell: function(data) {
+                  if (data.section === 'body' && allRows.length > 0) {
+                      const rowData = allRows[data.row.index];
+                      const isMaxMWRow = rowData === maxMWRow;
+                      if (isMaxMWRow) {
+                          data.cell.styles.fillColor = [255, 255, 0]; // Yellow
+                      }
+                  }
+              }
+          });
 
-        // Add max MW table
-        doc.autoTable({
-            html: '#maxMWTable',
-            startY: doc.lastAutoTable.finalY + 10,
-            theme: "grid",
-            headStyles: { fontSize: 10 },
-            bodyStyles: { fontSize: 9 }
-        });
+          // Add max MW table
+          doc.autoTable({
+              html: '#maxMWTable',
+              startY: doc.lastAutoTable.finalY + 10,
+              theme: "grid",
+              headStyles: { 
+                  fontSize: 10,
+                  fillColor: [52, 73, 94],
+                  textColor: 255
+              },
+              bodyStyles: { fontSize: 9 }
+          });
 
-        doc.save('multi_feeder_data.pdf');
-    });
+          doc.save('multi_feeder_data.pdf');
+      });
 
       function findMatchedRows(voltage, feederData) {
         const feeders = Object.keys(feederData);
