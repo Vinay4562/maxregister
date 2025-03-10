@@ -508,7 +508,7 @@
       function displayData(voltage, feederData, fromDate, toDate, feeders) {
         // Clear previous data
         allRows = [];
-        maxMWRow = null;
+        maxMWRow = null; // Update the global maxMWRow
         currentFeeders = feeders;
 
         const dataTableBody = document.querySelector('#dataTable tbody');
@@ -553,7 +553,7 @@
 
         console.log('Aggregated data by timestamp:', dataByTimestamp);
 
-        allRows = Object.values(dataByTimestamp);
+        allRows = Object.values(dataByTimestamp); // Update global allRows
         if (allRows.length === 0) {
           dataTableBody.innerHTML = `<tr><td colspan="${voltage === 'ICTS' ? 11 : 7}" style="text-align: center; color: red;">No data found for the selected range.</td></tr>`;
           maxMWTableBody.innerHTML = `<tr><td colspan="${voltage === 'ICTS' ? 10 : 6}" style="text-align: center; color: red;">No data found.</td></tr>`;
@@ -563,7 +563,6 @@
 
         // Find max MW row from matched rows
         const matchedRows = findMatchedRows(voltage, feederData);
-        let maxMWRow = null;
         if (matchedRows.length > 0) {
           let maxMW = -Infinity;
           matchedRows.forEach(row => {
@@ -571,7 +570,7 @@
               item.MW ? sum + Math.round(Number(item.MW)) : sum, 0);
             if (totalMW > maxMW) {
               maxMW = totalMW;
-              maxMWRow = row;
+              maxMWRow = row; // Update global maxMWRow
             }
           });
         }
