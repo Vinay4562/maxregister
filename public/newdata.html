@@ -15,7 +15,7 @@
   <div class="header">
     <div class="header-content">
       <img src="logo_new.png" alt="Logo" width="60px" height="60px">
-      <h1>𝐓𝐑𝐀𝐍𝐒𝐌𝐈𝐒𝐒𝐈𝐎𝐍 𝐂𝐎𝐑𝐏𝐎𝐑𝐀𝐓𝐈𝐎𝐍 𝐎𝐅 𝐓𝐄𝐋𝐀𝐍𝐆𝐀𝐍𝐀 𝐋𝐈𝐭𝐞𝐝</h1>
+      <h1>𝐓𝐑𝐀𝐍𝐒𝐌𝐈𝐒𝐒𝐈𝐎𝐍 𝐂𝐎𝐑𝐏𝐎𝐑𝐀𝐓𝐈𝐎𝐍 𝐎𝐅 𝐓𝐄𝐋𝐀𝐍𝐆𝐀𝐍𝐀 𝐋𝐈𝐌𝐈𝐓𝐄𝐃</h1>
     </div>
     <nav class="navbar">
       <ul>
@@ -90,7 +90,18 @@
   <div class="chat-container" id="chatContainer">
     <div class="chat-header">
       <span class="chat-header-title">Feeder Data Bot</span>
-      <button class="chat-close-btn" id="chatCloseBtn">&times;</button>
+      <div class="chat-header-buttons">
+        <button class="chat-hint-btn" id="chatHintBtn">?</button>
+        <button class="chat-close-btn" id="chatCloseBtn">×</button>
+      </div>
+    </div>
+    <div class="chat-hints" id="chatHints">
+      <ul>
+        <li>"get data for [feeder] from [DD-MM-YYYY] to [DD-MM-YYYY]" - Fetch full data</li>
+        <li>"max [feeder] [Month Year] [Month Year]" - Get maximum MW</li>
+        <li>"min [feeder] [Month Year] [Month Year]" - Get minimum MW</li>
+        <li>"what is the maximum MW value for [feeder] from [Month Year] to [Month Year]" - Verbose max MW</li>
+      </ul>
     </div>
     <div class="chat-messages" id="chatMessages"></div>
     <div class="chat-input">
@@ -179,11 +190,14 @@
           });
       });
 
-      // Chatbot toggle and close functionality
+      // Chatbot toggle, close, and hint functionality
       const chatToggleBtn = document.getElementById('chatToggleBtn');
       const chatCloseBtn = document.getElementById('chatCloseBtn');
+      const chatHintBtn = document.getElementById('chatHintBtn');
       const chatContainer = document.getElementById('chatContainer');
+      const chatHints = document.getElementById('chatHints');
       let isChatOpen = false;
+      let isHintsOpen = false;
 
       function toggleChatbot(open) {
         isChatOpen = open;
@@ -191,13 +205,20 @@
           chatContainer.style.display = 'flex';
           chatToggleBtn.textContent = 'Close Chatbot';
           if (!chatContainer.dataset.welcomeShown) {
-            addBotMessage('Welcome! Try: "get data for [feeder] from [DD-MM-YYYY] to [DD-MM-YYYY]", "max [feeder] [Month Year] [Month Year]", "min [feeder] [Month Year] [Month Year]", or "what is the maximum MW value for..."');
-            chatContainer.dataset.welcomeShown = 'true'; // Prevent repeat welcome
+            addBotMessage('Welcome! Click the "?" button for command hints.');
+            chatContainer.dataset.welcomeShown = 'true';
           }
         } else {
           chatContainer.style.display = 'none';
           chatToggleBtn.textContent = 'Open Chatbot';
+          chatHints.style.display = 'none'; // Close hints when chatbot closes
+          isHintsOpen = false;
         }
+      }
+
+      function toggleHints() {
+        isHintsOpen = !isHintsOpen;
+        chatHints.style.display = isHintsOpen ? 'block' : 'none';
       }
 
       chatToggleBtn.addEventListener('click', function() {
@@ -206,6 +227,10 @@
 
       chatCloseBtn.addEventListener('click', function() {
         toggleChatbot(false);
+      });
+
+      chatHintBtn.addEventListener('click', function() {
+        toggleHints();
       });
     });
 
@@ -316,7 +341,7 @@
       const parsed = shortMaxParsed || shortMinParsed || maxMWParsed || getDataParsed;
 
       if (!parsed) {
-        addBotMessage('Invalid command. Use: "get data for [feeder] from [DD-MM-YYYY] to [DD-MM-YYYY]", "max [feeder] [Month Year] [Month Year]", "min [feeder] [Month Year] [Month Year]", or "what is the maximum MW value for..."');
+        addBotMessage('Invalid command. Click the "?" button for a list of valid commands.');
         return;
       }
 

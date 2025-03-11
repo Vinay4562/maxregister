@@ -35,7 +35,11 @@ body {
     margin: 0;
     font-size: 16px;
   }
-  .chat-close-btn {
+  .chat-header-buttons {
+    display: flex;
+    gap: 5px;
+  }
+  .chat-close-btn, .chat-hint-btn {
     background: none;
     border: none;
     color: white;
@@ -49,6 +53,26 @@ body {
   }
   .chat-close-btn:hover {
     color: #e74c3c; /* Red on hover */
+  }
+  .chat-hint-btn:hover {
+    color: #f1c40f; /* Yellow on hover */
+  }
+  .chat-hints {
+    display: none;
+    background: #f9f9f9;
+    border: 1px solid #ccc;
+    padding: 10px;
+    max-height: 150px;
+    overflow-y: auto;
+    font-size: 12px;
+    color: #333;
+  }
+  .chat-hints ul {
+    margin: 0;
+    padding-left: 15px;
+  }
+  .chat-hints li {
+    margin-bottom: 5px;
   }
   .chat-messages { 
     flex: 1; 
