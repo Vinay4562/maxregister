@@ -163,7 +163,7 @@ body {
   
   .navbar {
     margin-top: 0px;
-    background-color: #2980b9; /* Darker blue for contrast */
+    background-color: #3498db;
     padding: 10px; /* Add padding to frame the items */
     border-radius: 5px; /* Optional: Rounded corners */
     width: 100%; /* Ensure it spans the header width */
