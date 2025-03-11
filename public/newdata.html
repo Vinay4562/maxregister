@@ -16,14 +16,15 @@
     <div class="header-content">
       <img src="logo_new.png" alt="Logo" width="60px" height="60px">
       <h1>𝐓𝐑𝐀𝐍𝐒𝐌𝐈𝐒𝐒𝐈𝐎𝐍 𝐂𝐎𝐑𝐏𝐎𝐑𝐀𝐓𝐈𝐎𝐍 𝐎𝐅 𝐓𝐄𝐋𝐀𝐍𝐆𝐀𝐍𝐀 𝐋𝐈𝐌𝐈𝐓𝐄𝐃</h1>
+      <button class="hamburger" id="hamburgerBtn">☰</button> <!-- Hamburger icon -->
     </div>
-    <nav class="navbar">
-      <ul>
-        <li><a href="https://400kvssshankarpally.free.nf/">Home</a></li>
-        <li><a href="https://mrt-register-git-main-vinay-kumars-projects-f1559f4a.vercel.app/LCbox_retrieve.html">MRT Schedules</a></li>
-      </ul>
-    </nav>
   </div>
+  <nav class="navbar" id="navbarMenu">
+    <ul>
+      <li><a href="https://400kvssshankarpally.free.nf/">Home</a></li>
+      <li><a href="https://mrt-register-git-main-vinay-kumars-projects-f1559f4a.vercel.app/LCbox_retrieve.html">MRT Schedules</a></li>
+    </ul>
+  </nav>
 
   <div class="container">
     <h2>Single Feeder MAX MW Data</h2>
@@ -628,6 +629,33 @@
       const sheet = XLSX.utils.table_to_sheet(document.getElementById('dataTable'));
       XLSX.utils.book_append_sheet(wb, sheet, 'Feeder Data');
       XLSX.writeFile(wb, 'feeder_data.xlsx');
+    });
+
+    document.addEventListener('DOMContentLoaded', function() {
+      const hamburgerBtn = document.getElementById('hamburgerBtn');
+      const navbarMenu = document.getElementById('navbarMenu');
+      const body = document.body;
+
+      hamburgerBtn.addEventListener('click', function() {
+        navbarMenu.classList.toggle('active');
+        body.classList.toggle('navbar-open'); // For background dimming
+      });
+
+      // Close navbar when clicking a link
+      navbarMenu.querySelectorAll('a').forEach(link => {
+        link.addEventListener('click', function() {
+          navbarMenu.classList.remove('active');
+          body.classList.remove('navbar-open');
+        });
+      });
+
+      // Close navbar when clicking outside
+      document.addEventListener('click', function(event) {
+        if (!navbarMenu.contains(event.target) && !hamburgerBtn.contains(event.target) && navbarMenu.classList.contains('active')) {
+          navbarMenu.classList.remove('active');
+          body.classList.remove('navbar-open');
+        }
+      });
     });
   </script>
 </body>

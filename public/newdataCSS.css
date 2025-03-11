@@ -147,10 +147,30 @@ body {
     text-decoration: underline;
   }
 
-  .navbar {
-    margin-top: 10px;
+  .hamburger {
+    display: none; /* Hidden on desktop */
+    background: none;
+    border: none;
+    font-size: 24px;
+    color: white;
+    cursor: pointer;
+    padding: 0;
+    width: 30px;
+    height: 30px;
+    line-height: 30px;
+    text-align: center;
   }
-
+  
+  .navbar {
+    margin-top: 0px;
+    background-color: #2980b9; /* Darker blue for contrast */
+    padding: 10px; /* Add padding to frame the items */
+    border-radius: 5px; /* Optional: Rounded corners */
+    width: 100%; /* Ensure it spans the header width */
+    display: flex;
+    justify-content: center; /* Center the navbar items */
+  }
+  
   .navbar ul {
     list-style: none;
     margin: 0;
@@ -158,19 +178,19 @@ body {
     display: flex;
     gap: 20px;
   }
-
+  
   .navbar ul li {
     display: inline;
   }
-
+  
   .navbar ul li a {
     color: white;
     text-decoration: none;
     font-size: 16px;
     font-weight: bold;
-    transition: color 0.3s;
-  }
 
+  }
+  
   .navbar ul li a:hover {
     background: white;
     color: #007bff;
@@ -321,4 +341,196 @@ body {
       border-radius: 8px;
       padding: 10px;
       box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  }
+
+  @media (max-width: 600px) {
+    /* Body adjustments */
+    body {
+      padding: 0;
+      margin: 0;
+    }
+  
+    /* Header adjustments */
+    .header {
+      padding: 10px;
+      flex-direction: row; /* Keep header content in a row */
+      justify-content: space-between;
+    }
+  
+    .header-content {
+      justify-content: space-between; /* Logo, title, hamburger spread out */
+      gap: 5px;
+    }
+  
+    .header img {
+      width: 40px; /* Smaller logo */
+      height: 40px;
+      padding: 5px;
+    }
+  
+    .header h1 {
+      font-size: 12px; /* Smaller title */
+      flex-grow: 1; /* Take available space */
+      text-align: left;
+      margin: 0;
+    }
+  
+    .hamburger {
+      display: block; /* Show hamburger on mobile */
+    }
+  
+    .navbar {
+      position: fixed;
+      top: 0;
+      right: -250px;
+      width: 250px;
+      height: 100%;
+      background-color: #2980b9; /* Keep same color for mobile overlay */
+      margin-top: 0;
+      transition: right 0.3s ease;
+      z-index: 1000;
+      padding: 0; /* Reset padding for mobile */
+    }
+  
+    .navbar.active {
+      right: 0;
+    }
+  
+    .navbar ul {
+      flex-direction: column;
+      padding: 20px;
+      gap: 15px;
+    }
+  
+    .navbar ul li {
+      display: block;
+    }
+  
+    .navbar ul li a {
+      font-size: 16px;
+      display: block;
+      padding: 10px;
+      color: white;
+    }
+  
+    .navbar ul li a:hover {
+      background: white;
+      color: #007bff;
+      border-radius: 5px;
+    }
+  
+    /* Optional: Dim background when navbar is open */
+    body.navbar-open::before {
+      content: '';
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.5);
+      z-index: 999;
+      display: none;
+    }
+  
+    body.navbar-open .navbar.active + ::before {
+      display: block;
+    }
+  
+    /* Container adjustments */
+    .container {
+      width: 95%; /* Slightly wider for mobile */
+      margin: 10px auto; /* Reduced margin */
+      padding: 15px; /* Reduced padding */
+    }
+  
+    /* Chatbot adjustments */
+    .chat-container {
+      width: 90%; /* Full width minus some margin */
+      height: 350px; /* Slightly shorter */
+      bottom: 10px; /* Closer to bottom */
+      right: 10px; /* Closer to right */
+    }
+  
+    .chat-header {
+      padding: 8px; /* Reduced padding */
+    }
+  
+    .chat-header-title {
+      font-size: 14px; /* Smaller title */
+    }
+  
+    .chat-close-btn, .chat-hint-btn {
+      font-size: 16px; /* Smaller buttons */
+      width: 16px;
+      height: 16px;
+      line-height: 16px;
+    }
+  
+    .chat-messages {
+      padding: 8px; /* Reduced padding */
+    }
+  
+    .chat-input {
+      padding: 8px; /* Reduced padding */
+    }
+  
+    .chat-input input {
+      width: 75%; /* Adjusted for smaller button */
+      padding: 4px; /* Reduced padding */
+    }
+  
+    .chat-input button {
+      padding: 4px 8px; /* Smaller button */
+    }
+  
+    .chat-toggle-btn {
+      bottom: 10px;
+      right: 10px;
+      padding: 8px 15px; /* Smaller button */
+      font-size: 14px;
+    }
+  
+    /* Form and other elements */
+    h2 {
+      font-size: 20px; /* Smaller heading */
+      margin-bottom: 15px;
+    }
+  
+    select, input[type="date"] {
+      padding: 8px; /* Reduced padding */
+      font-size: 14px; /* Smaller text */
+    }
+  
+    input[type="submit"] {
+      padding: 8px 15px; /* Smaller button */
+      font-size: 14px;
+    }
+  
+    /* Data container and table */
+    .data-container {
+      width: 95%; /* Wider for mobile */
+      padding: 15px; /* Reduced padding */
+    }
+  
+    th, td {
+      padding: 8px; /* Reduced padding */
+      font-size: 14px; /* Smaller text */
+    }
+  
+    /* Buttons */
+    button {
+      padding: 8px 15px; /* Smaller buttons */
+      font-size: 14px;
+    }
+  
+    /* Spinner */
+    .spinner {
+      width: 30px; /* Smaller spinner */
+      height: 30px;
+      border-width: 3px; /* Proportionally smaller */
+    }
+  
+    #fullScreenSpinner p {
+      font-size: 14px; /* Smaller text */
+    }
   }
