@@ -52,10 +52,10 @@ body {
     text-align: center;
   }
   .chat-close-btn:hover {
-    color: #e74c3c; /* Red on hover */
+    color: #e74c3c;
   }
   .chat-hint-btn:hover {
-    color: #f1c40f; /* Yellow on hover */
+    color: #f1c40f;
   }
   .chat-hints {
     display: none;

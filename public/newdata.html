@@ -121,6 +121,50 @@
       'ICTS': ['315MVA ICT-1', '315MVA ICT-2', '315MVA ICT-3', '500MVA ICT-4']
     };
 
+    const voltageLevels = ['400KV', '220KV', 'ICTS'];
+    const allFeeders = Object.values(feederOptions).flat();
+    const monthMap = {
+      'january': '01', 'february': '02', 'march': '03', 'april': '04', 'may': '05', 'june': '06',
+      'july': '07', 'august': '08', 'september': '09', 'october': '10', 'november': '11', 'december': '12'
+    };
+    const months = Object.keys(monthMap);
+
+    // Levenshtein Distance for string similarity
+    function levenshteinDistance(a, b) {
+      const matrix = Array(b.length + 1).fill(null).map(() => Array(a.length + 1).fill(null));
+      for (let i = 0; i <= a.length; i++) matrix[0][i] = i;
+      for (let j = 0; j <= b.length; j++) matrix[j][0] = j;
+      for (let j = 1; j <= b.length; j++) {
+        for (let i = 1; i <= a.length; i++) {
+          const indicator = a[i - 1] === b[j - 1] ? 0 : 1;
+          matrix[j][i] = Math.min(
+            matrix[j][i - 1] + 1, // deletion
+            matrix[j - 1][i] + 1, // insertion
+            matrix[j - 1][i - 1] + indicator // substitution
+          );
+        }
+      }
+      return matrix[b.length][a.length];
+    }
+
+    function findClosestMatch(input, options) {
+      if (!input) return null;
+      const inputUpper = input.toUpperCase();
+      if (options.includes(inputUpper)) return inputUpper;
+
+      let minDistance = Infinity;
+      let closestMatch = null;
+      options.forEach(option => {
+        const distance = levenshteinDistance(inputUpper, option.toUpperCase());
+        if (distance < minDistance) {
+          minDistance = distance;
+          closestMatch = option;
+        }
+      });
+      // Threshold: accept if distance is less than half the length of the input or 3, whichever is smaller
+      return minDistance <= Math.min(3, Math.floor(input.length / 2)) ? closestMatch : null;
+    }
+
     document.addEventListener('DOMContentLoaded', function() {
       console.log('DOM fully loaded');
 
@@ -190,7 +234,6 @@
           });
       });
 
-      // Chatbot toggle, close, and hint functionality
       const chatToggleBtn = document.getElementById('chatToggleBtn');
       const chatCloseBtn = document.getElementById('chatCloseBtn');
       const chatHintBtn = document.getElementById('chatHintBtn');
@@ -205,13 +248,13 @@
           chatContainer.style.display = 'flex';
           chatToggleBtn.textContent = 'Close Chatbot';
           if (!chatContainer.dataset.welcomeShown) {
-            addBotMessage('Welcome! Click the "?" button for command hints.');
+            addBotMessage('Welcome Sir! Click the "?" button for command hints.');
             chatContainer.dataset.welcomeShown = 'true';
           }
         } else {
           chatContainer.style.display = 'none';
           chatToggleBtn.textContent = 'Open Chatbot';
-          chatHints.style.display = 'none'; // Close hints when chatbot closes
+          chatHints.style.display = 'none';
           isHintsOpen = false;
         }
       }
@@ -255,12 +298,14 @@
       const pattern = /get data for (.+?) from (\d{2}-\d{2}-\d{4}) to (\d{2}-\d{2}-\d{4})/i;
       const match = command.match(pattern);
       if (match) {
-        const feeder = match[1].trim();
+        const feederInput = match[1].trim();
         const fromDateDDMMYYYY = match[2];
         const toDateDDMMYYYY = match[3];
+        const feeder = findClosestMatch(feederInput, allFeeders);
+        if (!feeder) return null;
         const fromDate = convertDDMMYYYYtoYYYYMMDD(fromDateDDMMYYYY);
         const toDate = convertDDMMYYYYtoYYYYMMDD(toDateDDMMYYYY);
-        return { type: 'getData', feeder, fromDate, toDate };
+        return { type: 'getData', feeder, fromDate, toDate, originalFeeder: feederInput };
       }
       return null;
     }
@@ -269,12 +314,17 @@
       const pattern = /what is the maximum MW value for (.+?) from ([A-Za-z]+ \d{4}) to ([A-Za-z]+ \d{4})/i;
       const match = command.match(pattern);
       if (match) {
-        const feeder = match[1].trim();
-        const fromDateStr = match[2];
-        const toDateStr = match[3];
-        const fromDate = convertMonthYearToDate(fromDateStr);
-        const toDate = convertMonthYearToDate(toDateStr, true);
-        return { type: 'maxMW', feeder, fromDate, toDate };
+        const feederInput = match[1].trim();
+        const fromMonthYear = match[2].split(' ');
+        const toMonthYear = match[3].split(' ');
+        const feeder = findClosestMatch(feederInput, allFeeders);
+        if (!feeder) return null;
+        const fromMonth = findClosestMatch(fromMonthYear[0], months);
+        const toMonth = findClosestMatch(toMonthYear[0], months);
+        if (!fromMonth || !toMonth) return null;
+        const fromDate = convertMonthYearToDate(`${fromMonth} ${fromMonthYear[1]}`);
+        const toDate = convertMonthYearToDate(`${toMonth} ${toMonthYear[1]}`, true);
+        return { type: 'maxMW', feeder, fromDate, toDate, originalFeeder: feederInput, originalFrom: match[2], originalTo: match[3] };
       }
       return null;
     }
@@ -283,12 +333,17 @@
       const pattern = /max (.+?) ([A-Za-z]+ \d{4}) ([A-Za-z]+ \d{4})/i;
       const match = command.match(pattern);
       if (match) {
-        const feeder = match[1].trim();
-        const fromDateStr = match[2];
-        const toDateStr = match[3];
-        const fromDate = convertMonthYearToDate(fromDateStr);
-        const toDate = convertMonthYearToDate(toDateStr, true);
-        return { type: 'maxMW', feeder, fromDate, toDate };
+        const feederInput = match[1].trim();
+        const fromMonthYear = match[2].split(' ');
+        const toMonthYear = match[3].split(' ');
+        const feeder = findClosestMatch(feederInput, allFeeders);
+        if (!feeder) return null;
+        const fromMonth = findClosestMatch(fromMonthYear[0], months);
+        const toMonth = findClosestMatch(toMonthYear[0], months);
+        if (!fromMonth || !toMonth) return null;
+        const fromDate = convertMonthYearToDate(`${fromMonth} ${fromMonthYear[1]}`);
+        const toDate = convertMonthYearToDate(`${toMonth} ${toMonthYear[1]}`, true);
+        return { type: 'maxMW', feeder, fromDate, toDate, originalFeeder: feederInput, originalFrom: match[2], originalTo: match[3] };
       }
       return null;
     }
@@ -297,22 +352,23 @@
       const pattern = /min (.+?) ([A-Za-z]+ \d{4}) ([A-Za-z]+ \d{4})/i;
       const match = command.match(pattern);
       if (match) {
-        const feeder = match[1].trim();
-        const fromDateStr = match[2];
-        const toDateStr = match[3];
-        const fromDate = convertMonthYearToDate(fromDateStr);
-        const toDate = convertMonthYearToDate(toDateStr, true);
-        return { type: 'minMW', feeder, fromDate, toDate };
+        const feederInput = match[1].trim();
+        const fromMonthYear = match[2].split(' ');
+        const toMonthYear = match[3].split(' ');
+        const feeder = findClosestMatch(feederInput, allFeeders);
+        if (!feeder) return null;
+        const fromMonth = findClosestMatch(fromMonthYear[0], months);
+        const toMonth = findClosestMatch(toMonthYear[0], months);
+        if (!fromMonth || !toMonth) return null;
+        const fromDate = convertMonthYearToDate(`${fromMonth} ${fromMonthYear[1]}`);
+        const toDate = convertMonthYearToDate(`${toMonth} ${toMonthYear[1]}`, true);
+        return { type: 'minMW', feeder, fromDate, toDate, originalFeeder: feederInput, originalFrom: match[2], originalTo: match[3] };
       }
       return null;
     }
 
     function convertMonthYearToDate(monthYear, endOfMonth = false) {
       const [monthStr, year] = monthYear.split(' ');
-      const monthMap = {
-        'january': '01', 'february': '02', 'march': '03', 'april': '04', 'may': '05', 'june': '06',
-        'july': '07', 'august': '08', 'september': '09', 'october': '10', 'november': '11', 'december': '12'
-      };
       const month = monthMap[monthStr.toLowerCase()];
       if (!month) return null;
       return endOfMonth ? `${year}-${month}-31` : `${year}-${month}-01`;
@@ -331,36 +387,42 @@
       addUserMessage(command);
       input.value = '';
 
-      const allFeeders = Object.values(feederOptions).flat().map(feeder => feeder.toUpperCase());
-
-      const getDataParsed = parseGetDataCommand(command);
-      const maxMWParsed = parseMaxMWCommand(command);
-      const shortMaxParsed = parseShortMaxCommand(command);
-      const shortMinParsed = parseShortMinCommand(command);
-
-      const parsed = shortMaxParsed || shortMinParsed || maxMWParsed || getDataParsed;
+      const parsed = parseShortMaxCommand(command) || parseShortMinCommand(command) || parseMaxMWCommand(command) || parseGetDataCommand(command);
 
       if (!parsed) {
         addBotMessage('Invalid command. Click the "?" button for a list of valid commands.');
         return;
       }
 
-      const { type, feeder, fromDate, toDate } = parsed;
+      const { type, feeder, fromDate, toDate, originalFeeder, originalFrom, originalTo } = parsed;
 
       if (!fromDate || !toDate) {
         addBotMessage('Error: Invalid date format. Use "DD-MM-YYYY" for "get data" or "Month Year" for max/min.');
         return;
       }
 
-      const feederUpper = feeder.toUpperCase();
-      if (!allFeeders.includes(feederUpper)) {
-        addBotMessage(`Error: Invalid feeder "${feeder}". Please select a valid feeder.`);
+      if (!feeder) {
+        addBotMessage(`Error: Could not find a match for feeder "${originalFeeder}". Please check your input.`);
         return;
       }
 
       if (new Date(fromDate) > new Date(toDate)) {
         addBotMessage('Error: From Date cannot be later than To Date.');
         return;
+      }
+
+      let correctionMessage = '';
+      if (originalFeeder && originalFeeder.toUpperCase() !== feeder) {
+        correctionMessage += `Corrected feeder from "${originalFeeder}" to "${feeder}". `;
+      }
+      if (originalFrom && originalFrom !== `${Object.keys(monthMap).find(key => monthMap[key] === fromDate.split('-')[1])} ${fromDate.split('-')[0]}`) {
+        correctionMessage += `Corrected from "${originalFrom}" to "${Object.keys(monthMap).find(key => monthMap[key] === fromDate.split('-')[1])} ${fromDate.split('-')[0]}". `;
+      }
+      if (originalTo && originalTo !== `${Object.keys(monthMap).find(key => monthMap[key] === toDate.split('-')[1])} ${toDate.split('-')[0]}`) {
+        correctionMessage += `Corrected to "${originalTo}" to "${Object.keys(monthMap).find(key => monthMap[key] === toDate.split('-')[1])} ${toDate.split('-')[0]}". `;
+      }
+      if (correctionMessage) {
+        addBotMessage(correctionMessage);
       }
 
       addBotMessage(`Fetching ${type === 'minMW' ? 'minimum' : type === 'maxMW' ? 'maximum' : 'data'} for ${feeder} from ${fromDate} to ${toDate}...`);
