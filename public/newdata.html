@@ -100,7 +100,7 @@
     <div class="chat-header">Feeder Data Bot</div>
     <div class="chat-messages" id="chatMessages"></div>
     <div class="chat-input">
-      <input type="text" id="chatInput" placeholder="e.g., 'max 400KV Maheshwaram-2 March 2020 December 2021' or 'min...'">
+      <input type="text" id="chatInput" placeholder="e.g., 'get data for 400KV Maheshwaram-2 from 01-03-2020 to 31-12-2021' or 'max...'">
       <button onclick="sendMessage()">Send</button>
     </div>
   </div>
@@ -147,7 +147,7 @@
 
         const voltage = document.getElementById('voltage').value;
         const feeder = document.getElementById('feeder').value;
-        const fromDate = document.getElementById('fromDate').value;
+        const fromDate = document.getElementById('fromDate').value; // YYYY-MM-DD from input type="date"
         const toDate = document.getElementById('toDate').value;
 
         selectedFeeder = feeder;
@@ -185,7 +185,7 @@
           });
       });
 
-      addBotMessage('Welcome! Try: "max [feeder] [Month Year] [Month Year]", "min [feeder] [Month Year] [Month Year]", "get data for [feeder] from [YYYY-MM-DD] to [YYYY-MM-DD]", or "what is the maximum MW value for..."');
+      addBotMessage('Welcome! Try: "get data for [feeder] from [DD-MM-YYYY] to [DD-MM-YYYY]", "max [feeder] [Month Year] [Month Year]", "min [feeder] [Month Year] [Month Year]", or "what is the maximum MW value for..."');
     });
 
     function addMessage(message, className) {
@@ -206,10 +206,15 @@
     }
 
     function parseGetDataCommand(command) {
-      const pattern = /get data for (.+?) from (\d{4}-\d{2}-\d{2}) to (\d{4}-\d{2}-\d{2})/i;
+      const pattern = /get data for (.+?) from (\d{2}-\d{2}-\d{4}) to (\d{2}-\d{2}-\d{4})/i;
       const match = command.match(pattern);
       if (match) {
-        return { type: 'getData', feeder: match[1].trim(), fromDate: match[2], toDate: match[3] };
+        const feeder = match[1].trim();
+        const fromDateDDMMYYYY = match[2];
+        const toDateDDMMYYYY = match[3];
+        const fromDate = convertDDMMYYYYtoYYYYMMDD(fromDateDDMMYYYY);
+        const toDate = convertDDMMYYYYtoYYYYMMDD(toDateDDMMYYYY);
+        return { type: 'getData', feeder, fromDate, toDate };
       }
       return null;
     }
@@ -228,7 +233,6 @@
       return null;
     }
 
-    // New short command parsers
     function parseShortMaxCommand(command) {
       const pattern = /max (.+?) ([A-Za-z]+ \d{4}) ([A-Za-z]+ \d{4})/i;
       const match = command.match(pattern);
@@ -268,6 +272,11 @@
       return endOfMonth ? `${year}-${month}-31` : `${year}-${month}-01`;
     }
 
+    function convertDDMMYYYYtoYYYYMMDD(dateStr) {
+      const [day, month, year] = dateStr.split('-');
+      return `${year}-${month}-${day}`;
+    }
+
     function sendMessage() {
       const input = document.getElementById('chatInput');
       const command = input.value.trim();
@@ -276,7 +285,7 @@
       addUserMessage(command);
       input.value = '';
 
-      const allFeeders = Object.values(feederOptions).flat();
+      const allFeeders = Object.values(feederOptions).flat().map(feeder => feeder.toUpperCase());
 
       const getDataParsed = parseGetDataCommand(command);
       const maxMWParsed = parseMaxMWCommand(command);
@@ -286,18 +295,19 @@
       const parsed = shortMaxParsed || shortMinParsed || maxMWParsed || getDataParsed;
 
       if (!parsed) {
-        addBotMessage('Invalid command. Use: "max [feeder] [Month Year] [Month Year]", "min [feeder] [Month Year] [Month Year]", "get data for [feeder] from [YYYY-MM-DD] to [YYYY-MM-DD]", or "what is the maximum MW value for..."');
+        addBotMessage('Invalid command. Use: "get data for [feeder] from [DD-MM-YYYY] to [DD-MM-YYYY]", "max [feeder] [Month Year] [Month Year]", "min [feeder] [Month Year] [Month Year]", or "what is the maximum MW value for..."');
         return;
       }
 
       const { type, feeder, fromDate, toDate } = parsed;
 
       if (!fromDate || !toDate) {
-        addBotMessage('Error: Invalid date format. Use "Month Year" (e.g., March 2020).');
+        addBotMessage('Error: Invalid date format. Use "DD-MM-YYYY" for "get data" or "Month Year" for max/min.');
         return;
       }
 
-      if (!allFeeders.includes(feeder)) {
+      const feederUpper = feeder.toUpperCase();
+      if (!allFeeders.includes(feederUpper)) {
         addBotMessage(`Error: Invalid feeder "${feeder}". Please select a valid feeder.`);
         return;
       }
@@ -307,7 +317,7 @@
         return;
       }
 
-      addBotMessage(`Fetching ${type === 'minMW' ? 'minimum' : 'maximum'} MW for ${feeder} from ${fromDate} to ${toDate}...`);
+      addBotMessage(`Fetching ${type === 'minMW' ? 'minimum' : type === 'maxMW' ? 'maximum' : 'data'} for ${feeder} from ${fromDate} to ${toDate}...`);
       document.getElementById('fullScreenSpinner').style.display = 'flex';
 
       if (type === 'getData') {
