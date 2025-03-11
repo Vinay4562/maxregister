@@ -10,7 +10,6 @@
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <link rel="stylesheet" href="newdataCSS.css">
   <style>
-    /* [Existing chatbot styles unchanged] */
     .chat-container { position: fixed; bottom: 20px; right: 20px; width: 300px; height: 400px; background: white; border: 1px solid #ccc; border-radius: 5px; box-shadow: 0 0 10px rgba(0,0,0,0.1); display: flex; flex-direction: column; }
     .chat-header { background: #3498db; color: white; padding: 10px; border-radius: 5px 5px 0 0; }
     .chat-messages { flex: 1; padding: 10px; overflow-y: auto; }
@@ -101,7 +100,7 @@
     <div class="chat-header">Feeder Data Bot</div>
     <div class="chat-messages" id="chatMessages"></div>
     <div class="chat-input">
-      <input type="text" id="chatInput" placeholder="e.g., 'what is the maximum MW value for 400KV Maheshwaram-2 from March 2020 to December 2021'">
+      <input type="text" id="chatInput" placeholder="e.g., 'max 400KV Maheshwaram-2 March 2020 December 2021' or 'min...'">
       <button onclick="sendMessage()">Send</button>
     </div>
   </div>
@@ -111,7 +110,6 @@
     let selectedFromDate = '';
     let selectedToDate = '';
 
-    // Move feederOptions to global scope
     const feederOptions = {
       '400KV': ['400KV MAHESHWARAM-2', '400KV MAHESHWARAM-1', '400KV NARSAPUR-1', '400KV NARSAPUR-2', '400KV KETHIREDDYPALLY-1', '400KV KETHIREDDYPALLY-2', '400KV NIZAMABAD-1', '400KV NIZAMABAD-2'],
       '220KV': ['220KV PARIGI-1', '220KV PARIGI-2', '220KV TANDUR', '220KV GACHIBOWLI-1', '220KV GACHIBOWLI-2', '220KV KETHIREDDYPALLY', '220KV YEDDUMAILARAM-1', '220KV YEDDUMAILARAM-2', '220KV SADASIVAPET-1', '220KV SADASIVAPET-2'],
@@ -187,11 +185,9 @@
           });
       });
 
-      // Chatbot initialization
-      addBotMessage('Welcome! Try commands like: "what is the maximum MW value for 400KV Maheshwaram-2 from March 2020 to December 2021" or "get data for [feeder] from [YYYY-MM-DD] to [YYYY-MM-DD]"');
+      addBotMessage('Welcome! Try: "max [feeder] [Month Year] [Month Year]", "min [feeder] [Month Year] [Month Year]", "get data for [feeder] from [YYYY-MM-DD] to [YYYY-MM-DD]", or "what is the maximum MW value for..."');
     });
 
-    // Chatbot functions
     function addMessage(message, className) {
       const chatMessages = document.getElementById('chatMessages');
       const msgDiv = document.createElement('div');
@@ -232,6 +228,35 @@
       return null;
     }
 
+    // New short command parsers
+    function parseShortMaxCommand(command) {
+      const pattern = /max (.+?) ([A-Za-z]+ \d{4}) ([A-Za-z]+ \d{4})/i;
+      const match = command.match(pattern);
+      if (match) {
+        const feeder = match[1].trim();
+        const fromDateStr = match[2];
+        const toDateStr = match[3];
+        const fromDate = convertMonthYearToDate(fromDateStr);
+        const toDate = convertMonthYearToDate(toDateStr, true);
+        return { type: 'maxMW', feeder, fromDate, toDate };
+      }
+      return null;
+    }
+
+    function parseShortMinCommand(command) {
+      const pattern = /min (.+?) ([A-Za-z]+ \d{4}) ([A-Za-z]+ \d{4})/i;
+      const match = command.match(pattern);
+      if (match) {
+        const feeder = match[1].trim();
+        const fromDateStr = match[2];
+        const toDateStr = match[3];
+        const fromDate = convertMonthYearToDate(fromDateStr);
+        const toDate = convertMonthYearToDate(toDateStr, true);
+        return { type: 'minMW', feeder, fromDate, toDate };
+      }
+      return null;
+    }
+
     function convertMonthYearToDate(monthYear, endOfMonth = false) {
       const [monthStr, year] = monthYear.split(' ');
       const monthMap = {
@@ -255,61 +280,37 @@
 
       const getDataParsed = parseGetDataCommand(command);
       const maxMWParsed = parseMaxMWCommand(command);
+      const shortMaxParsed = parseShortMaxCommand(command);
+      const shortMinParsed = parseShortMinCommand(command);
 
-      if (maxMWParsed) {
-        const { feeder, fromDate, toDate } = maxMWParsed;
+      const parsed = shortMaxParsed || shortMinParsed || maxMWParsed || getDataParsed;
 
-        if (!fromDate || !toDate) {
-          addBotMessage('Error: Invalid date format. Use "Month Year" (e.g., March 2020).');
-          return;
-        }
+      if (!parsed) {
+        addBotMessage('Invalid command. Use: "max [feeder] [Month Year] [Month Year]", "min [feeder] [Month Year] [Month Year]", "get data for [feeder] from [YYYY-MM-DD] to [YYYY-MM-DD]", or "what is the maximum MW value for..."');
+        return;
+      }
 
-        if (!allFeeders.includes(feeder)) {
-          addBotMessage(`Error: Invalid feeder "${feeder}". Please select a valid feeder.`);
-          return;
-        }
+      const { type, feeder, fromDate, toDate } = parsed;
 
-        if (new Date(fromDate) > new Date(toDate)) {
-          addBotMessage('Error: From Date cannot be later than To Date.');
-          return;
-        }
+      if (!fromDate || !toDate) {
+        addBotMessage('Error: Invalid date format. Use "Month Year" (e.g., March 2020).');
+        return;
+      }
 
-        addBotMessage(`Fetching maximum MW for ${feeder} from ${fromDate} to ${toDate}...`);
-        document.getElementById('fullScreenSpinner').style.display = 'flex';
+      if (!allFeeders.includes(feeder)) {
+        addBotMessage(`Error: Invalid feeder "${feeder}". Please select a valid feeder.`);
+        return;
+      }
 
-        fetchDataByDateRange(feeder, fromDate, toDate)
-          .then(data => {
-            if (data.length === 0) {
-              addBotMessage(`No data found for ${feeder} from ${fromDate} to ${toDate}.`);
-            } else {
-              const maxMW = Math.max(...data.map(item => Number(item.MW)));
-              const maxEntry = data.find(item => Number(item.MW) === maxMW);
-              addBotMessage(`Maximum MW for ${feeder}: ${Math.round(maxMW)} MW on ${formatDate(maxEntry.date)} at ${maxEntry.time}`);
-            }
-          })
-          .catch(error => {
-            console.error('Error fetching data:', error);
-            addBotMessage('Failed to fetch data. Please try again.');
-          })
-          .finally(() => {
-            document.getElementById('fullScreenSpinner').style.display = 'none';
-          });
-      } else if (getDataParsed) {
-        const { feeder, fromDate, toDate } = getDataParsed;
+      if (new Date(fromDate) > new Date(toDate)) {
+        addBotMessage('Error: From Date cannot be later than To Date.');
+        return;
+      }
 
-        if (!allFeeders.includes(feeder)) {
-          addBotMessage(`Error: Invalid feeder "${feeder}". Please select a valid feeder.`);
-          return;
-        }
+      addBotMessage(`Fetching ${type === 'minMW' ? 'minimum' : 'maximum'} MW for ${feeder} from ${fromDate} to ${toDate}...`);
+      document.getElementById('fullScreenSpinner').style.display = 'flex';
 
-        if (new Date(fromDate) > new Date(toDate)) {
-          addBotMessage('Error: From Date cannot be later than To Date.');
-          return;
-        }
-
-        addBotMessage(`Fetching data for ${feeder} from ${fromDate} to ${toDate}...`);
-        document.getElementById('fullScreenSpinner').style.display = 'flex';
-
+      if (type === 'getData') {
         selectedFeeder = feeder;
         selectedFromDate = fromDate;
         selectedToDate = toDate;
@@ -328,8 +329,25 @@
           .finally(() => {
             document.getElementById('fullScreenSpinner').style.display = 'none';
           });
-      } else {
-        addBotMessage('Invalid command. Use: "what is the maximum MW value for [feeder] from [Month Year] to [Month Year]" or "get data for [feeder] from [YYYY-MM-DD] to [YYYY-MM-DD]"');
+      } else if (type === 'maxMW' || type === 'minMW') {
+        fetchDataByDateRange(feeder, fromDate, toDate)
+          .then(data => {
+            if (data.length === 0) {
+              addBotMessage(`No data found for ${feeder} from ${fromDate} to ${toDate}.`);
+            } else {
+              const mwValues = data.map(item => Number(item.MW));
+              const value = type === 'maxMW' ? Math.max(...mwValues) : Math.min(...mwValues);
+              const entry = data.find(item => Number(item.MW) === value);
+              addBotMessage(`${type === 'maxMW' ? 'Maximum' : 'Minimum'} MW for ${feeder}: ${Math.round(value)} MW on ${formatDate(entry.date)} at ${entry.time}`);
+            }
+          })
+          .catch(error => {
+            console.error('Error fetching data:', error);
+            addBotMessage('Failed to fetch data. Please try again.');
+          })
+          .finally(() => {
+            document.getElementById('fullScreenSpinner').style.display = 'none';
+          });
       }
     }
 
