@@ -9,20 +9,8 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.17/jspdf.plugin.autotable.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <link rel="stylesheet" href="newdataCSS.css">
-  <style>
-    .chat-container { position: fixed; bottom: 20px; right: 20px; width: 300px; height: 400px; background: white; border: 1px solid #ccc; border-radius: 5px; box-shadow: 0 0 10px rgba(0,0,0,0.1); display: flex; flex-direction: column; }
-    .chat-header { background: #3498db; color: white; padding: 10px; border-radius: 5px 5px 0 0; }
-    .chat-messages { flex: 1; padding: 10px; overflow-y: auto; }
-    .chat-input { padding: 10px; border-top: 1px solid #ccc; }
-    .chat-input input { width: 80%; padding: 5px; }
-    .chat-input button { padding: 5px 10px; }
-    .message { margin: 5px 0; }
-    .user-message { text-align: right; color: #2ecc71; }
-    .bot-message { text-align: left; color: #3498db; }
-  </style>
 </head>
 <body>
-  <!-- [Existing header, form, spinner, and data container unchanged] -->
   <div class="header">
     <div class="header-content">
       <img src="logo_new.png" alt="Logo" width="60px" height="60px">
@@ -96,7 +84,11 @@
     </div>
   </div>
 
-  <div class="chat-container">
+  <!-- Chatbot Toggle Button -->
+  <button class="chat-toggle-btn" id="chatToggleBtn">Open Chatbot</button>
+
+  <!-- Chatbot Container -->
+  <div class="chat-container" id="chatContainer">
     <div class="chat-header">Feeder Data Bot</div>
     <div class="chat-messages" id="chatMessages"></div>
     <div class="chat-input">
@@ -147,7 +139,7 @@
 
         const voltage = document.getElementById('voltage').value;
         const feeder = document.getElementById('feeder').value;
-        const fromDate = document.getElementById('fromDate').value; // YYYY-MM-DD from input type="date"
+        const fromDate = document.getElementById('fromDate').value;
         const toDate = document.getElementById('toDate').value;
 
         selectedFeeder = feeder;
@@ -185,7 +177,22 @@
           });
       });
 
-      addBotMessage('Welcome! Try: "get data for [feeder] from [DD-MM-YYYY] to [DD-MM-YYYY]", "max [feeder] [Month Year] [Month Year]", "min [feeder] [Month Year] [Month Year]", or "what is the maximum MW value for..."');
+      // Chatbot toggle functionality
+      const chatToggleBtn = document.getElementById('chatToggleBtn');
+      const chatContainer = document.getElementById('chatContainer');
+      let isChatOpen = false;
+
+      chatToggleBtn.addEventListener('click', function() {
+        isChatOpen = !isChatOpen;
+        if (isChatOpen) {
+          chatContainer.style.display = 'flex';
+          chatToggleBtn.textContent = 'Close Chatbot';
+          addBotMessage('Welcome! Try: "get data for [feeder] from [DD-MM-YYYY] to [DD-MM-YYYY]", "max [feeder] [Month Year] [Month Year]", "min [feeder] [Month Year] [Month Year]", or "what is the maximum MW value for..."');
+        } else {
+          chatContainer.style.display = 'none';
+          chatToggleBtn.textContent = 'Open Chatbot';
+        }
+      });
     });
 
     function addMessage(message, className) {
