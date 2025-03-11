@@ -9,74 +9,13 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.17/jspdf.plugin.autotable.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <link rel="stylesheet" href="newdataCSS.css">
-  <style>
-    .chat-container { 
-      position: fixed; 
-      bottom: 20px; 
-      right: 20px; 
-      width: 300px; 
-      height: 400px; 
-      background: white; 
-      border: 1px solid #ccc; 
-      border-radius: 5px; 
-      box-shadow: 0 0 10px rgba(0,0,0,0.1); 
-      display: none; /* Initially hidden */
-      flex-direction: column; 
-    }
-    .chat-header { 
-      background: #3498db; 
-      color: white; 
-      padding: 10px; 
-      border-radius: 5px 5px 0 0; 
-    }
-    .chat-messages { 
-      flex: 1; 
-      padding: 10px; 
-      overflow-y: auto; 
-    }
-    .chat-input { 
-      padding: 10px; 
-      border-top: 1px solid #ccc; 
-    }
-    .chat-input input { 
-      width: 80%; 
-      padding: 5px; 
-    }
-    .chat-input button { 
-      padding: 5px 10px; 
-    }
-    .message { 
-      margin: 5px 0; 
-    }
-    .user-message { 
-      text-align: right; 
-      color: #2ecc71; 
-    }
-    .bot-message { 
-      text-align: left; 
-      color: #3498db; 
-    }
-    .chat-toggle-btn {
-      position: fixed;
-      bottom: 20px;
-      right: 20px;
-      padding: 10px 20px;
-      background: #3498db;
-      color: white;
-      border: none;
-      border-radius: 5px;
-      cursor: pointer;
-    }
-    .chat-toggle-btn:hover {
-      background: #2980b9;
-    }
-  </style>
+
 </head>
 <body>
   <div class="header">
     <div class="header-content">
       <img src="logo_new.png" alt="Logo" width="60px" height="60px">
-      <h1>𝐓𝐑𝐀𝐍𝐒𝐌𝐈𝐒𝐒𝐈𝐎𝐍 𝐂𝐎𝐑𝐏𝐎𝐑𝐀𝐓𝐈𝐎𝐍 𝐎𝐅 𝐓𝐄𝐋𝐀𝐍𝐆𝐀𝐍𝐀 𝐋𝐈𝐌𝐈𝐓𝐄𝐃</h1>
+      <h1>𝐓𝐑𝐀𝐍𝐒𝐌𝐈𝐒𝐒𝐈𝐎𝐍 𝐂𝐎𝐑𝐏𝐎𝐑𝐀𝐓𝐈𝐎𝐍 𝐎𝐅 𝐓𝐄𝐋𝐀𝐍𝐆𝐀𝐍𝐀 𝐋𝐈𝐭𝐞𝐝</h1>
     </div>
     <nav class="navbar">
       <ul>
@@ -146,12 +85,13 @@
     </div>
   </div>
 
-  <!-- Chatbot Toggle Button -->
   <button class="chat-toggle-btn" id="chatToggleBtn">Open Chatbot</button>
 
-  <!-- Chatbot Container -->
   <div class="chat-container" id="chatContainer">
-    <div class="chat-header">Feeder Data Bot</div>
+    <div class="chat-header">
+      <span class="chat-header-title">Feeder Data Bot</span>
+      <button class="chat-close-btn" id="chatCloseBtn">&times;</button>
+    </div>
     <div class="chat-messages" id="chatMessages"></div>
     <div class="chat-input">
       <input type="text" id="chatInput" placeholder="e.g., 'get data for 400KV Maheshwaram-2 from 01-03-2020 to 31-12-2021' or 'max...'">
@@ -239,21 +179,33 @@
           });
       });
 
-      // Chatbot toggle functionality
+      // Chatbot toggle and close functionality
       const chatToggleBtn = document.getElementById('chatToggleBtn');
+      const chatCloseBtn = document.getElementById('chatCloseBtn');
       const chatContainer = document.getElementById('chatContainer');
       let isChatOpen = false;
 
-      chatToggleBtn.addEventListener('click', function() {
-        isChatOpen = !isChatOpen;
+      function toggleChatbot(open) {
+        isChatOpen = open;
         if (isChatOpen) {
           chatContainer.style.display = 'flex';
           chatToggleBtn.textContent = 'Close Chatbot';
-          addBotMessage('Welcome! Try: "get data for [feeder] from [DD-MM-YYYY] to [DD-MM-YYYY]", "max [feeder] [Month Year] [Month Year]", "min [feeder] [Month Year] [Month Year]", or "what is the maximum MW value for..."');
+          if (!chatContainer.dataset.welcomeShown) {
+            addBotMessage('Welcome! Try: "get data for [feeder] from [DD-MM-YYYY] to [DD-MM-YYYY]", "max [feeder] [Month Year] [Month Year]", "min [feeder] [Month Year] [Month Year]", or "what is the maximum MW value for..."');
+            chatContainer.dataset.welcomeShown = 'true'; // Prevent repeat welcome
+          }
         } else {
           chatContainer.style.display = 'none';
           chatToggleBtn.textContent = 'Open Chatbot';
         }
+      }
+
+      chatToggleBtn.addEventListener('click', function() {
+        toggleChatbot(!isChatOpen);
+      });
+
+      chatCloseBtn.addEventListener('click', function() {
+        toggleChatbot(false);
       });
     });
 
