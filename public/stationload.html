@@ -17,17 +17,22 @@
       font-family: 'Arial', sans-serif;
       box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
     }
-    #dataTable th, #dataTable td {
-      padding: 12px 15px;
+    #dataTable th {
+      padding: 10px 12px;
       text-align: center;
       border: 1px solid #e0e0e0;
-    }
-    #dataTable th {
       background-color: #2c3e50;
       color: white;
       font-weight: 600;
       text-transform: uppercase;
       letter-spacing: 0.5px;
+      font-size: 13px; /* Slightly smaller header font */
+    }
+    #dataTable td {
+      padding: 10px 12px;
+      text-align: center;
+      border: 1px solid #e0e0e0;
+      font-size: 12px; /* Smaller body font for better fit */
     }
     #dataTable tr:nth-child(even) {
       background-color: #f8f9fa;
@@ -40,7 +45,7 @@
       transition: background-color 0.2s;
     }
     #dataTable tr.max-row {
-      background-color: #fff3cd !important; /* Light yellow for max value */
+      background-color: #fff3cd !important;
       font-weight: bold;
     }
     .chart-container {
@@ -77,7 +82,7 @@
   <div class="header">
     <div class="header-content">
       <img src="logo_new.png" alt="Logo" width="60px" height="60px">
-      <h1>𝐓𝐑𝐀𝐍𝐒𝐌𝐈𝐒𝐒𝐈𝐎𝐍 𝐂𝐎𝐑𝐏𝐎𝐑𝐀𝐓𝐈𝐎𝐍 𝐎𝐅 𝐓𝐄𝐋𝐀𝐍𝐆𝐀𝐍𝐀 𝐋𝐈𝐌𝐈𝐓�{E𝐃</h1>
+      <h1>𝐓𝐑𝐀𝐍𝐒𝐌𝐈𝐒𝐒𝐈𝐎𝐍 𝐂𝐎𝐑𝐏𝐎𝐑𝐀𝐓𝐈𝐎𝐍 𝐎𝐅 𝐓𝐄𝐋𝐀𝐍𝐆𝐀𝐍𝐀 𝐋𝐈�{M𝐈𝐓𝐄𝐃</h1>
       <button class="hamburger" id="hamburgerBtn">☰</button>
     </div>
   </div>
@@ -294,7 +299,7 @@
       data.forEach((entry, index) => {
         const row = document.createElement('tr');
         if (entry.combinedMW === maxMW) {
-          row.classList.add('max-row'); // Use class instead of inline style
+          row.classList.add('max-row');
         }
         row.innerHTML = `
           <td>${index + 1}</td>
@@ -382,19 +387,21 @@
         startY: tableStartY,
         theme: "grid",
         headStyles: { 
-          fontSize: 10,
-          fillColor: [44, 62, 80], // Matches #2c3e50
+          fontSize: 10, // Smaller font for PDF header
+          fillColor: [44, 62, 80],
           textColor: 255
         },
-        bodyStyles: { fontSize: 9 },
-        alternateRowStyles: { fillColor: [248, 249, 250] }, // Matches #f8f9fa
+        bodyStyles: { 
+          fontSize: 8, // Smaller font for PDF body
+        },
+        alternateRowStyles: { fillColor: [248, 249, 250] },
         didParseCell: function(data) {
           if (data.section === 'body') {
             const tableBody = document.querySelector('#dataTable tbody');
             const rows = Array.from(tableBody.getElementsByTagName('tr'));
             const rowIndex = data.row.index;
             if (rows[rowIndex] && rows[rowIndex].classList.contains('max-row')) {
-              data.cell.styles.fillColor = [255, 243, 205]; // Matches #fff3cd
+              data.cell.styles.fillColor = [255, 243, 205];
               data.cell.styles.fontStyle = 'bold';
             }
           }
