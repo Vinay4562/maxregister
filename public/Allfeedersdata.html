@@ -7,12 +7,14 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.4/xlsx.full.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
   <style>
-body {
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    body {
+      font-family: 'Roboto', sans-serif;
       margin: 0;
       padding: 20px;
       background-color: #f5f7fa;
+      color: #333;
     }
     .header {
       background-color: #1e88e5;
@@ -31,6 +33,7 @@ body {
     .header h1 {
       font-size: 1.5em;
       margin: 0;
+      font-weight: 500;
     }
     .container {
       max-width: 900px;
@@ -42,33 +45,35 @@ body {
       border: 1px solid #e0e0e0;
     }
     h2 {
-      color: #333;
+      color: #1e88e5;
       text-align: center;
-      font-size: 1.3em;
+      font-weight: 500;
       margin-bottom: 20px;
     }
     form {
-      display: flex;
-      flex-direction: column;
-      gap: 18px;
+      display: grid;
+      gap: 15px;
+      padding: 15px;
+      background: #fafafa;
+      border-radius: 6px;
+      border: 1px solid #e0e0e0;
     }
     .form-item {
-      display: flex;
+      display: grid;
+      grid-template-columns: 130px 1fr;
       align-items: center;
-      gap: 15px;
+      gap: 10px;
     }
     .form-item label {
-      width: 130px;
-      font-weight: 600;
-      color: #444;
+      font-weight: 500;
+      color: #555;
     }
     .form-item select, .form-item input[type="date"] {
       padding: 8px;
-      width: 220px;
       border: 1px solid #ccc;
       border-radius: 4px;
       font-size: 0.95em;
-      background-color: #fff;
+      background: white;
       transition: border-color 0.2s;
     }
     .form-item select:focus, .form-item input[type="date"]:focus {
@@ -85,9 +90,9 @@ body {
       border: none;
       border-radius: 4px;
       cursor: pointer;
-      width: 120px;
-      font-weight: 600;
+      font-weight: 500;
       transition: background-color 0.2s;
+      justify-self: start;
     }
     .form-item input[type="submit"]:hover {
       background-color: #1565c0;
@@ -119,48 +124,44 @@ body {
     }
     .data-container {
       display: none;
-      margin-top: 25px;
+      margin-top: 20px;
     }
     table {
       width: 80%;
       margin: 20px auto;
       border-collapse: collapse;
-      background-color: #fff;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+      font-size: 0.9em;
     }
     th, td {
       border: 1px solid #e0e0e0;
-      padding: 10px;
+      padding: 8px;
       text-align: center;
-      font-size: 0.9em;
     }
     th {
       background-color: #1e88e5;
       color: white;
-      font-weight: 600;
+      font-weight: 500;
     }
     td {
-      color: #555;
+      background-color: #fff;
+      color: #444;
     }
-    tr:nth-child(even) {
+    tr:nth-child(even) td {
       background-color: #f9f9f9;
-    }
-    tr:hover {
-      background-color: #f1f3f5;
     }
     .buttons {
       margin-top: 20px;
       text-align: center;
     }
     .buttons button {
-      padding: 10px 25px;
+      padding: 10px 20px;
       margin: 0 10px;
       background-color: #1e88e5;
       color: white;
       border: none;
       border-radius: 4px;
       cursor: pointer;
-      font-weight: 600;
+      font-weight: 500;
       transition: background-color 0.2s;
     }
     .buttons button:hover {
@@ -172,12 +173,12 @@ body {
   <div class="header">
     <div class="header-content">
       <img src="logo_new.png" alt="Logo" width="60px" height="60px">
-      <h1>𝐓𝐑𝐀𝐍𝐒𝐌𝐈𝐒𝐒𝐈𝐎𝐍 𝐂𝐎𝐑𝐏𝐎𝐑𝐀𝐓𝐈𝐎𝐍 𝐎𝐅 𝐓𝐄𝐋𝐀𝐍𝐆𝐀𝐍𝐀 𝐋𝐈𝐌𝐈𝐓𝐄𝐃</h1>
+      <h1>TRANSMISSION CORPORATION OF TELANGANA LIMITED</h1>
     </div>
   </div>
 
   <div class="container">
-    <h2>Max MW Feeder Data</h2>
+    <h2>Max MW Feeder Data (Matched Date/Time)</h2>
     <form id="dataForm">
       <div class="form-item">
         <label for="voltage">Voltage Level:</label>
@@ -317,7 +318,6 @@ body {
     });
 
     async function fetchMaxMWData(feeders, fromDate, toDate) {
-      // Fetch data for all selected feeders
       const fetchPromises = feeders.map(feeder =>
         fetch(`https://maxregister-git-main-vinay-kumars-projects-f1559f4a.vercel.app/data-by-date?feeder=${encodeURIComponent(feeder)}&fromDate=${fromDate}&toDate=${toDate}`)
           .then(response => {
@@ -337,7 +337,6 @@ body {
 
       const feederData = await Promise.all(fetchPromises);
 
-      // Identify multi-circuit pairs (only for feeders ending in -1 and -2)
       const multiCircuitPairs = {};
       feeders.forEach(feeder => {
         const baseName = feeder.replace(/-\d+$/, '');
@@ -350,10 +349,9 @@ body {
       const results = [];
       const processedFeeders = new Set();
 
-      // Process multi-circuit pairs
       Object.keys(multiCircuitPairs).forEach(baseName => {
         const pair = multiCircuitPairs[baseName];
-        if (pair.length === 2) { // Multi-circuit pair
+        if (pair.length === 2) {
           const feeder1Data = feederData.find(f => f.feeder === pair[0]).data;
           const feeder2Data = feederData.find(f => f.feeder === pair[1]).data;
 
@@ -366,7 +364,6 @@ body {
             return;
           }
 
-          // Match by date and time
           const combinedData = {};
           feeder1Data.forEach(item => {
             const key = `${item.date} ${item.time}`;
@@ -402,7 +399,6 @@ body {
         }
       });
 
-      // Process remaining single feeders
       feeders.forEach(feeder => {
         if (!processedFeeders.has(feeder)) {
           const feederDataSingle = feederData.find(f => f.feeder === feeder).data;
@@ -417,7 +413,6 @@ body {
         }
       });
 
-      // Sort results according to allFeedersOrdered
       return results.sort((a, b) => {
         const indexA = allFeedersOrdered.indexOf(a.feeder);
         const indexB = allFeedersOrdered.indexOf(b.feeder);
@@ -484,7 +479,7 @@ body {
         html: '#dataTable',
         startY: tableStartY,
         theme: "grid",
-        headStyles: { fontSize: 10, fillColor: [52, 73, 94], textColor: 255 },
+        headStyles: { fontSize: 10, fillColor: [30, 136, 229], textColor: 255 },
         bodyStyles: { fontSize: 9 },
         margin: { top: 0 }
       });
