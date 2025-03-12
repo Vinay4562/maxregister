@@ -140,7 +140,7 @@
   <div class="header">
     <div class="header-content">
       <img src="logo_new.png" alt="Logo" width="60px" height="60px">
-      <h1>𝐓𝐑𝐀𝐍𝐒𝐌𝐈𝐒𝐒𝐈𝐎𝐍 𝐂𝐎𝐑𝐏𝐎𝐑𝐀𝐓𝐈𝐎𝐍 𝐎𝐅 𝐓𝐔𝐋𝐀𝐍𝐆𝐀𝐍𝐀 𝐋𝐈𝐌𝐈𝐓𝐄𝐃</h1>
+      <h1>𝐓𝐑𝐀𝐍𝐒𝐌𝐈𝐒𝐒𝐈𝐎𝐍 𝐂𝐎𝐑𝐏𝐎𝐑𝐀𝐓𝐈𝐎𝐍 𝐎𝐅 𝐓𝐄𝐋𝐀𝐍𝐆𝐀𝐍𝐀 𝐋𝐈𝐌𝐈𝐓𝐄𝐃</h1>
     </div>
   </div>
 
@@ -208,7 +208,13 @@
       'ICTS': ['315MVA ICT-1', '315MVA ICT-2', '315MVA ICT-3', '500MVA ICT-4']
     };
 
-    const allFeeders = Object.values(feederOptions).flat();
+    const allFeedersOrdered = [
+      '400KV MAHESHWARAM-2', '400KV MAHESHWARAM-1', '400KV NARSAPUR-1', '400KV NARSAPUR-2',
+      '400KV KETHIREDDYPALLY-1', '400KV KETHIREDDYPALLY-2', '400KV NIZAMABAD-1', '400KV NIZAMABAD-2',
+      '220KV PARIGI-1', '220KV PARIGI-2', '220KV TANDUR', '220KV GACHIBOWLI-1', '220KV GACHIBOWLI-2',
+      '220KV KETHIREDDYPALLY', '220KV YEDDUMAILARAM-1', '220KV YEDDUMAILARAM-2', '220KV SADASIVAPET-1', '220KV SADASIVAPET-2',
+      '315MVA ICT-1', '315MVA ICT-2', '315MVA ICT-3', '500MVA ICT-4'
+    ];
 
     document.addEventListener('DOMContentLoaded', function() {
       const voltageSelect = document.getElementById('voltage');
@@ -219,7 +225,7 @@
         feederSelect.innerHTML = '';
         let feedersToShow = [];
         if (voltage === 'All') {
-          feedersToShow = allFeeders;
+          feedersToShow = allFeedersOrdered;
         } else {
           feedersToShow = feederOptions[voltage];
         }
@@ -303,7 +309,7 @@
       const multiCircuitPairs = {};
       feeders.forEach(feeder => {
         const baseName = feeder.replace(/-\d+$/, '');
-        if (feeder.match(/-\d+$/)) { // Only consider feeders with -1, -2, etc.
+        if (feeder.match(/-\d+$/)) {
           if (!multiCircuitPairs[baseName]) multiCircuitPairs[baseName] = [];
           multiCircuitPairs[baseName].push(feeder);
         }
@@ -364,7 +370,7 @@
         }
       });
 
-      // Process remaining single feeders (including ICTs)
+      // Process remaining single feeders
       feeders.forEach(feeder => {
         if (!processedFeeders.has(feeder)) {
           const feederDataSingle = feederData.find(f => f.feeder === feeder).data;
@@ -379,7 +385,12 @@
         }
       });
 
-      return results;
+      // Sort results according to allFeedersOrdered
+      return results.sort((a, b) => {
+        const indexA = allFeedersOrdered.indexOf(a.feeder);
+        const indexB = allFeedersOrdered.indexOf(b.feeder);
+        return indexA - indexB;
+      });
     }
 
     function displayData(data, voltage, fromDate, toDate) {
