@@ -8,69 +8,89 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
-    body {
-      font-family: Arial, sans-serif;
+body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
       margin: 0;
       padding: 20px;
-      background-color: #f4f4f4;
+      background-color: #f5f7fa;
     }
     .header {
-      background-color: #3498db;
+      background-color: #1e88e5;
       color: white;
-      padding: 10px;
+      padding: 12px;
       text-align: center;
-      border-radius: 5px;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
     }
     .header-content {
       display: flex;
       align-items: center;
       justify-content: center;
-      gap: 10px;
+      gap: 12px;
+    }
+    .header h1 {
+      font-size: 1.5em;
+      margin: 0;
     }
     .container {
-      max-width: 800px;
+      max-width: 900px;
       margin: 20px auto;
       background: white;
       padding: 20px;
-      border-radius: 5px;
-      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      border-radius: 8px;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+      border: 1px solid #e0e0e0;
     }
     h2 {
       color: #333;
       text-align: center;
+      font-size: 1.3em;
+      margin-bottom: 20px;
     }
     form {
       display: flex;
       flex-direction: column;
-      gap: 15px;
+      gap: 18px;
     }
     .form-item {
       display: flex;
       align-items: center;
-      gap: 10px;
+      gap: 15px;
     }
     .form-item label {
-      width: 120px;
-      font-weight: bold;
+      width: 130px;
+      font-weight: 600;
+      color: #444;
     }
     .form-item select, .form-item input[type="date"] {
-      padding: 5px;
-      width: 200px;
+      padding: 8px;
+      width: 220px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      font-size: 0.95em;
+      background-color: #fff;
+      transition: border-color 0.2s;
+    }
+    .form-item select:focus, .form-item input[type="date"]:focus {
+      border-color: #1e88e5;
+      outline: none;
     }
     .form-item select[multiple] {
-      height: 100px;
+      height: 120px;
     }
     .form-item input[type="submit"] {
       padding: 10px;
-      background-color: #3498db;
+      background-color: #1e88e5;
       color: white;
       border: none;
-      border-radius: 5px;
+      border-radius: 4px;
       cursor: pointer;
-      width: 100px;
+      width: 120px;
+      font-weight: 600;
+      transition: background-color 0.2s;
     }
     .form-item input[type="submit"]:hover {
-      background-color: #2980b9;
+      background-color: #1565c0;
     }
     #fullScreenSpinner {
       position: fixed;
@@ -87,7 +107,7 @@
     }
     .spinner {
       border: 4px solid #f3f3f3;
-      border-top: 4px solid #3498db;
+      border-top: 4px solid #1e88e5;
       border-radius: 50%;
       width: 40px;
       height: 40px;
@@ -99,40 +119,52 @@
     }
     .data-container {
       display: none;
-      margin-top: 20px;
+      margin-top: 25px;
     }
     table {
-      width: 100%;
+      width: 80%;
+      margin: 20px auto;
       border-collapse: collapse;
-      margin-top: 20px;
+      background-color: #fff;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.05);
     }
     th, td {
-      border: 1px solid #ddd;
-      padding: 8px;
+      border: 1px solid #e0e0e0;
+      padding: 10px;
       text-align: center;
+      font-size: 0.9em;
     }
     th {
-      background-color: #3498db;
+      background-color: #1e88e5;
       color: white;
+      font-weight: 600;
+    }
+    td {
+      color: #555;
     }
     tr:nth-child(even) {
-      background-color: #f2f2f2;
+      background-color: #f9f9f9;
+    }
+    tr:hover {
+      background-color: #f1f3f5;
     }
     .buttons {
       margin-top: 20px;
       text-align: center;
     }
     .buttons button {
-      padding: 10px 20px;
+      padding: 10px 25px;
       margin: 0 10px;
-      background-color: #3498db;
+      background-color: #1e88e5;
       color: white;
       border: none;
-      border-radius: 5px;
+      border-radius: 4px;
       cursor: pointer;
+      font-weight: 600;
+      transition: background-color 0.2s;
     }
     .buttons button:hover {
-      background-color: #2980b9;
+      background-color: #1565c0;
     }
   </style>
 </head>
@@ -145,7 +177,7 @@
   </div>
 
   <div class="container">
-    <h2>Max MW Feeder Data (Matched Date/Time)</h2>
+    <h2>Max MW Feeder Data</h2>
     <form id="dataForm">
       <div class="form-item">
         <label for="voltage">Voltage Level:</label>
