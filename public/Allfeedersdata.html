@@ -286,9 +286,6 @@
         const fromDate = document.getElementById('fromDate').value;
         const toDate = document.getElementById('toDate').value;
 
-        console.log('Selected Feeders:', selectedFeeders);
-        console.log('Date Range:', fromDate, 'to', toDate);
-
         if (!selectedFeeders.length || !fromDate || !toDate) {
           alert('Please select at least one feeder and both dates.');
           spinner.style.display = 'none';
@@ -303,13 +300,11 @@
 
         fetchMaxMWData(selectedFeeders, fromDate, toDate)
           .then(data => {
-            console.log('Fetched Data:', data);
             displayData(data, voltage, fromDate, toDate);
             document.getElementById('downloadPDFButton').style.display = 'inline-block';
             document.getElementById('downloadExcelButton').style.display = 'inline-block';
           })
           .catch(error => {
-            console.error('Error fetching data:', error);
             alert('Failed to fetch data. Please try again.');
           })
           .finally(() => {
@@ -322,16 +317,13 @@
       const fetchPromises = feeders.map(feeder =>
         fetch(`https://maxregister-git-main-vinay-kumars-projects-f1559f4a.vercel.app/data-by-date?feeder=${encodeURIComponent(feeder)}&fromDate=${fromDate}&toDate=${toDate}`)
           .then(response => {
-            console.log(`Response status for ${feeder}:`, response.status);
             if (!response.ok) throw new Error(`Network response was not ok for ${feeder}: ${response.status}`);
             return response.json();
           })
           .then(data => {
-            console.log(`Data for ${feeder}:`, data);
             return { feeder, data };
           })
           .catch(error => {
-            console.error(`Error fetching data for ${feeder}:`, error);
             return { feeder, data: [] };
           })
       );

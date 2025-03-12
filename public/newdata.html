@@ -9,14 +9,13 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.17/jspdf.plugin.autotable.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <link rel="stylesheet" href="newdataCSS.css">
-
 </head>
 <body>
   <div class="header">
     <div class="header-content">
       <img src="logo_new.png" alt="Logo" width="60px" height="60px">
       <h1>𝐓𝐑𝐀𝐍𝐒𝐌𝐈𝐒𝐒𝐈𝐎𝐍 𝐂𝐎𝐑𝐏𝐎𝐑𝐀𝐓𝐈𝐎𝐍 𝐎𝐅 𝐓𝐄𝐋𝐀𝐍𝐆𝐀𝐍𝐀 𝐋𝐈𝐌𝐈𝐓𝐄𝐃</h1>
-      <button class="hamburger" id="hamburgerBtn">☰</button> <!-- Hamburger icon -->
+      <button class="hamburger" id="hamburgerBtn">☰</button>
     </div>
   </div>
   <nav class="navbar" id="navbarMenu">
@@ -130,7 +129,6 @@
     };
     const months = Object.keys(monthMap);
 
-    // Levenshtein Distance for string similarity
     function levenshteinDistance(a, b) {
       const matrix = Array(b.length + 1).fill(null).map(() => Array(a.length + 1).fill(null));
       for (let i = 0; i <= a.length; i++) matrix[0][i] = i;
@@ -139,9 +137,9 @@
         for (let i = 1; i <= a.length; i++) {
           const indicator = a[i - 1] === b[j - 1] ? 0 : 1;
           matrix[j][i] = Math.min(
-            matrix[j][i - 1] + 1, // deletion
-            matrix[j - 1][i] + 1, // insertion
-            matrix[j - 1][i - 1] + indicator // substitution
+            matrix[j][i - 1] + 1,
+            matrix[j - 1][i] + 1,
+            matrix[j - 1][i - 1] + indicator
           );
         }
       }
@@ -162,19 +160,15 @@
           closestMatch = option;
         }
       });
-      // Threshold: accept if distance is less than half the length of the input or 3, whichever is smaller
       return minDistance <= Math.min(3, Math.floor(input.length / 2)) ? closestMatch : null;
     }
 
     document.addEventListener('DOMContentLoaded', function() {
-      console.log('DOM fully loaded');
-
       const voltageSelect = document.getElementById('voltage');
       const feederSelect = document.getElementById('feeder');
 
       voltageSelect.addEventListener('change', function() {
         const voltage = this.value;
-        console.log('Voltage selected:', voltage);
         feederSelect.innerHTML = '<option value="">Select Feeder</option>';
         if (feederOptions[voltage]) {
           feederOptions[voltage].forEach(feeder => {
@@ -190,7 +184,6 @@
       form.addEventListener('submit', function(event) {
         event.preventDefault();
         event.stopPropagation();
-        console.log('Form submission intercepted');
 
         const spinner = document.getElementById('fullScreenSpinner');
         spinner.style.display = 'flex';
@@ -203,8 +196,6 @@
         selectedFeeder = feeder;
         selectedFromDate = fromDate;
         selectedToDate = toDate;
-
-        console.log('Form data:', { voltage, feeder, fromDate, toDate });
 
         if (!voltage || !feeder || !fromDate || !toDate) {
           alert('Please fill in all fields.');
@@ -220,14 +211,12 @@
 
         fetchDataByDateRange(feeder, fromDate, toDate)
           .then(data => {
-            console.log('Data fetched:', data);
             displayData(data);
             document.getElementById('downloadPDFButton').style.display = 'inline-block';
             document.getElementById('downloadExcelButton').style.display = 'inline-block';
             resetForm();
           })
           .catch(error => {
-            console.error('Error fetching data:', error);
             alert('Failed to fetch data. Please try again.');
           })
           .finally(() => {
@@ -442,7 +431,6 @@
             addBotMessage(`Data retrieved successfully! Showing ${data.length} records.`);
           })
           .catch(error => {
-            console.error('Error fetching data:', error);
             addBotMessage('Failed to fetch data. Please try again.');
           })
           .finally(() => {
@@ -461,7 +449,6 @@
             }
           })
           .catch(error => {
-            console.error('Error fetching data:', error);
             addBotMessage('Failed to fetch data. Please try again.');
           })
           .finally(() => {
@@ -481,7 +468,6 @@
         const data = await response.json();
         return data;
       } catch (error) {
-        console.error(`Error fetching data for ${feeder}:`, error);
         throw error;
       }
     }
@@ -491,7 +477,6 @@
       form.reset();
       document.getElementById('voltage').value = '';
       document.getElementById('feeder').innerHTML = '<option value="">Select Feeder</option>';
-      console.log('Form reset for new data entry');
     }
 
     function displayData(data) {
@@ -638,10 +623,9 @@
 
       hamburgerBtn.addEventListener('click', function() {
         navbarMenu.classList.toggle('active');
-        body.classList.toggle('navbar-open'); // For background dimming
+        body.classList.toggle('navbar-open');
       });
 
-      // Close navbar when clicking a link
       navbarMenu.querySelectorAll('a').forEach(link => {
         link.addEventListener('click', function() {
           navbarMenu.classList.remove('active');
@@ -649,7 +633,6 @@
         });
       });
 
-      // Close navbar when clicking outside
       document.addEventListener('click', function(event) {
         if (!navbarMenu.contains(event.target) && !hamburgerBtn.contains(event.target) && navbarMenu.classList.contains('active')) {
           navbarMenu.classList.remove('active');
