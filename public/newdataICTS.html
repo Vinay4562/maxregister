@@ -7,6 +7,7 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.4/xlsx.full.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.17/jspdf.plugin.autotable.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <link rel="stylesheet" href="newdataICTSCSS.css">
 
 </head>
@@ -119,6 +120,11 @@
         </thead>
         <tbody></tbody>
       </table>
+      <!-- Add chart container -->
+      <div class="chart-container" style="position: relative; height: 400px; width: 100%; margin-top: 20px;">
+        <h2>Feeder Data Graph</h2>
+        <canvas id="feederChart"></canvas>
+      </div>
     </div>
 
     <div class="buttons">
@@ -130,6 +136,7 @@
 
   <script>
 
+    let feederChart = null;
     let allRows = [];
     let maxMWRow = null;
     let currentFeeders = [];
@@ -401,6 +408,11 @@
             maxMWTableBody.appendChild(tr);
         }
 
+        // After max MW table population, add chart creation
+      if (allRows.length > 0) {
+        createChart(voltage, feeders);
+      }
+
         // Update table titles
         const fromDateFormatted = formatDate(fromDate);
         const toDateFormatted = formatDate(toDate);
@@ -408,6 +420,72 @@
             `MAX MW of ${feeders[0]} & ${feeders[1]}${voltage === 'ICTS' ? ` & ${feeders[2]} & ${feeders[3]}` : ''} from ${fromDateFormatted} to ${toDateFormatted}`;
         document.getElementById('maxMWTitle').textContent = 
             `Maximum MW from ${fromDateFormatted} to ${toDateFormatted}`;
+    }
+
+    // Add new function to create/update the chart
+    function createChart(voltage, feeders) {
+      const ctx = document.getElementById('feederChart').getContext('2d');
+      
+      // Destroy existing chart if it exists
+      if (feederChart) {
+        feederChart.destroy();
+      }
+
+      // Prepare chart data
+      const labels = allRows.map(row => `${row.date} ${row.time}`);
+      const datasets = feeders.map((feeder, index) => ({
+        label: feeder,
+        data: allRows.map(row => row[feeder]),
+        borderColor: `hsl(${index * 90}, 70%, 50%)`,
+        backgroundColor: `hsla(${index * 90}, 70%, 50%, 0.2)`,
+        fill: false,
+        tension: 0.1
+      }));
+
+      // Create new chart
+      feederChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: labels,
+          datasets: datasets
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          scales: {
+            x: {
+              title: {
+                display: true,
+                text: 'Date and Time'
+              },
+              ticks: {
+                maxTicksLimit: 20, // Limit number of x-axis labels
+                autoSkip: true
+              }
+            },
+            y: {
+              title: {
+                display: true,
+                text: 'MW Value'
+              },
+              beginAtZero: true
+            }
+          },
+          plugins: {
+            legend: {
+              position: 'top'
+            },
+            tooltip: {
+              mode: 'index',
+              intersect: false
+            }
+          },
+          hover: {
+            mode: 'nearest',
+            intersect: true
+          }
+        }
+      });
     }
 
         // Update PDF download to maintain highlighting
