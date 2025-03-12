@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Max MW Feeder Data (Multi-Circuit Matched)</title>
+  <title>Max MW Feeder Data (Matched Date/Time)</title>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.4/xlsx.full.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -145,7 +145,7 @@
   </div>
 
   <div class="container">
-    <h2>Max MW Feeder Data (Multi-Circuit Matched)</h2>
+    <h2>Max MW Feeder Data (Matched Date/Time)</h2>
     <form id="dataForm">
       <div class="form-item">
         <label for="voltage">Voltage Level:</label>
@@ -294,7 +294,7 @@
       // Identify multi-circuit pairs
       const multiCircuitPairs = {};
       feeders.forEach(feeder => {
-        const baseName = feeder.replace(/-\d+$/, ''); // Remove "-1" or "-2"
+        const baseName = feeder.replace(/-\d+$/, '');
         if (!multiCircuitPairs[baseName]) multiCircuitPairs[baseName] = [];
         multiCircuitPairs[baseName].push(feeder);
       });
@@ -302,12 +302,13 @@
       const results = [];
       Object.keys(multiCircuitPairs).forEach(baseName => {
         const pair = multiCircuitPairs[baseName];
-        if (pair.length === 2) { // Multi-circuit pair (e.g., NARSAPUR-1 and NARSAPUR-2)
+        if (pair.length === 2) { // Multi-circuit pair
           const feeder1Data = feederData.find(f => f.feeder === pair[0]).data;
           const feeder2Data = feederData.find(f => f.feeder === pair[1]).data;
 
           if (feeder1Data.length === 0 || feeder2Data.length === 0) {
-            results.push({ feeder: `${pair[0]} & ${pair[1]}`, maxMW: 'N/A', date: 'N/A', time: 'N/A' });
+            results.push({ feeder: pair[0], maxMW: 'N/A', date: 'N/A', time: 'N/A' });
+            results.push({ feeder: pair[1], maxMW: 'N/A', date: 'N/A', time: 'N/A' });
             return;
           }
 
@@ -338,9 +339,11 @@
 
           if (maxDateTime) {
             const [date, time] = maxDateTime.split(' ');
-            results.push({ feeder: `${pair[0]} & ${pair[1]}`, maxMW: Math.round(maxCombinedMW), date, time });
+            results.push({ feeder: pair[0], maxMW: Math.round(combinedData[maxDateTime].mw1), date, time });
+            results.push({ feeder: pair[1], maxMW: Math.round(combinedData[maxDateTime].mw2), date, time });
           } else {
-            results.push({ feeder: `${pair[0]} & ${pair[1]}`, maxMW: 'N/A', date: 'N/A', time: 'N/A' });
+            results.push({ feeder: pair[0], maxMW: 'N/A', date: 'N/A', time: 'N/A' });
+            results.push({ feeder: pair[1], maxMW: 'N/A', date: 'N/A', time: 'N/A' });
           }
         } else { // Single feeder
           const feederDataSingle = feederData.find(f => f.feeder === pair[0]).data;
