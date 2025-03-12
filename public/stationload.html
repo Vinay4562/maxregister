@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Station Loads</title>
+  <title>Station Load</title>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.4/xlsx.full.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.17/jspdf.plugin.autotable.min.js"></script>
@@ -28,27 +28,24 @@
       font-weight: 600;
       text-transform: uppercase;
       letter-spacing: 0.5px;
-      font-size: 13px;
+      font-size: 15px; /* Increased header font size */
     }
     #dataTable td {
-      font-size: 12px;
+      font-size: 14px; /* Increased body font size */
     }
     #dataTable th:nth-child(1), #dataTable td:nth-child(1) { /* Serial No. */
       width: 70px;
     }
     #dataTable th:nth-child(2), #dataTable td:nth-child(2) { /* Month */
+      width: 150px;
+    }
+    #dataTable th:nth-child(3), #dataTable td:nth-child(3) { /* MAX MW */
+      width: 100px;
+    }
+    #dataTable th:nth-child(4), #dataTable td:nth-child(4) { /* Date */
       width: 120px;
     }
-    #dataTable th:nth-child(3), #dataTable td:nth-child(3) { /* Combined ICTS Feeders */
-      width: 350px; /* Increased width for long feeder list */
-    }
-    #dataTable th:nth-child(4), #dataTable td:nth-child(4) { /* MAX MW */
-      width: 80px;
-    }
-    #dataTable th:nth-child(5), #dataTable td:nth-child(5) { /* Date */
-      width: 120px; /* Increased width for date */
-    }
-    #dataTable th:nth-child(6), #dataTable td:nth-child(6) { /* Time */
+    #dataTable th:nth-child(5), #dataTable td:nth-child(5) { /* Time */
       width: 80px;
     }
     #dataTable tr:nth-child(even) {
@@ -62,7 +59,7 @@
       transition: background-color 0.2s;
     }
     #dataTable tr.max-row {
-      background-color: #fff3cd !important;
+      background-color: yellow !important;
       font-weight: bold;
     }
     .chart-container {
@@ -111,7 +108,7 @@
   </nav>
 
   <div class="container">
-    <h2>Station Load</h2>
+    <h2>Station Loads Data</h2>
     <form id="dateForm">
       <div class="form-item">
         <label for="fromDate">From Date:</label>
@@ -139,7 +136,6 @@
         <tr>
           <th>Serial No.</th>
           <th>Month</th>
-          <th>Station Load(ALL ICT'S)</th>
           <th>MAX MW</th>
           <th>Date</th>
           <th>Time</th>
@@ -321,7 +317,6 @@
         row.innerHTML = `
           <td>${index + 1}</td>
           <td>${entry.month}</td>
-          <td>${ICTS_FEEDERS.join(', ')}</td>
           <td>${entry.combinedMW}</td>
           <td>${entry.combinedMW === 'N/A' ? 'N/A' : formatDate(entry.date)}</td>
           <td>${entry.time}</td>
@@ -404,20 +399,19 @@
         startY: tableStartY,
         theme: "grid",
         headStyles: { 
-          fontSize: 10,
+          fontSize: 11, // Adjusted for larger on-screen font
           fillColor: [44, 62, 80],
           textColor: 255
         },
         bodyStyles: { 
-          fontSize: 8,
+          fontSize: 10, // Adjusted for larger on-screen font
         },
         columnStyles: {
           0: { cellWidth: 20 }, // Serial No.
-          1: { cellWidth: 30 }, // Month
-          2: { cellWidth: 90 }, // Combined ICTS Feeders (increased)
-          3: { cellWidth: 20 }, // MAX MW
-          4: { cellWidth: 30 }, // Date (increased)
-          5: { cellWidth: 20 }  // Time
+          1: { cellWidth: 40 }, // Month
+          2: { cellWidth: 25 }, // MAX MW
+          3: { cellWidth: 30 }, // Date
+          4: { cellWidth: 20 }  // Time
         },
         alternateRowStyles: { fillColor: [248, 249, 250] },
         didParseCell: function(data) {
@@ -433,14 +427,14 @@
         }
       });
 
-      doc.save('icts_monthly_max_mw.pdf');
+      doc.save('Station_loads.pdf');
     }
 
     function downloadExcel() {
       const wb = XLSX.utils.book_new();
       const sheet = XLSX.utils.table_to_sheet(document.getElementById('dataTable'));
       XLSX.utils.book_append_sheet(wb, sheet, 'ICTS Monthly Data');
-      XLSX.writeFile(wb, 'icts_monthly_max_mw.xlsx');
+      XLSX.writeFile(wb, 'station_loads.xlsx');
     }
   </script>
 </body>
