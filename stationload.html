@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ICTS Combined MAX MW Data</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.4/xlsx.full.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.17/jspdf.plugin.autotable.min.js"></script>
+  <link rel="stylesheet" href="newdataCSS.css"> <!-- Assuming you reuse the same CSS -->
+</head>
+<body>
+  <div class="header">
+    <div class="header-content">
+      <img src="logo_new.png" alt="Logo" width="60px" height="60px">
+      <h1>𝐓𝐑𝐀𝐍𝐒𝐌𝐈𝐒𝐒𝐈𝐎𝐍 𝐂𝐎𝐑𝐏𝐎𝐑𝐀𝐓𝐈𝐎𝐍 𝐎𝐅 𝐓𝐄𝐋𝐀𝐍𝐆𝐀𝐍𝐀 𝐋𝐈𝐌𝐈𝐓𝐄𝐃</h1>
+      <button class="hamburger" id="hamburgerBtn">☰</button>
+    </div>
+  </div>
+  <nav class="navbar" id="navbarMenu">
+    <ul>
+      <li><a href="https://400kvssshankarpally.free.nf/">Home</a></li>
+      <li><a href="https://mrt-register-git-main-vinay-kumars-projects-f1559f4a.vercel.app/LCbox_retrieve.html">MRT Schedules</a></li>
+    </ul>
+  </nav>
+
+  <div class="container">
+    <h2>ICTS Combined MAX MW Data</h2>
+    <form id="dateForm">
+      <div class="form-item">
+        <label for="fromDate">From Date:</label>
+        <input type="date" id="fromDate" name="fromDate">
+      </div>
+      <div class="form-item">
+        <label for="toDate">To Date:</label>
+        <input type="date" id="toDate" name="toDate">
+      </div>
+      <div class="form-item">
+        <input type="submit" value="Get Combined Data">
+      </div>
+    </form>
+  </div>
+
+  <div id="fullScreenSpinner" style="display: none;">
+    <div class="spinner"></div>
+    <p>Loading data...</p>
+  </div>
+
+  <div class="data-container" id="dataContainer" style="display: none;">
+    <h2 id="dataHeader"></h2>
+    <table id="dataTable">
+      <thead>
+        <tr>
+          <th>Serial No.</th>
+          <th>Combined ICTS Feeders</th>
+          <th>MAX MW</th>
+          <th>Date</th>
+          <th>Time</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+    <div class="buttons">
+      <button id="downloadPDFButton">Download as PDF</button>
+      <button id="downloadExcelButton">Download as Excel</button>
+    </div>
+  </div>
+
+  <script>
+    const ICTS_FEEDERS = ['315MVA ICT-1', '315MVA ICT-2', '315MVA ICT-3', '500MVA ICT-4'];
+
+    document.addEventListener('DOMContentLoaded', function() {
+      const form = document.getElementById('dateForm');
+      form.addEventListener('submit', async function(event) {
+        event.preventDefault();
+        const spinner = document.getElementById('fullScreenSpinner');
+        spinner.style.display = 'flex';
+
+        const fromDate = document.getElementById('fromDate').value;
+        const toDate = document.getElementById('toDate').value;
+
+        if (!fromDate || !toDate) {
+          alert('Please select both From Date and To Date.');
+          spinner.style.display = 'none';
+          return;
+        }
+
+        if (new Date(fromDate) > new Date(toDate)) {
+          alert('From Date cannot be later than To Date.');
+          spinner.style.display = 'none';
+          return;
+        }
+
+        try {
+          const combinedData = await fetchCombinedICTSData(fromDate, toDate);
+          displayCombinedData(combinedData, fromDate, toDate);
+          document.getElementById('dataContainer').style.display = 'block';
+        } catch (error) {
+          console.error('Error fetching combined data:', error);
+          alert('Failed to fetch data. Please try again.');
+        } finally {
+          spinner.style.display = 'none';
+        }
+      });
+
+      // Hamburger menu functionality (reused from your original HTML)
+      const hamburgerBtn = document.getElementById('hamburgerBtn');
+      const navbarMenu = document.getElementById('navbarMenu');
+      const body = document.body;
+
+      hamburgerBtn.addEventListener('click', function() {
+        navbarMenu.classList.toggle('active');
+        body.classList.toggle('navbar-open');
+      });
+
+      navbarMenu.querySelectorAll('a').forEach(link => {
+        link.addEventListener('click', function() {
+          navbarMenu.classList.remove('active');
+          body.classList.remove('navbar-open');
+        });
+      });
+
+      document.addEventListener('click', function(event) {
+        if (!navbarMenu.contains(event.target) && !hamburgerBtn.contains(event.target) && navbarMenu.classList.contains('active')) {
+          navbarMenu.classList.remove('active');
+          body.classList.remove('navbar-open');
+        }
+      });
+
+      // Download buttons
+      document.getElementById('downloadPDFButton').addEventListener('click', downloadPDF);
+      document.getElementById('downloadExcelButton').addEventListener('click', downloadExcel);
+    });
+
+    async function fetchCombinedICTSData(fromDate, toDate) {
+      const promises = ICTS_FEEDERS.map(feeder =>
+        fetch(`https://maxregister-git-main-vinay-kumars-projects-f1559f4a.vercel.app/data-by-date?feeder=${feeder}&fromDate=${fromDate}&toDate=${toDate}`)
+          .then(response => {
+            if (!response.ok) throw new Error(`Failed to fetch data for ${feeder}`);
+            return response.json();
+          })
+      );
+
+      const allData = await Promise.all(promises);
+      const combinedByDateTime = {};
+
+      // Aggregate data by date and time
+      allData.forEach((feederData, index) => {
+        feederData.forEach(entry => {
+          const key = `${entry.date} ${entry.time}`;
+          if (!combinedByDateTime[key]) {
+            combinedByDateTime[key] = { date: entry.date, time: entry.time, mwSum: 0, count: 0 };
+          }
+          combinedByDateTime[key].mwSum += Number(entry.MW);
+          combinedByDateTime[key].count += 1;
+        });
+      });
+
+      // Find the maximum combined MW
+      let maxMW = -Infinity;
+      let maxEntry = null;
+
+      for (const key in combinedByDateTime) {
+        const entry = combinedByDateTime[key];
+        // Only consider entries where all ICTS feeders have data
+        if (entry.count === ICTS_FEEDERS.length) {
+          if (entry.mwSum > maxMW) {
+            maxMW = entry.mwSum;
+            maxEntry = entry;
+          }
+        }
+      }
+
+      if (!maxEntry) throw new Error('No complete data set found for all ICTS feeders in the selected date range.');
+
+      return {
+        combinedMW: Math.round(maxMW),
+        date: maxEntry.date,
+        time: maxEntry.time
+      };
+    }
+
+    function displayCombinedData(data, fromDate, toDate) {
+      const tableBody = document.querySelector('#dataTable tbody');
+      tableBody.innerHTML = '';
+      const dataHeader = document.getElementById('dataHeader');
+      dataHeader.textContent = `ICTS Combined MAX MW From: ${formatDate(fromDate)} To: ${formatDate(toDate)}`;
+
+      const row = document.createElement('tr');
+      row.innerHTML = `
+        <td>1</td>
+        <td>${ICTS_FEEDERS.join(', ')}</td>
+        <td>${data.combinedMW}</td>
+        <td>${formatDate(data.date)}</td>
+        <td>${data.time}</td>
+      `;
+      tableBody.appendChild(row);
+    }
+
+    function formatDate(dateString) {
+      const date = new Date(dateString);
+      const day = date.getDate().toString().padStart(2, '0');
+      const month = (date.getMonth() + 1).toString().padStart(2, '0');
+      const year = date.getFullYear();
+      return `${day}-${month}-${year}`;
+    }
+
+    function downloadPDF() {
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF();
+
+      doc.addImage('logo_new.png', 'PNG', 14, 10, 30, 30);
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(14);
+      doc.text("TRANSMISSION CORPORATION OF TELANGANA LIMITED", 48, 20);
+
+      const fromDate = document.getElementById('fromDate').value;
+      const toDate = document.getElementById('toDate').value;
+      const dynamicTitle = `ICTS Combined MAX MW from ${formatDate(fromDate)} to ${formatDate(toDate)}`;
+
+      const pageWidth = doc.internal.pageSize.getWidth();
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(10);
+      const titleWidth = doc.getTextWidth(dynamicTitle);
+      const titleX = (pageWidth - titleWidth) / 2;
+
+      const tableStartY = 35;
+      doc.text(dynamicTitle, titleX, tableStartY - 2);
+
+      doc.autoTable({
+        html: '#dataTable',
+        startY: tableStartY,
+        theme: "grid",
+        headStyles: { 
+          fontSize: 10,
+          fillColor: [52, 73, 94],
+          textColor: 255
+        },
+        bodyStyles: { fontSize: 9 }
+      });
+
+      doc.save('icts_combined_max_mw.pdf');
+    }
+
+    function downloadExcel() {
+      const wb = XLSX.utils.book_new();
+      const sheet = XLSX.utils.table_to_sheet(document.getElementById('dataTable'));
+      XLSX.utils.book_append_sheet(wb, sheet, 'ICTS Combined Data');
+      XLSX.writeFile(wb, 'icts_combined_max_mw.xlsx');
+    }
+  </script>
+</body>
+</html>
