@@ -11,13 +11,65 @@
   <link rel="stylesheet" href="newdataCSS.css">
   <style>
     #dataTable {
-      width: 90%; /* Increased table width */
+      width: 90%;
       margin: 20px auto;
+      border-collapse: collapse;
+      font-family: 'Arial', sans-serif;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    }
+    #dataTable th, #dataTable td {
+      padding: 12px 15px;
+      text-align: center;
+      border: 1px solid #e0e0e0;
+    }
+    #dataTable th {
+      background-color: #2c3e50;
+      color: white;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    #dataTable tr:nth-child(even) {
+      background-color: #f8f9fa;
+    }
+    #dataTable tr:nth-child(odd) {
+      background-color: #ffffff;
+    }
+    #dataTable tr:hover:not(thead tr) {
+      background-color: #eef2f7;
+      transition: background-color 0.2s;
+    }
+    #dataTable tr.max-row {
+      background-color: #fff3cd !important; /* Light yellow for max value */
+      font-weight: bold;
     }
     .chart-container {
       width: 90%;
       margin: 20px auto;
       height: 400px;
+    }
+    .data-container h2 {
+      text-align: center;
+      color: #2c3e50;
+      margin-bottom: 20px;
+      font-family: 'Arial', sans-serif;
+    }
+    .buttons {
+      text-align: center;
+      margin: 20px 0;
+    }
+    .buttons button {
+      padding: 10px 20px;
+      margin: 0 10px;
+      background-color: #2c3e50;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 14px;
+    }
+    .buttons button:hover {
+      background-color: #34495e;
     }
   </style>
 </head>
@@ -25,7 +77,7 @@
   <div class="header">
     <div class="header-content">
       <img src="logo_new.png" alt="Logo" width="60px" height="60px">
-      <h1>𝐓𝐑𝐀𝐍𝐒𝐌𝐈𝐒𝐒𝐈𝐎𝐍 𝐂𝐎𝐑𝐏𝐎𝐑𝐀𝐓𝐈𝐎𝐍 𝐎𝐅 𝐓𝐄𝐋𝐀𝐍𝐆𝐀𝐍𝐀 𝐋𝐈𝐌𝐈𝐓𝐄𝐃</h1>
+      <h1>𝐓𝐑𝐀𝐍𝐒𝐌𝐈𝐒𝐒𝐈𝐎𝐍 𝐂𝐎𝐑𝐏𝐎𝐑𝐀𝐓𝐈𝐎𝐍 𝐎𝐅 𝐓𝐄𝐋𝐀𝐍𝐆𝐀𝐍𝐀 𝐋𝐈𝐌𝐈𝐓�{E𝐃</h1>
       <button class="hamburger" id="hamburgerBtn">☰</button>
     </div>
   </div>
@@ -181,7 +233,7 @@
       const monthlyMax = {};
       for (const key in combinedByDateTime) {
         const entry = combinedByDateTime[key];
-        if (entry.count !== ICTS_FEEDERS.length) continue; // Skip if not all feeders have data
+        if (entry.count !== ICTS_FEEDERS.length) continue;
 
         const date = new Date(entry.date);
         const monthKey = `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, '0')}`;
@@ -210,7 +262,7 @@
     function getMonthsBetween(start, end) {
       const months = [];
       let current = new Date(start);
-      current.setDate(1); // Start from the 1st of the month
+      current.setDate(1);
 
       while (current <= end) {
         months.push({
@@ -242,7 +294,7 @@
       data.forEach((entry, index) => {
         const row = document.createElement('tr');
         if (entry.combinedMW === maxMW) {
-          row.style.backgroundColor = '#ffff00'; // Highlight max value row
+          row.classList.add('max-row'); // Use class instead of inline style
         }
         row.innerHTML = `
           <td>${index + 1}</td>
@@ -259,7 +311,7 @@
     function renderChart(data) {
       const ctx = document.getElementById('mwChart').getContext('2d');
       if (window.mwChartInstance) {
-        window.mwChartInstance.destroy(); // Destroy previous chart instance
+        window.mwChartInstance.destroy();
       }
 
       const labels = data.map(entry => entry.month);
@@ -331,17 +383,19 @@
         theme: "grid",
         headStyles: { 
           fontSize: 10,
-          fillColor: [52, 73, 94],
+          fillColor: [44, 62, 80], // Matches #2c3e50
           textColor: 255
         },
         bodyStyles: { fontSize: 9 },
+        alternateRowStyles: { fillColor: [248, 249, 250] }, // Matches #f8f9fa
         didParseCell: function(data) {
           if (data.section === 'body') {
             const tableBody = document.querySelector('#dataTable tbody');
             const rows = Array.from(tableBody.getElementsByTagName('tr'));
             const rowIndex = data.row.index;
-            if (rows[rowIndex] && rows[rowIndex].style.backgroundColor === 'rgb(255, 255, 0)') {
-              data.cell.styles.fillColor = [255, 255, 0];
+            if (rows[rowIndex] && rows[rowIndex].classList.contains('max-row')) {
+              data.cell.styles.fillColor = [255, 243, 205]; // Matches #fff3cd
+              data.cell.styles.fontStyle = 'bold';
             }
           }
         }
