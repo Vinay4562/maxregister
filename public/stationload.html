@@ -7,7 +7,19 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.4/xlsx.full.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.17/jspdf.plugin.autotable.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <link rel="stylesheet" href="newdataCSS.css">
+  <style>
+    #dataTable {
+      width: 90%; /* Increased table width */
+      margin: 20px auto;
+    }
+    .chart-container {
+      width: 90%;
+      margin: 20px auto;
+      height: 400px;
+    }
+  </style>
 </head>
 <body>
   <div class="header">
@@ -65,6 +77,9 @@
       <button id="downloadPDFButton">Download as PDF</button>
       <button id="downloadExcelButton">Download as Excel</button>
     </div>
+    <div class="chart-container">
+      <canvas id="mwChart"></canvas>
+    </div>
   </div>
 
   <script>
@@ -95,6 +110,7 @@
         try {
           const monthlyData = await fetchMonthlyICTSData(fromDate, toDate);
           displayMonthlyData(monthlyData, fromDate, toDate);
+          renderChart(monthlyData);
           document.getElementById('dataContainer').style.display = 'block';
         } catch (error) {
           console.error('Error fetching monthly data:', error);
@@ -174,7 +190,7 @@
         }
       }
 
-      // Filter to only include months within the selected range
+      // Return data for each month in the range
       return months.map(month => {
         const monthKey = `${month.year}-${month.month}`;
         return monthlyMax[monthKey] ? {
@@ -220,8 +236,14 @@
       const dataHeader = document.getElementById('dataHeader');
       dataHeader.textContent = `ICTS Monthly MAX MW From: ${formatDate(fromDate)} To: ${formatDate(toDate)}`;
 
+      // Find the maximum MW value across all months
+      const maxMW = Math.max(...data.map(entry => entry.combinedMW === 'N/A' ? -Infinity : entry.combinedMW));
+
       data.forEach((entry, index) => {
         const row = document.createElement('tr');
+        if (entry.combinedMW === maxMW) {
+          row.style.backgroundColor = '#ffff00'; // Highlight max value row
+        }
         row.innerHTML = `
           <td>${index + 1}</td>
           <td>${entry.month}</td>
@@ -231,6 +253,45 @@
           <td>${entry.time}</td>
         `;
         tableBody.appendChild(row);
+      });
+    }
+
+    function renderChart(data) {
+      const ctx = document.getElementById('mwChart').getContext('2d');
+      if (window.mwChartInstance) {
+        window.mwChartInstance.destroy(); // Destroy previous chart instance
+      }
+
+      const labels = data.map(entry => entry.month);
+      const mwValues = data.map(entry => entry.combinedMW === 'N/A' ? null : entry.combinedMW);
+
+      window.mwChartInstance = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: labels,
+          datasets: [{
+            label: 'Monthly MAX MW',
+            data: mwValues,
+            borderColor: '#3498db',
+            backgroundColor: 'rgba(52, 152, 219, 0.2)',
+            borderWidth: 2,
+            pointRadius: 4,
+            fill: false,
+            tension: 0.1
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          scales: {
+            x: { title: { display: true, text: 'Month' } },
+            y: { title: { display: true, text: 'MW' }, beginAtZero: true }
+          },
+          plugins: {
+            tooltip: { mode: 'index', intersect: false },
+            legend: { display: true }
+          }
+        }
       });
     }
 
@@ -273,7 +334,17 @@
           fillColor: [52, 73, 94],
           textColor: 255
         },
-        bodyStyles: { fontSize: 9 }
+        bodyStyles: { fontSize: 9 },
+        didParseCell: function(data) {
+          if (data.section === 'body') {
+            const tableBody = document.querySelector('#dataTable tbody');
+            const rows = Array.from(tableBody.getElementsByTagName('tr'));
+            const rowIndex = data.row.index;
+            if (rows[rowIndex] && rows[rowIndex].style.backgroundColor === 'rgb(255, 255, 0)') {
+              data.cell.styles.fillColor = [255, 255, 0];
+            }
+          }
+        }
       });
 
       doc.save('icts_monthly_max_mw.pdf');
