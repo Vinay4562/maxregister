@@ -111,7 +111,7 @@
   </nav>
 
   <div class="container">
-    <h2>ICTS Monthly MAX MW Data</h2>
+    <h2>Station Load</h2>
     <form id="dateForm">
       <div class="form-item">
         <label for="fromDate">From Date:</label>
@@ -139,7 +139,7 @@
         <tr>
           <th>Serial No.</th>
           <th>Month</th>
-          <th>Combined ICTS Feeders</th>
+          <th>Station Load(ALL ICT'S)</th>
           <th>MAX MW</th>
           <th>Date</th>
           <th>Time</th>
@@ -308,7 +308,7 @@
       const tableBody = document.querySelector('#dataTable tbody');
       tableBody.innerHTML = '';
       const dataHeader = document.getElementById('dataHeader');
-      dataHeader.textContent = `ICTS Monthly MAX MW From: ${formatDate(fromDate)} To: ${formatDate(toDate)}`;
+      dataHeader.textContent = `Station Loads From: ${formatDate(fromDate)} To: ${formatDate(toDate)}`;
 
       // Find the maximum MW value across all months
       const maxMW = Math.max(...data.map(entry => entry.combinedMW === 'N/A' ? -Infinity : entry.combinedMW));
