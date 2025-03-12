@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Max MW Feeder Data</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.4/xlsx.full.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 20px;
+      background-color: #f4f4f4;
+    }
+    .header {
+      background-color: #3498db;
+      color: white;
+      padding: 10px;
+      text-align: center;
+      border-radius: 5px;
+    }
+    .header-content {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+    }
+    .container {
+      max-width: 800px;
+      margin: 20px auto;
+      background: white;
+      padding: 20px;
+      border-radius: 5px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+    h2 {
+      color: #333;
+      text-align: center;
+    }
+    form {
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+    }
+    .form-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .form-item label {
+      width: 120px;
+      font-weight: bold;
+    }
+    .form-item select, .form-item input[type="date"] {
+      padding: 5px;
+      width: 200px;
+    }
+    .form-item select[multiple] {
+      height: 100px;
+    }
+    .form-item input[type="submit"] {
+      padding: 10px;
+      background-color: #3498db;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      width: 100px;
+    }
+    .form-item input[type="submit"]:hover {
+      background-color: #2980b9;
+    }
+    #fullScreenSpinner {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.5);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+    }
+    .spinner {
+      border: 4px solid #f3f3f3;
+      border-top: 4px solid #3498db;
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      animation: spin 1s linear infinite;
+    }
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    .data-container {
+      display: none;
+      margin-top: 20px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+    }
+    th, td {
+      border: 1px solid #ddd;
+      padding: 8px;
+      text-align: center;
+    }
+    th {
+      background-color: #3498db;
+      color: white;
+    }
+    tr:nth-child(even) {
+      background-color: #f2f2f2;
+    }
+    .buttons {
+      margin-top: 20px;
+      text-align: center;
+    }
+    .buttons button {
+      padding: 10px 20px;
+      margin: 0 10px;
+      background-color: #3498db;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    .buttons button:hover {
+      background-color: #2980b9;
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <div class="header-content">
+      <img src="logo_new.png" alt="Logo" width="60px" height="60px">
+      <h1>𝐓𝐑𝐀𝐍𝐒𝐌𝐈𝐒𝐒𝐈𝐎𝐍 𝐂𝐎𝐑𝐏𝐎𝐑𝐀𝐓𝐈𝐎𝐍 𝐎𝐅 𝐓𝐄𝐋𝐀𝐍𝐆𝐀𝐍𝐀 𝐋𝐈𝐌𝐈𝐓𝐄𝐃</h1>
+    </div>
+  </div>
+
+  <div class="container">
+    <h2>Max MW Feeder Data</h2>
+    <form id="dataForm">
+      <div class="form-item">
+        <label for="voltage">Voltage Level:</label>
+        <select id="voltage" name="voltage">
+          <option value="All">All</option>
+          <option value="400KV">400KV</option>
+          <option value="220KV">220KV</option>
+          <option value="ICTS">ICTS</option>
+        </select>
+      </div>
+      <div class="form-item">
+        <label for="feeders">Select Feeders:</label>
+        <select id="feeders" name="feeders" multiple>
+          <!-- Feeders will be populated dynamically -->
+        </select>
+      </div>
+      <div class="form-item">
+        <label for="fromDate">From Date:</label>
+        <input type="date" id="fromDate" name="fromDate">
+      </div>
+      <div class="form-item">
+        <label for="toDate">To Date:</label>
+        <input type="date" id="toDate" name="toDate">
+      </div>
+      <div class="form-item">
+        <input type="submit" value="Get Max MW">
+      </div>
+    </form>
+  </div>
+
+  <div id="fullScreenSpinner" style="display: none;">
+    <div class="spinner"></div>
+    <p>Loading data...</p>
+  </div>
+
+  <div class="data-container" id="dataContainer">
+    <h2 id="dataHeader"></h2>
+    <table id="dataTable">
+      <thead>
+        <tr>
+          <th>Serial No.</th>
+          <th>Feeder Name</th>
+          <th>Max MW</th>
+          <th>Date</th>
+          <th>Time</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+    <div class="buttons">
+      <button id="downloadPDFButton" style="display: none;">Download as PDF</button>
+      <button id="downloadExcelButton" style="display: none;">Download as Excel</button>
+    </div>
+  </div>
+
+  <script>
+    const feederOptions = {
+      '400KV': ['400KV MAHESHWARAM-2', '400KV MAHESHWARAM-1', '400KV NARSAPUR-1', '400KV NARSAPUR-2', '400KV KETHIREDDYPALLY-1', '400KV KETHIREDDYPALLY-2', '400KV NIZAMABAD-1', '400KV NIZAMABAD-2'],
+      '220KV': ['220KV PARIGI-1', '220KV PARIGI-2', '220KV TANDUR', '220KV GACHIBOWLI-1', '220KV GACHIBOWLI-2', '220KV KETHIREDDYPALLY', '220KV YEDDUMAILARAM-1', '220KV YEDDUMAILARAM-2', '220KV SADASIVAPET-1', '220KV SADASIVAPET-2'],
+      'ICTS': ['315MVA ICT-1', '315MVA ICT-2', '315MVA ICT-3', '500MVA ICT-4']
+    };
+
+    const allFeeders = Object.values(feederOptions).flat();
+
+    document.addEventListener('DOMContentLoaded', function() {
+      const voltageSelect = document.getElementById('voltage');
+      const feederSelect = document.getElementById('feeders');
+
+      function updateFeeders() {
+        const voltage = voltageSelect.value;
+        feederSelect.innerHTML = '';
+        let feedersToShow = [];
+        if (voltage === 'All') {
+          feedersToShow = allFeeders;
+        } else {
+          feedersToShow = feederOptions[voltage];
+        }
+        feedersToShow.forEach(feeder => {
+          const option = document.createElement('option');
+          option.value = feeder;
+          option.textContent = feeder;
+          feederSelect.appendChild(option);
+        });
+        // Select all feeders by default
+        Array.from(feederSelect.options).forEach(option => option.selected = true);
+      }
+
+      voltageSelect.addEventListener('change', updateFeeders);
+      updateFeeders(); // Initial population
+
+      const form = document.getElementById('dataForm');
+      form.addEventListener('submit', function(event) {
+        event.preventDefault();
+        const spinner = document.getElementById('fullScreenSpinner');
+        spinner.style.display = 'flex';
+
+        const voltage = voltageSelect.value;
+        const selectedFeeders = Array.from(feederSelect.selectedOptions).map(option => option.value);
+        const fromDate = document.getElementById('fromDate').value;
+        const toDate = document.getElementById('toDate').value;
+
+        if (!selectedFeeders.length || !fromDate || !toDate) {
+          alert('Please select at least one feeder and both dates.');
+          spinner.style.display = 'none';
+          return;
+        }
+
+        if (new Date(fromDate) > new Date(toDate)) {
+          alert('From Date cannot be later than To Date.');
+          spinner.style.display = 'none';
+          return;
+        }
+
+        fetchMaxMWData(selectedFeeders, fromDate, toDate)
+          .then(data => {
+            displayData(data, voltage, fromDate, toDate);
+            document.getElementById('downloadPDFButton').style.display = 'inline-block';
+            document.getElementById('downloadExcelButton').style.display = 'inline-block';
+          })
+          .catch(error => {
+            console.error('Error fetching data:', error);
+            alert('Failed to fetch data. Please try again.');
+          })
+          .finally(() => {
+            spinner.style.display = 'none';
+          });
+      });
+    });
+
+    async function fetchMaxMWData(feeders, fromDate, toDate) {
+      const promises = feeders.map(feeder =>
+        fetch(`https://maxregister-git-main-vinay-kumars-projects-f1559f4a.vercel.app/data-by-date?feeder=${feeder}&fromDate=${fromDate}&toDate=${toDate}`)
+          .then(response => {
+            if (!response.ok) throw new Error(`Network response was not ok for ${feeder}`);
+            return response.json();
+          })
+          .then(data => {
+            if (data.length === 0) return { feeder, maxMW: 'N/A', date: 'N/A', time: 'N/A' };
+            const mwValues = data.map(item => Number(item.MW));
+            const maxMW = Math.max(...mwValues);
+            const maxEntry = data.find(item => Number(item.MW) === maxMW);
+            return { feeder, maxMW: Math.round(maxMW), date: maxEntry.date, time: maxEntry.time };
+          })
+          .catch(error => {
+            console.error(`Error fetching data for ${feeder}:`, error);
+            return { feeder, maxMW: 'Error', date: 'N/A', time: 'N/A' };
+          })
+      );
+      return Promise.all(promises);
+    }
+
+    function displayData(data, voltage, fromDate, toDate) {
+      const tableBody = document.querySelector('#dataTable tbody');
+      tableBody.innerHTML = '';
+      const dataContainer = document.getElementById('dataContainer');
+      const dataHeader = document.getElementById('dataHeader');
+      dataContainer.style.display = 'block';
+
+      const formattedFromDate = formatDate(fromDate);
+      const formattedToDate = formatDate(toDate);
+      dataHeader.textContent = `Max MW Data for ${voltage} Feeders from ${formattedFromDate} to ${formattedToDate}`;
+
+      data.forEach((item, index) => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+          <td>${index + 1}</td>
+          <td>${item.feeder}</td>
+          <td>${item.maxMW}</td>
+          <td>${item.date === 'N/A' ? 'N/A' : formatDate(item.date)}</td>
+          <td>${item.time}</td>
+        `;
+        tableBody.appendChild(row);
+      });
+    }
+
+    function formatDate(dateString) {
+      const date = new Date(dateString);
+      const day = date.getDate().toString().padStart(2, '0');
+      const month = (date.getMonth() + 1).toString().padStart(2, '0');
+      const year = date.getFullYear();
+      return `${day}-${month}-${year}`;
+    }
+
+    document.getElementById('downloadPDFButton').addEventListener('click', function() {
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF();
+      
+      doc.addImage('logo_new.png', 'PNG', 14, 10, 30, 30);
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(14);
+      doc.text("TRANSMISSION CORPORATION OF TELANGANA LIMITED", 48, 20);
+      
+      const voltage = document.getElementById('voltage').value;
+      const fromDate = document.getElementById('fromDate').value;
+      const toDate = document.getElementById('toDate').value;
+      const dynamicTitle = `Max MW Data for ${voltage} Feeders from ${formatDate(fromDate)} to ${formatDate(toDate)}`;
+      
+      const pageWidth = doc.internal.pageSize.getWidth();
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(10);
+      const titleWidth = doc.getTextWidth(dynamicTitle);
+      const titleX = (pageWidth - titleWidth) / 2;
+      
+      const tableStartY = 35;
+      doc.text(dynamicTitle, titleX, tableStartY - 2);
+
+      doc.autoTable({
+        html: '#dataTable',
+        startY: tableStartY,
+        theme: "grid",
+        headStyles: { fontSize: 10, fillColor: [52, 73, 94], textColor: 255 },
+        bodyStyles: { fontSize: 9 },
+        margin: { top: 0 }
+      });
+
+      doc.save('max_mw_feeder_data.pdf');
+    });
+
+    document.getElementById('downloadExcelButton').addEventListener('click', function() {
+      const wb = XLSX.utils.book_new();
+      const sheet = XLSX.utils.table_to_sheet(document.getElementById('dataTable'));
+      XLSX.utils.book_append_sheet(wb, sheet, 'Max MW Data');
+      XLSX.writeFile(wb, 'max_mw_feeder_data.xlsx');
+    });
+  </script>
+</body>
+</html>
