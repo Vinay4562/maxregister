@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Max MW Feeder Data</title>
+  <title>Max MW Feeder Data (Matched Date/Time)</title>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.4/xlsx.full.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -140,12 +140,12 @@
   <div class="header">
     <div class="header-content">
       <img src="logo_new.png" alt="Logo" width="60px" height="60px">
-      <h1>𝐓𝐑𝐀𝐍𝐒𝐌𝐈𝐒𝐒𝐈𝐎𝐍 𝐂𝐎𝐑𝐏𝐎𝐑𝐀𝐓𝐈𝐎𝐍 𝐎𝐅 𝐓𝐄𝐋𝐀𝐍𝐆𝐀𝐍𝐀 𝐋𝐈𝐌𝐈𝐓𝐄𝐃</h1>
+      <h1>𝐓𝐑𝐀𝐍𝐒𝐌𝐈𝐒𝐒𝐈𝐎𝐍 𝐂𝐎𝐑𝐏𝐎𝐑𝐀𝐓𝐈𝐎𝐍 𝐎𝐅 𝐓𝐔𝐋𝐀𝐍𝐆𝐀𝐍𝐀 𝐋𝐈𝐌𝐈𝐓𝐄𝐃</h1>
     </div>
   </div>
 
   <div class="container">
-    <h2>Max MW Feeder Data</h2>
+    <h2>Max MW Feeder Data (Matched Date/Time)</h2>
     <form id="dataForm">
       <div class="form-item">
         <label for="voltage">Voltage Level:</label>
@@ -229,12 +229,11 @@
           option.textContent = feeder;
           feederSelect.appendChild(option);
         });
-        // Select all feeders by default
         Array.from(feederSelect.options).forEach(option => option.selected = true);
       }
 
       voltageSelect.addEventListener('change', updateFeeders);
-      updateFeeders(); // Initial population
+      updateFeeders();
 
       const form = document.getElementById('dataForm');
       form.addEventListener('submit', function(event) {
@@ -246,6 +245,9 @@
         const selectedFeeders = Array.from(feederSelect.selectedOptions).map(option => option.value);
         const fromDate = document.getElementById('fromDate').value;
         const toDate = document.getElementById('toDate').value;
+
+        console.log('Selected Feeders:', selectedFeeders);
+        console.log('Date Range:', fromDate, 'to', toDate);
 
         if (!selectedFeeders.length || !fromDate || !toDate) {
           alert('Please select at least one feeder and both dates.');
@@ -261,6 +263,7 @@
 
         fetchMaxMWData(selectedFeeders, fromDate, toDate)
           .then(data => {
+            console.log('Fetched Data:', data);
             displayData(data, voltage, fromDate, toDate);
             document.getElementById('downloadPDFButton').style.display = 'inline-block';
             document.getElementById('downloadExcelButton').style.display = 'inline-block';
@@ -276,25 +279,107 @@
     });
 
     async function fetchMaxMWData(feeders, fromDate, toDate) {
-      const promises = feeders.map(feeder =>
-        fetch(`https://maxregister-git-main-vinay-kumars-projects-f1559f4a.vercel.app/data-by-date?feeder=${feeder}&fromDate=${fromDate}&toDate=${toDate}`)
+      // Fetch data for all selected feeders
+      const fetchPromises = feeders.map(feeder =>
+        fetch(`https://maxregister-git-main-vinay-kumars-projects-f1559f4a.vercel.app/data-by-date?feeder=${encodeURIComponent(feeder)}&fromDate=${fromDate}&toDate=${toDate}`)
           .then(response => {
-            if (!response.ok) throw new Error(`Network response was not ok for ${feeder}`);
+            console.log(`Response status for ${feeder}:`, response.status);
+            if (!response.ok) throw new Error(`Network response was not ok for ${feeder}: ${response.status}`);
             return response.json();
           })
           .then(data => {
-            if (data.length === 0) return { feeder, maxMW: 'N/A', date: 'N/A', time: 'N/A' };
-            const mwValues = data.map(item => Number(item.MW));
-            const maxMW = Math.max(...mwValues);
-            const maxEntry = data.find(item => Number(item.MW) === maxMW);
-            return { feeder, maxMW: Math.round(maxMW), date: maxEntry.date, time: maxEntry.time };
+            console.log(`Data for ${feeder}:`, data);
+            return { feeder, data };
           })
           .catch(error => {
             console.error(`Error fetching data for ${feeder}:`, error);
-            return { feeder, maxMW: 'Error', date: 'N/A', time: 'N/A' };
+            return { feeder, data: [] };
           })
       );
-      return Promise.all(promises);
+
+      const feederData = await Promise.all(fetchPromises);
+
+      // Identify multi-circuit pairs (only for feeders ending in -1 and -2)
+      const multiCircuitPairs = {};
+      feeders.forEach(feeder => {
+        const baseName = feeder.replace(/-\d+$/, '');
+        if (feeder.match(/-\d+$/)) { // Only consider feeders with -1, -2, etc.
+          if (!multiCircuitPairs[baseName]) multiCircuitPairs[baseName] = [];
+          multiCircuitPairs[baseName].push(feeder);
+        }
+      });
+
+      const results = [];
+      const processedFeeders = new Set();
+
+      // Process multi-circuit pairs
+      Object.keys(multiCircuitPairs).forEach(baseName => {
+        const pair = multiCircuitPairs[baseName];
+        if (pair.length === 2) { // Multi-circuit pair
+          const feeder1Data = feederData.find(f => f.feeder === pair[0]).data;
+          const feeder2Data = feederData.find(f => f.feeder === pair[1]).data;
+
+          processedFeeders.add(pair[0]);
+          processedFeeders.add(pair[1]);
+
+          if (feeder1Data.length === 0 || feeder2Data.length === 0) {
+            results.push({ feeder: pair[0], maxMW: 'N/A', date: 'N/A', time: 'N/A' });
+            results.push({ feeder: pair[1], maxMW: 'N/A', date: 'N/A', time: 'N/A' });
+            return;
+          }
+
+          // Match by date and time
+          const combinedData = {};
+          feeder1Data.forEach(item => {
+            const key = `${item.date} ${item.time}`;
+            combinedData[key] = { mw1: Number(item.MW), mw2: 0 };
+          });
+          feeder2Data.forEach(item => {
+            const key = `${item.date} ${item.time}`;
+            if (combinedData[key]) {
+              combinedData[key].mw2 = Number(item.MW);
+            } else {
+              combinedData[key] = { mw1: 0, mw2: Number(item.MW) };
+            }
+          });
+
+          let maxCombinedMW = -Infinity;
+          let maxDateTime = null;
+          Object.keys(combinedData).forEach(key => {
+            const totalMW = combinedData[key].mw1 + combinedData[key].mw2;
+            if (totalMW > maxCombinedMW) {
+              maxCombinedMW = totalMW;
+              maxDateTime = key;
+            }
+          });
+
+          if (maxDateTime) {
+            const [date, time] = maxDateTime.split(' ');
+            results.push({ feeder: pair[0], maxMW: Math.round(combinedData[maxDateTime].mw1), date, time });
+            results.push({ feeder: pair[1], maxMW: Math.round(combinedData[maxDateTime].mw2), date, time });
+          } else {
+            results.push({ feeder: pair[0], maxMW: 'N/A', date: 'N/A', time: 'N/A' });
+            results.push({ feeder: pair[1], maxMW: 'N/A', date: 'N/A', time: 'N/A' });
+          }
+        }
+      });
+
+      // Process remaining single feeders (including ICTs)
+      feeders.forEach(feeder => {
+        if (!processedFeeders.has(feeder)) {
+          const feederDataSingle = feederData.find(f => f.feeder === feeder).data;
+          if (feederDataSingle.length === 0) {
+            results.push({ feeder, maxMW: 'N/A', date: 'N/A', time: 'N/A' });
+          } else {
+            const mwValues = feederDataSingle.map(item => Number(item.MW));
+            const maxMW = Math.max(...mwValues);
+            const maxEntry = feederDataSingle.find(item => Number(item.MW) === maxMW);
+            results.push({ feeder, maxMW: Math.round(maxMW), date: maxEntry.date, time: maxEntry.time });
+          }
+        }
+      });
+
+      return results;
     }
 
     function displayData(data, voltage, fromDate, toDate) {
