@@ -17,11 +17,30 @@ document.getElementById('loginForm').addEventListener('submit', async function(e
     }
   });
   
-  document.getElementById('togglePassword').addEventListener('click', function () {
-    const passwordField = document.getElementById('password');
-    const type = passwordField.type === 'password' ? 'text' : 'password';
-    passwordField.type = type;
-    this.textContent = type === 'password' ? '👁️' : '👁️‍🗨️';
-    this.setAttribute('aria-label', type === 'password' ? 'Show password' : 'Hide password');
-  });
+// Toggle Hamburger Menu
+document.querySelector('.hamburger').addEventListener('click', function() {
+  document.querySelector('.navbar').classList.toggle('active');
+});
+
+// Toggle Password Visibility
+document.getElementById('togglePassword').addEventListener('click', function() {
+  const passwordField = document.getElementById('password');
+  if (passwordField.type === 'password') {
+    passwordField.type = 'text';
+  } else {
+    passwordField.type = 'password';
+  }
+});
+
+// Clear form fields on page load
+document.addEventListener("DOMContentLoaded", function () {
+  document.getElementById("username").value = "";
+  document.getElementById("password").value = "";
+});
+
+// Prevent back button from showing cached pages
+window.history.pushState(null, null, window.location.href);
+window.addEventListener("popstate", function () {
+  window.location.reload(true);
+});
   
