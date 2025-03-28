@@ -53,11 +53,17 @@ const getModel = (collectionName) => {
   return models[collectionName];
 };
 
-// Dummy credentials (hashed password)
+// Load default user credentials from .env
 const defaultUser = {
-  username: 'Shankarpally400kv',
-  passwordHash: bcrypt.hashSync('Shankarpally@9870', 10)
+  username: process.env.DEFAULT_USERNAME,
+  passwordHash: process.env.DEFAULT_PASSWORD_HASH
 };
+
+// Validate credentials are loaded
+if (!defaultUser.username || !defaultUser.passwordHash) {
+  console.error('Error: DEFAULT_USERNAME or DEFAULT_PASSWORD_HASH not set in .env');
+  process.exit(1);
+}
 
 // POST route for login
 app.post('/login', (req, res) => {
