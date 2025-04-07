@@ -126,8 +126,6 @@
     let selectedFeeder = '';
     let selectedFromDate = '';
     let selectedToDate = '';
-    // WhatsApp sharing functionality
-    let currentData = null;
 
     const feederOptions = {
       '400KV': ['400KV MAHESHWARAM-2', '400KV MAHESHWARAM-1', '400KV NARSAPUR-1', '400KV NARSAPUR-2', '400KV KETHIREDDYPALLY-1', '400KV KETHIREDDYPALLY-2', '400KV NIZAMABAD-1', '400KV NIZAMABAD-2'],
@@ -654,34 +652,51 @@
         }
       });
 
+      let currentData = null;
+
       function toggleWhatsAppOptions(show) {
         const options = document.getElementById('whatsappOptions');
         options.style.display = show ? 'flex' : 'none';
       }
 
       function isMobileView() {
-        return window.innerWidth <= 768;
+        const width = window.innerWidth;
+        console.log('Current width:', width); // Debug screen width
+        return width <= 768;
       }
 
       function showWhatsAppButton() {
+        console.log('Attempting to show WhatsApp button');
         const whatsappFloat = document.getElementById('whatsappFloat');
         if (isMobileView()) {
           whatsappFloat.style.display = 'block';
+          console.log('WhatsApp button should be visible');
+        } else {
+          console.log('Not mobile view, hiding WhatsApp button');
         }
       }
 
       function hideWhatsAppButton() {
+        console.log('Hiding WhatsApp button');
         const whatsappFloat = document.getElementById('whatsappFloat');
-        whatsappFloat.style.display = 'none';
-        toggleWhatsAppOptions(false);
+        if (whatsappFloat) {
+          whatsappFloat.style.display = 'none';
+          toggleWhatsAppOptions(false);
+        }
       }
 
-      // Update displayData to store data and show WhatsApp button
       function displayData(data) {
+        console.log('Displaying data:', data);
         const tableBody = document.querySelector('#dataTable tbody');
-        tableBody.innerHTML = '';
         const dataContainer = document.getElementById('dataContainer');
         const dataHeader = document.getElementById('dataHeader');
+
+        if (!tableBody || !dataContainer || !dataHeader) {
+          console.error('Required DOM elements not found');
+          return;
+        }
+
+        tableBody.innerHTML = '';
         dataContainer.style.display = 'block';
 
         if (data.length === 0) {
@@ -690,7 +705,7 @@
           return;
         }
 
-        currentData = data; // Store data for sharing
+        currentData = data;
         data.sort((a, b) => new Date(a.date + ' ' + a.time) - new Date(b.date + ' ' + b.time));
 
         let maxMW = Math.max(...data.map(item => Number(item.MW)));
@@ -716,53 +731,64 @@
         });
 
         renderChart(data);
-        showWhatsAppButton(); // Show WhatsApp button after data is displayed
+        showWhatsAppButton(); // Ensure this is called after data is rendered
       }
 
-      // WhatsApp button event listeners
-      document.getElementById('whatsappBtn').addEventListener('click', function() {
-        toggleWhatsAppOptions(true);
-      });
-
-      document.addEventListener('click', function(event) {
-        const whatsappFloat = document.getElementById('whatsappFloat');
+      // WhatsApp and other event listeners
+      document.addEventListener('DOMContentLoaded', function() {
         const whatsappBtn = document.getElementById('whatsappBtn');
+        const whatsappFloat = document.getElementById('whatsappFloat');
         const whatsappOptions = document.getElementById('whatsappOptions');
-        
-        if (!whatsappFloat.contains(event.target) && whatsappOptions.style.display === 'flex') {
-          toggleWhatsAppOptions(false);
+        const sharePdf = document.getElementById('sharePdf');
+        const shareExcel = document.getElementById('shareExcel');
+
+        // Check if elements exist
+        if (!whatsappBtn || !whatsappFloat || !whatsappOptions || !sharePdf || !shareExcel) {
+          console.error('One or more WhatsApp-related elements not found in DOM');
+          return;
         }
-      });
 
-      document.getElementById('sharePdf').addEventListener('click', function(e) {
-        e.preventDefault();
-        generateAndSharePDF();
-      });
+        whatsappBtn.addEventListener('click', function() {
+          console.log('WhatsApp button clicked');
+          toggleWhatsAppOptions(true);
+        });
 
-      document.getElementById('shareExcel').addEventListener('click', function(e) {
-        e.preventDefault();
-        generateAndShareExcel();
+        document.addEventListener('click', function(event) {
+          if (!whatsappFloat.contains(event.target) && whatsappOptions.style.display === 'flex') {
+            toggleWhatsAppOptions(false);
+          }
+        });
+
+        sharePdf.addEventListener('click', function(e) {
+          e.preventDefault();
+          generateAndSharePDF();
+        });
+
+        shareExcel.addEventListener('click', function(e) {
+          e.preventDefault();
+          generateAndShareExcel();
+        });
       });
 
       function generateAndSharePDF() {
         const { jsPDF } = window.jspdf;
         const doc = new jsPDF();
-        
+
         doc.addImage('logo_new.png', 'PNG', 14, 10, 30, 30);
         doc.setFont("helvetica", "bold");
         doc.setFontSize(14);
         doc.text("TRANSMISSION CORPORATION OF TELANGANA LIMITED", 48, 20);
-        
+
         const fromDateFormatted = formatDate(selectedFromDate);
         const toDateFormatted = formatDate(selectedToDate);
         const dynamicTitle = `${selectedFeeder} from ${fromDateFormatted} to ${toDateFormatted}`;
-        
+
         const pageWidth = doc.internal.pageSize.getWidth();
         doc.setFont("helvetica", "normal");
         doc.setFontSize(10);
         const titleWidth = doc.getTextWidth(dynamicTitle);
         const titleX = (pageWidth - titleWidth) / 2;
-        
+
         const tableStartY = 35;
         doc.text(dynamicTitle, titleX, tableStartY - 2);
 
@@ -770,7 +796,7 @@
           html: '#dataTable',
           startY: tableStartY,
           theme: "grid",
-          headStyles: { 
+          headStyles: {
             fontSize: 10,
             fillColor: [52, 73, 94],
             textColor: 255

@@ -535,7 +535,6 @@ body {
     }
   }
 
-  /* WhatsApp Floating Button Styles */
   .whatsapp-float {
     position: fixed;
     bottom: 20px;
@@ -543,7 +542,6 @@ body {
     z-index: 1000;
     display: none;
   }
-
   .whatsapp-btn {
     background-color: #25D366;
     border-radius: 50%;
@@ -555,7 +553,6 @@ body {
     box-shadow: 0 2px 5px rgba(0,0,0,0.3);
     cursor: pointer;
   }
-
   .whatsapp-options {
     position: absolute;
     bottom: 70px;
@@ -567,7 +564,6 @@ body {
     flex-direction: column;
     padding: 5px;
   }
-
   .whatsapp-option {
     padding: 8px 15px;
     cursor: pointer;
@@ -575,12 +571,9 @@ body {
     text-decoration: none;
     font-size: 14px;
   }
-
   .whatsapp-option:hover {
     background-color: #f0f0f0;
   }
-
-  /* Hide on desktop */
   @media (min-width: 769px) {
     .whatsapp-float {
       display: none !important;
