@@ -9,6 +9,7 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.17/jspdf.plugin.autotable.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <link rel="stylesheet" href="newdataCSS.css">
+
 </head>
 <body>
   <div class="header">
@@ -126,6 +127,7 @@
     let selectedFeeder = '';
     let selectedFromDate = '';
     let selectedToDate = '';
+    let currentData = null;
 
     const feederOptions = {
       '400KV': ['400KV MAHESHWARAM-2', '400KV MAHESHWARAM-1', '400KV NARSAPUR-1', '400KV NARSAPUR-2', '400KV KETHIREDDYPALLY-1', '400KV KETHIREDDYPALLY-2', '400KV NIZAMABAD-1', '400KV NIZAMABAD-2'],
@@ -140,6 +142,37 @@
       'july': '07', 'august': '08', 'september': '09', 'october': '10', 'november': '11', 'december': '12'
     };
     const months = Object.keys(monthMap);
+
+    function toggleWhatsAppOptions(show) {
+      const options = document.getElementById('whatsappOptions');
+      options.style.display = show ? 'flex' : 'none';
+    }
+
+    function isMobileView() {
+      const width = window.innerWidth;
+      console.log('Current width:', width);
+      return width <= 768;
+    }
+
+    function showWhatsAppButton() {
+      console.log('Attempting to show WhatsApp button');
+      const whatsappFloat = document.getElementById('whatsappFloat');
+      if (isMobileView()) {
+        whatsappFloat.style.display = 'block';
+        console.log('WhatsApp button should be visible');
+      } else {
+        console.log('Not mobile view, hiding WhatsApp button');
+      }
+    }
+
+    function hideWhatsAppButton() {
+      console.log('Hiding WhatsApp button');
+      const whatsappFloat = document.getElementById('whatsappFloat');
+      if (whatsappFloat) {
+        whatsappFloat.style.display = 'none';
+        toggleWhatsAppOptions(false);
+      }
+    }
 
     function levenshteinDistance(a, b) {
       const matrix = Array(b.length + 1).fill(null).map(() => Array(a.length + 1).fill(null));
@@ -174,110 +207,6 @@
       });
       return minDistance <= Math.min(3, Math.floor(input.length / 2)) ? closestMatch : null;
     }
-
-    document.addEventListener('DOMContentLoaded', function() {
-      const voltageSelect = document.getElementById('voltage');
-      const feederSelect = document.getElementById('feeder');
-
-      voltageSelect.addEventListener('change', function() {
-        const voltage = this.value;
-        feederSelect.innerHTML = '<option value="">Select Feeder</option>';
-        if (feederOptions[voltage]) {
-          feederOptions[voltage].forEach(feeder => {
-            const option = document.createElement('option');
-            option.value = feeder;
-            option.textContent = feeder;
-            feederSelect.appendChild(option);
-          });
-        }
-      });
-
-      const form = document.getElementById('dataForm');
-      form.addEventListener('submit', function(event) {
-        event.preventDefault();
-        event.stopPropagation();
-
-        const spinner = document.getElementById('fullScreenSpinner');
-        spinner.style.display = 'flex';
-
-        const voltage = document.getElementById('voltage').value;
-        const feeder = document.getElementById('feeder').value;
-        const fromDate = document.getElementById('fromDate').value;
-        const toDate = document.getElementById('toDate').value;
-
-        selectedFeeder = feeder;
-        selectedFromDate = fromDate;
-        selectedToDate = toDate;
-
-        if (!voltage || !feeder || !fromDate || !toDate) {
-          alert('Please fill in all fields.');
-          spinner.style.display = 'none';
-          return;
-        }
-
-        if (new Date(fromDate) > new Date(toDate)) {
-          alert('From Date cannot be later than To Date.');
-          spinner.style.display = 'none';
-          return;
-        }
-
-        fetchDataByDateRange(feeder, fromDate, toDate)
-          .then(data => {
-            displayData(data);
-            document.getElementById('downloadPDFButton').style.display = 'inline-block';
-            document.getElementById('downloadExcelButton').style.display = 'inline-block';
-            resetForm();
-          })
-          .catch(error => {
-            alert('Failed to fetch data. Please try again.');
-          })
-          .finally(() => {
-            spinner.style.display = 'none';
-          });
-      });
-
-      const chatToggleBtn = document.getElementById('chatToggleBtn');
-      const chatCloseBtn = document.getElementById('chatCloseBtn');
-      const chatHintBtn = document.getElementById('chatHintBtn');
-      const chatContainer = document.getElementById('chatContainer');
-      const chatHints = document.getElementById('chatHints');
-      let isChatOpen = false;
-      let isHintsOpen = false;
-
-      function toggleChatbot(open) {
-        isChatOpen = open;
-        if (isChatOpen) {
-          chatContainer.style.display = 'flex';
-          chatToggleBtn.textContent = 'Close Chatbot';
-          if (!chatContainer.dataset.welcomeShown) {
-            addBotMessage('Welcome Sir! Click the "?" button for command hints.');
-            chatContainer.dataset.welcomeShown = 'true';
-          }
-        } else {
-          chatContainer.style.display = 'none';
-          chatToggleBtn.textContent = 'Open Chatbot';
-          chatHints.style.display = 'none';
-          isHintsOpen = false;
-        }
-      }
-
-      function toggleHints() {
-        isHintsOpen = !isHintsOpen;
-        chatHints.style.display = isHintsOpen ? 'block' : 'none';
-      }
-
-      chatToggleBtn.addEventListener('click', function() {
-        toggleChatbot(!isChatOpen);
-      });
-
-      chatCloseBtn.addEventListener('click', function() {
-        toggleChatbot(false);
-      });
-
-      chatHintBtn.addEventListener('click', function() {
-        toggleHints();
-      });
-    });
 
     function addMessage(message, className) {
       const chatMessages = document.getElementById('chatMessages');
@@ -381,6 +310,116 @@
       return `${year}-${month}-${day}`;
     }
 
+    function displayData(data) {
+      console.log('Displaying data:', data);
+      const tableBody = document.querySelector('#dataTable tbody');
+      const dataContainer = document.getElementById('dataContainer');
+      const dataHeader = document.getElementById('dataHeader');
+
+      if (!tableBody || !dataContainer || !dataHeader) {
+        console.error('Required DOM elements not found');
+        return;
+      }
+
+      tableBody.innerHTML = '';
+      dataContainer.style.display = 'block';
+
+      if (data.length === 0) {
+        tableBody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: red;">No data found for the selected period.</td></tr>`;
+        hideWhatsAppButton();
+        return;
+      }
+
+      currentData = data;
+      data.sort((a, b) => new Date(a.date + ' ' + a.time) - new Date(b.date + ' ' + b.time));
+
+      let maxMW = Math.max(...data.map(item => Number(item.MW)));
+      let maxMWRow = data.find(item => Number(item.MW) === maxMW);
+
+      const formattedFromDate = formatDate(selectedFromDate);
+      const formattedToDate = formatDate(selectedToDate);
+      dataHeader.textContent = `${selectedFeeder} MAX MW From: ${formattedFromDate} To: ${formattedToDate}`;
+
+      data.forEach((item, index) => {
+        const row = document.createElement('tr');
+        if (Number(item.MW) === maxMW) {
+          row.style.backgroundColor = '#ffff00';
+        }
+        row.innerHTML = `
+          <td>${index + 1}</td>
+          <td>${item.feeder}</td>
+          <td>${Math.round(Number(item.MW))}</td>
+          <td>${formatDate(item.date)}</td>
+          <td>${item.time}</td>
+        `;
+        tableBody.appendChild(row);
+      });
+
+      renderChart(data);
+      showWhatsAppButton();
+    }
+
+    function renderChart(data) {
+      const ctx = document.getElementById('mwChart').getContext('2d');
+      if (window.mwChartInstance) {
+        window.mwChartInstance.destroy();
+      }
+
+      const labels = data.map(item => `${formatDate(item.date)} ${item.time}`);
+      const mwValues = data.map(item => Math.round(Number(item.MW)));
+
+      window.mwChartInstance = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: labels,
+          datasets: [{
+            label: 'MW Over Time',
+            data: mwValues,
+            borderColor: '#3498db',
+            backgroundColor: 'rgba(52, 152, 219, 0.2)',
+            borderWidth: 2,
+            pointRadius: 3,
+            fill: true,
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          scales: {
+            x: { title: { display: true, text: 'Date & Time' }, ticks: { autoSkip: false, maxRotation: 90, minRotation: 90 } },
+            y: { title: { display: true, text: 'MW' }, beginAtZero: true }
+          },
+          plugins: { tooltip: { mode: 'index', intersect: false }, legend: { display: true } }
+        }
+      });
+    }
+
+    function formatDate(dateString) {
+      const date = new Date(dateString);
+      const day = date.getDate().toString().padStart(2, '0');
+      const month = (date.getMonth() + 1).toString().padStart(2, '0');
+      const year = date.getFullYear();
+      return `${day}-${month}-${year}`;
+    }
+
+    async function fetchDataByDateRange(feeder, fromDate, toDate) {
+      try {
+        const response = await fetch(`https://maxregister-git-main-vinay-kumars-projects-f1559f4a.vercel.app/data-by-date?feeder=${feeder}&fromDate=${fromDate}&toDate=${toDate}`);
+        if (!response.ok) throw new Error(`Network response was not ok: ${response.status}`);
+        const data = await response.json();
+        return data;
+      } catch (error) {
+        throw error;
+      }
+    }
+
+    function resetForm() {
+      const form = document.getElementById('dataForm');
+      form.reset();
+      document.getElementById('voltage').value = '';
+      document.getElementById('feeder').innerHTML = '<option value="">Select Feeder</option>';
+    }
+
     function sendMessage() {
       const input = document.getElementById('chatInput');
       const command = input.value.trim();
@@ -469,129 +508,25 @@
       }
     }
 
-    document.getElementById('chatInput').addEventListener('keypress', function(e) {
-      if (e.key === 'Enter') sendMessage();
-    });
-
-    async function fetchDataByDateRange(feeder, fromDate, toDate) {
-      try {
-        const response = await fetch(`https://maxregister-git-main-vinay-kumars-projects-f1559f4a.vercel.app/data-by-date?feeder=${feeder}&fromDate=${fromDate}&toDate=${toDate}`);
-        if (!response.ok) throw new Error(`Network response was not ok: ${response.status}`);
-        const data = await response.json();
-        return data;
-      } catch (error) {
-        throw error;
-      }
-    }
-
-    function resetForm() {
-      const form = document.getElementById('dataForm');
-      form.reset();
-      document.getElementById('voltage').value = '';
-      document.getElementById('feeder').innerHTML = '<option value="">Select Feeder</option>';
-    }
-
-    function displayData(data) {
-      const tableBody = document.querySelector('#dataTable tbody');
-      tableBody.innerHTML = '';
-      const dataContainer = document.getElementById('dataContainer');
-      const dataHeader = document.getElementById('dataHeader');
-      dataContainer.style.display = 'block';
-
-      if (data.length === 0) {
-        tableBody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: red;">No data found for the selected period.</td></tr>`;
-        return;
-      }
-
-      data.sort((a, b) => new Date(a.date + ' ' + a.time) - new Date(b.date + ' ' + b.time));
-
-      let maxMW = Math.max(...data.map(item => Number(item.MW)));
-      let maxMWRow = data.find(item => Number(item.MW) === maxMW);
-
-      const formattedFromDate = formatDate(selectedFromDate);
-      const formattedToDate = formatDate(selectedToDate);
-      dataHeader.textContent = `${selectedFeeder} MAX MW From: ${formattedFromDate} To: ${formattedToDate}`;
-
-      data.forEach((item, index) => {
-        const row = document.createElement('tr');
-        if (Number(item.MW) === maxMW) {
-          row.style.backgroundColor = '#ffff00';
-        }
-        row.innerHTML = `
-          <td>${index + 1}</td>
-          <td>${item.feeder}</td>
-          <td>${Math.round(Number(item.MW))}</td>
-          <td>${formatDate(item.date)}</td>
-          <td>${item.time}</td>
-        `;
-        tableBody.appendChild(row);
-      });
-
-      renderChart(data);
-    }
-
-    function renderChart(data) {
-      const ctx = document.getElementById('mwChart').getContext('2d');
-      if (window.mwChartInstance) {
-        window.mwChartInstance.destroy();
-      }
-
-      const labels = data.map(item => `${formatDate(item.date)} ${item.time}`);
-      const mwValues = data.map(item => Math.round(Number(item.MW)));
-
-      window.mwChartInstance = new Chart(ctx, {
-        type: 'line',
-        data: {
-          labels: labels,
-          datasets: [{
-            label: 'MW Over Time',
-            data: mwValues,
-            borderColor: '#3498db',
-            backgroundColor: 'rgba(52, 152, 219, 0.2)',
-            borderWidth: 2,
-            pointRadius: 3,
-            fill: true,
-          }]
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          scales: {
-            x: { title: { display: true, text: 'Date & Time' }, ticks: { autoSkip: false, maxRotation: 90, minRotation: 90 } },
-            y: { title: { display: true, text: 'MW' }, beginAtZero: true }
-          },
-          plugins: { tooltip: { mode: 'index', intersect: false }, legend: { display: true } }
-        }
-      });
-    }
-
-    function formatDate(dateString) {
-      const date = new Date(dateString);
-      const day = date.getDate().toString().padStart(2, '0');
-      const month = (date.getMonth() + 1).toString().padStart(2, '0');
-      const year = date.getFullYear();
-      return `${day}-${month}-${year}`;
-    }
-
-    document.getElementById('downloadPDFButton').addEventListener('click', function() {
+    function generateAndSharePDF() {
       const { jsPDF } = window.jspdf;
       const doc = new jsPDF();
-      
+
       doc.addImage('logo_new.png', 'PNG', 14, 10, 30, 30);
       doc.setFont("helvetica", "bold");
       doc.setFontSize(14);
       doc.text("TRANSMISSION CORPORATION OF TELANGANA LIMITED", 48, 20);
-      
+
       const fromDateFormatted = formatDate(selectedFromDate);
       const toDateFormatted = formatDate(selectedToDate);
       const dynamicTitle = `${selectedFeeder} from ${fromDateFormatted} to ${toDateFormatted}`;
-      
+
       const pageWidth = doc.internal.pageSize.getWidth();
       doc.setFont("helvetica", "normal");
       doc.setFontSize(10);
       const titleWidth = doc.getTextWidth(dynamicTitle);
       const titleX = (pageWidth - titleWidth) / 2;
-      
+
       const tableStartY = 35;
       doc.text(dynamicTitle, titleX, tableStartY - 2);
 
@@ -599,7 +534,7 @@
         html: '#dataTable',
         startY: tableStartY,
         theme: "grid",
-        headStyles: { 
+        headStyles: {
           fontSize: 10,
           fillColor: [52, 73, 94],
           textColor: 255
@@ -618,177 +553,191 @@
         }
       });
 
-      doc.save('feeder_data.pdf');
-    });
+      const pdfBlob = doc.output('blob');
+      const file = new File([pdfBlob], 'feeder_data.pdf', { type: 'application/pdf' });
+      shareViaWhatsApp(file);
+    }
 
-    document.getElementById('downloadExcelButton').addEventListener('click', function() {
+    function generateAndShareExcel() {
       const wb = XLSX.utils.book_new();
       const sheet = XLSX.utils.table_to_sheet(document.getElementById('dataTable'));
       XLSX.utils.book_append_sheet(wb, sheet, 'Feeder Data');
-      XLSX.writeFile(wb, 'feeder_data.xlsx');
-    });
+      const excelBuffer = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
+      const excelBlob = new Blob([excelBuffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+      const file = new File([excelBlob], 'feeder_data.xlsx', { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+      shareViaWhatsApp(file);
+    }
+
+    function shareViaWhatsApp(file) {
+      if (navigator.share && isMobileView()) {
+        navigator.share({
+          files: [file],
+          title: `${selectedFeeder} Data Report`,
+          text: `Data report for ${selectedFeeder} from ${formatDate(selectedFromDate)} to ${formatDate(selectedToDate)}`
+        })
+        .then(() => {
+          toggleWhatsAppOptions(false);
+        })
+        .catch(error => {
+          console.error('Error sharing:', error);
+          alert('Error sharing file. Please try again.');
+        });
+      } else {
+        alert('Web Share API not supported on this device/browser.');
+      }
+    }
 
     document.addEventListener('DOMContentLoaded', function() {
+      const voltageSelect = document.getElementById('voltage');
+      const feederSelect = document.getElementById('feeder');
+      const form = document.getElementById('dataForm');
+      const chatToggleBtn = document.getElementById('chatToggleBtn');
+      const chatCloseBtn = document.getElementById('chatCloseBtn');
+      const chatHintBtn = document.getElementById('chatHintBtn');
+      const chatContainer = document.getElementById('chatContainer');
+      const chatHints = document.getElementById('chatHints');
       const hamburgerBtn = document.getElementById('hamburgerBtn');
       const navbarMenu = document.getElementById('navbarMenu');
-      const body = document.body;
+      const downloadPDFButton = document.getElementById('downloadPDFButton');
+      const downloadExcelButton = document.getElementById('downloadExcelButton');
+      const whatsappBtn = document.getElementById('whatsappBtn');
+      const whatsappFloat = document.getElementById('whatsappFloat');
+      const whatsappOptions = document.getElementById('whatsappOptions');
+      const sharePdf = document.getElementById('sharePdf');
+      const shareExcel = document.getElementById('shareExcel');
+      const chatInput = document.getElementById('chatInput');
+
+      let isChatOpen = false;
+      let isHintsOpen = false;
+
+      voltageSelect.addEventListener('change', function() {
+        const voltage = this.value;
+        feederSelect.innerHTML = '<option value="">Select Feeder</option>';
+        if (feederOptions[voltage]) {
+          feederOptions[voltage].forEach(feeder => {
+            const option = document.createElement('option');
+            option.value = feeder;
+            option.textContent = feeder;
+            feederSelect.appendChild(option);
+          });
+        }
+      });
+
+      form.addEventListener('submit', function(event) {
+        event.preventDefault();
+        event.stopPropagation();
+
+        const spinner = document.getElementById('fullScreenSpinner');
+        spinner.style.display = 'flex';
+
+        const voltage = voltageSelect.value;
+        const feeder = feederSelect.value;
+        const fromDate = document.getElementById('fromDate').value;
+        const toDate = document.getElementById('toDate').value;
+
+        selectedFeeder = feeder;
+        selectedFromDate = fromDate;
+        selectedToDate = toDate;
+
+        if (!voltage || !feeder || !fromDate || !toDate) {
+          alert('Please fill in all fields.');
+          spinner.style.display = 'none';
+          return;
+        }
+
+        if (new Date(fromDate) > new Date(toDate)) {
+          alert('From Date cannot be later than To Date.');
+          spinner.style.display = 'none';
+          return;
+        }
+
+        fetchDataByDateRange(feeder, fromDate, toDate)
+          .then(data => {
+            displayData(data);
+            downloadPDFButton.style.display = 'inline-block';
+            downloadExcelButton.style.display = 'inline-block';
+            resetForm();
+          })
+          .catch(error => {
+            alert('Failed to fetch data. Please try again.');
+          })
+          .finally(() => {
+            spinner.style.display = 'none';
+          });
+      });
+
+      function toggleChatbot(open) {
+        isChatOpen = open;
+        if (isChatOpen) {
+          chatContainer.style.display = 'flex';
+          chatToggleBtn.textContent = 'Close Chatbot';
+          if (!chatContainer.dataset.welcomeShown) {
+            addBotMessage('Welcome Sir! Click the "?" button for command hints.');
+            chatContainer.dataset.welcomeShown = 'true';
+          }
+        } else {
+          chatContainer.style.display = 'none';
+          chatToggleBtn.textContent = 'Open Chatbot';
+          chatHints.style.display = 'none';
+          isHintsOpen = false;
+        }
+      }
+
+      function toggleHints() {
+        isHintsOpen = !isHintsOpen;
+        chatHints.style.display = isHintsOpen ? 'block' : 'none';
+      }
+
+      chatToggleBtn.addEventListener('click', function() {
+        toggleChatbot(!isChatOpen);
+      });
+
+      chatCloseBtn.addEventListener('click', function() {
+        toggleChatbot(false);
+      });
+
+      chatHintBtn.addEventListener('click', function() {
+        toggleHints();
+      });
 
       hamburgerBtn.addEventListener('click', function() {
         navbarMenu.classList.toggle('active');
-        body.classList.toggle('navbar-open');
+        document.body.classList.toggle('navbar-open');
       });
 
       navbarMenu.querySelectorAll('a').forEach(link => {
         link.addEventListener('click', function() {
           navbarMenu.classList.remove('active');
-          body.classList.remove('navbar-open');
+          document.body.classList.remove('navbar-open');
         });
       });
 
       document.addEventListener('click', function(event) {
         if (!navbarMenu.contains(event.target) && !hamburgerBtn.contains(event.target) && navbarMenu.classList.contains('active')) {
           navbarMenu.classList.remove('active');
-          body.classList.remove('navbar-open');
+          document.body.classList.remove('navbar-open');
         }
       });
 
-      let currentData = null;
-
-      function toggleWhatsAppOptions(show) {
-        const options = document.getElementById('whatsappOptions');
-        options.style.display = show ? 'flex' : 'none';
-      }
-
-      function isMobileView() {
-        const width = window.innerWidth;
-        console.log('Current width:', width); // Debug screen width
-        return width <= 768;
-      }
-
-      function showWhatsAppButton() {
-        console.log('Attempting to show WhatsApp button');
-        const whatsappFloat = document.getElementById('whatsappFloat');
-        if (isMobileView()) {
-          whatsappFloat.style.display = 'block';
-          console.log('WhatsApp button should be visible');
-        } else {
-          console.log('Not mobile view, hiding WhatsApp button');
-        }
-      }
-
-      function hideWhatsAppButton() {
-        console.log('Hiding WhatsApp button');
-        const whatsappFloat = document.getElementById('whatsappFloat');
-        if (whatsappFloat) {
-          whatsappFloat.style.display = 'none';
-          toggleWhatsAppOptions(false);
-        }
-      }
-
-      function displayData(data) {
-        console.log('Displaying data:', data);
-        const tableBody = document.querySelector('#dataTable tbody');
-        const dataContainer = document.getElementById('dataContainer');
-        const dataHeader = document.getElementById('dataHeader');
-
-        if (!tableBody || !dataContainer || !dataHeader) {
-          console.error('Required DOM elements not found');
-          return;
-        }
-
-        tableBody.innerHTML = '';
-        dataContainer.style.display = 'block';
-
-        if (data.length === 0) {
-          tableBody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: red;">No data found for the selected period.</td></tr>`;
-          hideWhatsAppButton();
-          return;
-        }
-
-        currentData = data;
-        data.sort((a, b) => new Date(a.date + ' ' + a.time) - new Date(b.date + ' ' + b.time));
-
-        let maxMW = Math.max(...data.map(item => Number(item.MW)));
-        let maxMWRow = data.find(item => Number(item.MW) === maxMW);
-
-        const formattedFromDate = formatDate(selectedFromDate);
-        const formattedToDate = formatDate(selectedToDate);
-        dataHeader.textContent = `${selectedFeeder} MAX MW From: ${formattedFromDate} To: ${formattedToDate}`;
-
-        data.forEach((item, index) => {
-          const row = document.createElement('tr');
-          if (Number(item.MW) === maxMW) {
-            row.style.backgroundColor = '#ffff00';
-          }
-          row.innerHTML = `
-            <td>${index + 1}</td>
-            <td>${item.feeder}</td>
-            <td>${Math.round(Number(item.MW))}</td>
-            <td>${formatDate(item.date)}</td>
-            <td>${item.time}</td>
-          `;
-          tableBody.appendChild(row);
-        });
-
-        renderChart(data);
-        showWhatsAppButton(); // Ensure this is called after data is rendered
-      }
-
-      // WhatsApp and other event listeners
-      document.addEventListener('DOMContentLoaded', function() {
-        const whatsappBtn = document.getElementById('whatsappBtn');
-        const whatsappFloat = document.getElementById('whatsappFloat');
-        const whatsappOptions = document.getElementById('whatsappOptions');
-        const sharePdf = document.getElementById('sharePdf');
-        const shareExcel = document.getElementById('shareExcel');
-
-        // Check if elements exist
-        if (!whatsappBtn || !whatsappFloat || !whatsappOptions || !sharePdf || !shareExcel) {
-          console.error('One or more WhatsApp-related elements not found in DOM');
-          return;
-        }
-
-        whatsappBtn.addEventListener('click', function() {
-          console.log('WhatsApp button clicked');
-          toggleWhatsAppOptions(true);
-        });
-
-        document.addEventListener('click', function(event) {
-          if (!whatsappFloat.contains(event.target) && whatsappOptions.style.display === 'flex') {
-            toggleWhatsAppOptions(false);
-          }
-        });
-
-        sharePdf.addEventListener('click', function(e) {
-          e.preventDefault();
-          generateAndSharePDF();
-        });
-
-        shareExcel.addEventListener('click', function(e) {
-          e.preventDefault();
-          generateAndShareExcel();
-        });
-      });
-
-      function generateAndSharePDF() {
+      downloadPDFButton.addEventListener('click', function() {
         const { jsPDF } = window.jspdf;
         const doc = new jsPDF();
-
+        
         doc.addImage('logo_new.png', 'PNG', 14, 10, 30, 30);
         doc.setFont("helvetica", "bold");
         doc.setFontSize(14);
         doc.text("TRANSMISSION CORPORATION OF TELANGANA LIMITED", 48, 20);
-
+        
         const fromDateFormatted = formatDate(selectedFromDate);
         const toDateFormatted = formatDate(selectedToDate);
         const dynamicTitle = `${selectedFeeder} from ${fromDateFormatted} to ${toDateFormatted}`;
-
+        
         const pageWidth = doc.internal.pageSize.getWidth();
         doc.setFont("helvetica", "normal");
         doc.setFontSize(10);
         const titleWidth = doc.getTextWidth(dynamicTitle);
         const titleX = (pageWidth - titleWidth) / 2;
-
+        
         const tableStartY = 35;
         doc.text(dynamicTitle, titleX, tableStartY - 2);
 
@@ -796,7 +745,7 @@
           html: '#dataTable',
           startY: tableStartY,
           theme: "grid",
-          headStyles: {
+          headStyles: { 
             fontSize: 10,
             fillColor: [52, 73, 94],
             textColor: 255
@@ -815,48 +764,48 @@
           }
         });
 
-        const pdfBlob = doc.output('blob');
-        const file = new File([pdfBlob], 'feeder_data.pdf', { type: 'application/pdf' });
-        shareViaWhatsApp(file);
-      }
+        doc.save('feeder_data.pdf');
+      });
 
-      function generateAndShareExcel() {
+      downloadExcelButton.addEventListener('click', function() {
         const wb = XLSX.utils.book_new();
         const sheet = XLSX.utils.table_to_sheet(document.getElementById('dataTable'));
         XLSX.utils.book_append_sheet(wb, sheet, 'Feeder Data');
-        const excelBuffer = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
-        const excelBlob = new Blob([excelBuffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
-        const file = new File([excelBlob], 'feeder_data.xlsx', { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
-        shareViaWhatsApp(file);
-      }
+        XLSX.writeFile(wb, 'feeder_data.xlsx');
+      });
 
-      function shareViaWhatsApp(file) {
-        if (navigator.share && isMobileView()) {
-          navigator.share({
-            files: [file],
-            title: `${selectedFeeder} Data Report`,
-            text: `Data report for ${selectedFeeder} from ${formatDate(selectedFromDate)} to ${formatDate(selectedToDate)}`
-          })
-          .then(() => {
-            toggleWhatsAppOptions(false);
-          })
-          .catch(error => {
-            console.error('Error sharing:', error);
-            alert('Error sharing file. Please try again.');
-          });
-        } else {
-          alert('Web Share API not supported on this device/browser.');
-        }
-      }
+      whatsappBtn.addEventListener('click', function() {
+        console.log('WhatsApp button clicked');
+        toggleWhatsAppOptions(true);
+      });
 
-      // Check screen size on resize
-      window.addEventListener('resize', function() {
-        if (!isMobileView()) {
-          hideWhatsAppButton();
-        } else if (currentData && currentData.length > 0) {
-          showWhatsAppButton();
+      document.addEventListener('click', function(event) {
+        if (!whatsappFloat.contains(event.target) && whatsappOptions.style.display === 'flex') {
+          toggleWhatsAppOptions(false);
         }
       });
+
+      sharePdf.addEventListener('click', function(e) {
+        e.preventDefault();
+        generateAndSharePDF();
+      });
+
+      shareExcel.addEventListener('click', function(e) {
+        e.preventDefault();
+        generateAndShareExcel();
+      });
+
+      chatInput.addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') sendMessage();
+      });
+    });
+
+    window.addEventListener('resize', function() {
+      if (!isMobileView()) {
+        hideWhatsAppButton();
+      } else if (currentData && currentData.length > 0) {
+        showWhatsAppButton();
+      }
     });
   </script>
 </body>
