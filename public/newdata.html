@@ -110,10 +110,24 @@
     </div>
   </div>
 
+  <div class="whatsapp-float" id="whatsappFloat">
+    <div class="whatsapp-btn" id="whatsappBtn">
+      <svg width="30" height="30" viewBox="0 0 24 24" fill="white">
+        <path d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91c0 1.76.58 3.39 1.56 4.71L2 22l5.39-1.68c1.32.98 2.95 1.56 4.65 1.56 5.46 0 9.91-4.45 9.91-9.91 0-5.46-4.45-9.91-9.91-9.91zm5.61 13.88c-.24.68-.92 1.12-1.61 1.36-.44.15-1.01.24-1.65.12-1-.18-2.05-.88-2.65-1.56-.61-.68-1.12-1.56-1.36-2.65-.12-.64-.04-1.2.2-1.64.24-.44.61-.68 1.05-.8.36-.12.76-.12 1.01 0 .24.12.44.36.61.8.24.61.49 1.25.61 1.88.12.44 0 .88-.12 1.2-.12.32-.24.56-.36.68-.12.12-.24.24-.36.36-.12.12-.24.24-.12.44.36.68.88 1.32 1.56 1.8.68.49 1.44.8 2.24.92.2 0 .36-.12.49-.24.12-.12.36-.36.61-.61.24-.24.49-.56.68-.92.2-.36.32-.76.24-1.2z"/>
+      </svg>
+    </div>
+    <div class="whatsapp-options" id="whatsappOptions">
+      <a class="whatsapp-option" id="sharePdf">Share PDF</a>
+      <a class="whatsapp-option" id="shareExcel">Share Excel</a>
+    </div>
+  </div>
+
   <script>
     let selectedFeeder = '';
     let selectedFromDate = '';
     let selectedToDate = '';
+    // WhatsApp sharing functionality
+    let currentData = null;
 
     const feederOptions = {
       '400KV': ['400KV MAHESHWARAM-2', '400KV MAHESHWARAM-1', '400KV NARSAPUR-1', '400KV NARSAPUR-2', '400KV KETHIREDDYPALLY-1', '400KV KETHIREDDYPALLY-2', '400KV NIZAMABAD-1', '400KV NIZAMABAD-2'],
@@ -637,6 +651,184 @@
         if (!navbarMenu.contains(event.target) && !hamburgerBtn.contains(event.target) && navbarMenu.classList.contains('active')) {
           navbarMenu.classList.remove('active');
           body.classList.remove('navbar-open');
+        }
+      });
+
+      function toggleWhatsAppOptions(show) {
+        const options = document.getElementById('whatsappOptions');
+        options.style.display = show ? 'flex' : 'none';
+      }
+
+      function isMobileView() {
+        return window.innerWidth <= 768;
+      }
+
+      function showWhatsAppButton() {
+        const whatsappFloat = document.getElementById('whatsappFloat');
+        if (isMobileView()) {
+          whatsappFloat.style.display = 'block';
+        }
+      }
+
+      function hideWhatsAppButton() {
+        const whatsappFloat = document.getElementById('whatsappFloat');
+        whatsappFloat.style.display = 'none';
+        toggleWhatsAppOptions(false);
+      }
+
+      // Update displayData to store data and show WhatsApp button
+      function displayData(data) {
+        const tableBody = document.querySelector('#dataTable tbody');
+        tableBody.innerHTML = '';
+        const dataContainer = document.getElementById('dataContainer');
+        const dataHeader = document.getElementById('dataHeader');
+        dataContainer.style.display = 'block';
+
+        if (data.length === 0) {
+          tableBody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: red;">No data found for the selected period.</td></tr>`;
+          hideWhatsAppButton();
+          return;
+        }
+
+        currentData = data; // Store data for sharing
+        data.sort((a, b) => new Date(a.date + ' ' + a.time) - new Date(b.date + ' ' + b.time));
+
+        let maxMW = Math.max(...data.map(item => Number(item.MW)));
+        let maxMWRow = data.find(item => Number(item.MW) === maxMW);
+
+        const formattedFromDate = formatDate(selectedFromDate);
+        const formattedToDate = formatDate(selectedToDate);
+        dataHeader.textContent = `${selectedFeeder} MAX MW From: ${formattedFromDate} To: ${formattedToDate}`;
+
+        data.forEach((item, index) => {
+          const row = document.createElement('tr');
+          if (Number(item.MW) === maxMW) {
+            row.style.backgroundColor = '#ffff00';
+          }
+          row.innerHTML = `
+            <td>${index + 1}</td>
+            <td>${item.feeder}</td>
+            <td>${Math.round(Number(item.MW))}</td>
+            <td>${formatDate(item.date)}</td>
+            <td>${item.time}</td>
+          `;
+          tableBody.appendChild(row);
+        });
+
+        renderChart(data);
+        showWhatsAppButton(); // Show WhatsApp button after data is displayed
+      }
+
+      // WhatsApp button event listeners
+      document.getElementById('whatsappBtn').addEventListener('click', function() {
+        toggleWhatsAppOptions(true);
+      });
+
+      document.addEventListener('click', function(event) {
+        const whatsappFloat = document.getElementById('whatsappFloat');
+        const whatsappBtn = document.getElementById('whatsappBtn');
+        const whatsappOptions = document.getElementById('whatsappOptions');
+        
+        if (!whatsappFloat.contains(event.target) && whatsappOptions.style.display === 'flex') {
+          toggleWhatsAppOptions(false);
+        }
+      });
+
+      document.getElementById('sharePdf').addEventListener('click', function(e) {
+        e.preventDefault();
+        generateAndSharePDF();
+      });
+
+      document.getElementById('shareExcel').addEventListener('click', function(e) {
+        e.preventDefault();
+        generateAndShareExcel();
+      });
+
+      function generateAndSharePDF() {
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF();
+        
+        doc.addImage('logo_new.png', 'PNG', 14, 10, 30, 30);
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(14);
+        doc.text("TRANSMISSION CORPORATION OF TELANGANA LIMITED", 48, 20);
+        
+        const fromDateFormatted = formatDate(selectedFromDate);
+        const toDateFormatted = formatDate(selectedToDate);
+        const dynamicTitle = `${selectedFeeder} from ${fromDateFormatted} to ${toDateFormatted}`;
+        
+        const pageWidth = doc.internal.pageSize.getWidth();
+        doc.setFont("helvetica", "normal");
+        doc.setFontSize(10);
+        const titleWidth = doc.getTextWidth(dynamicTitle);
+        const titleX = (pageWidth - titleWidth) / 2;
+        
+        const tableStartY = 35;
+        doc.text(dynamicTitle, titleX, tableStartY - 2);
+
+        doc.autoTable({
+          html: '#dataTable',
+          startY: tableStartY,
+          theme: "grid",
+          headStyles: { 
+            fontSize: 10,
+            fillColor: [52, 73, 94],
+            textColor: 255
+          },
+          bodyStyles: { fontSize: 9 },
+          margin: { top: 0 },
+          didParseCell: function(data) {
+            if (data.section === 'body') {
+              const tableBody = document.querySelector('#dataTable tbody');
+              const rows = Array.from(tableBody.getElementsByTagName('tr'));
+              const rowIndex = data.row.index;
+              if (rows[rowIndex] && rows[rowIndex].style.backgroundColor === 'rgb(255, 255, 0)') {
+                data.cell.styles.fillColor = [255, 255, 0];
+              }
+            }
+          }
+        });
+
+        const pdfBlob = doc.output('blob');
+        const file = new File([pdfBlob], 'feeder_data.pdf', { type: 'application/pdf' });
+        shareViaWhatsApp(file);
+      }
+
+      function generateAndShareExcel() {
+        const wb = XLSX.utils.book_new();
+        const sheet = XLSX.utils.table_to_sheet(document.getElementById('dataTable'));
+        XLSX.utils.book_append_sheet(wb, sheet, 'Feeder Data');
+        const excelBuffer = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
+        const excelBlob = new Blob([excelBuffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+        const file = new File([excelBlob], 'feeder_data.xlsx', { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+        shareViaWhatsApp(file);
+      }
+
+      function shareViaWhatsApp(file) {
+        if (navigator.share && isMobileView()) {
+          navigator.share({
+            files: [file],
+            title: `${selectedFeeder} Data Report`,
+            text: `Data report for ${selectedFeeder} from ${formatDate(selectedFromDate)} to ${formatDate(selectedToDate)}`
+          })
+          .then(() => {
+            toggleWhatsAppOptions(false);
+          })
+          .catch(error => {
+            console.error('Error sharing:', error);
+            alert('Error sharing file. Please try again.');
+          });
+        } else {
+          alert('Web Share API not supported on this device/browser.');
+        }
+      }
+
+      // Check screen size on resize
+      window.addEventListener('resize', function() {
+        if (!isMobileView()) {
+          hideWhatsAppButton();
+        } else if (currentData && currentData.length > 0) {
+          showWhatsAppButton();
         }
       });
     });

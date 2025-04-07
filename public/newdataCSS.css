@@ -534,3 +534,55 @@ body {
       font-size: 14px; /* Smaller text */
     }
   }
+
+  /* WhatsApp Floating Button Styles */
+  .whatsapp-float {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    z-index: 1000;
+    display: none;
+  }
+
+  .whatsapp-btn {
+    background-color: #25D366;
+    border-radius: 50%;
+    width: 60px;
+    height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+    cursor: pointer;
+  }
+
+  .whatsapp-options {
+    position: absolute;
+    bottom: 70px;
+    right: 0;
+    background-color: white;
+    border-radius: 5px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    display: none;
+    flex-direction: column;
+    padding: 5px;
+  }
+
+  .whatsapp-option {
+    padding: 8px 15px;
+    cursor: pointer;
+    color: #333;
+    text-decoration: none;
+    font-size: 14px;
+  }
+
+  .whatsapp-option:hover {
+    background-color: #f0f0f0;
+  }
+
+  /* Hide on desktop */
+  @media (min-width: 769px) {
+    .whatsapp-float {
+      display: none !important;
+    }
+  }
