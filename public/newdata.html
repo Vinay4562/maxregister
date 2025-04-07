@@ -15,7 +15,7 @@
   <div class="header">
     <div class="header-content">
       <img src="logo_new.png" alt="Logo" width="60px" height="60px">
-      <h1>𝐓𝐑𝐀𝐍𝐒𝐌𝐈𝐒𝐒𝐈𝐎𝐍 𝐂𝐎𝐑𝐏𝐎𝐑𝐀𝐓𝐈𝐎𝐍 𝐎𝐅 𝐓𝐄𝐋𝐀𝐍𝐆𝐀𝐍𝐀 𝐋𝐈𝐌𝐈𝐓𝐄𝐃</h1>
+      <h1>𝐓𝐑𝐀𝐍𝐒𝐌𝐈𝐒𝐒𝐈𝐎𝐍 𝐂𝐎𝐑𝐏𝐎𝐑𝐀𝐓𝐈𝐎𝐍 𝐎𝐅 𝐓𝐄𝐋𝐀𝐍𝐆𝐀𝐍𝐀 𝐋𝐈𝐌𝐈𝐓�{E𝐃</h1>
       <button class="hamburger" id="hamburgerBtn">☰</button>
     </div>
   </div>
@@ -86,31 +86,6 @@
     </div>
   </div>
 
-  <button class="chat-toggle-btn" id="chatToggleBtn">Open Chatbot</button>
-
-  <div class="chat-container" id="chatContainer">
-    <div class="chat-header">
-      <span class="chat-header-title">Feeder Data Bot</span>
-      <div class="chat-header-buttons">
-        <button class="chat-hint-btn" id="chatHintBtn">?</button>
-        <button class="chat-close-btn" id="chatCloseBtn">×</button>
-      </div>
-    </div>
-    <div class="chat-hints" id="chatHints">
-      <ul>
-        <li>"get data for [feeder] from [DD-MM-YYYY] to [DD-MM-YYYY]" - Fetch full data</li>
-        <li>"max [feeder] [Month Year] [Month Year]" - Get maximum MW</li>
-        <li>"min [feeder] [Month Year] [Month Year]" - Get minimum MW</li>
-        <li>"what is the maximum MW value for [feeder] from [Month Year] to [Month Year]" - Verbose max MW</li>
-      </ul>
-    </div>
-    <div class="chat-messages" id="chatMessages"></div>
-    <div class="chat-input">
-      <input type="text" id="chatInput" placeholder="e.g., 'get data for 400KV Maheshwaram-2 from 01-03-2020 to 31-12-2021' or 'max...'">
-      <button onclick="sendMessage()">Send</button>
-    </div>
-  </div>
-
   <div class="whatsapp-float" id="whatsappFloat">
     <div class="whatsapp-btn" id="whatsappBtn">
       <svg width="30" height="30" viewBox="0 0 24 24" fill="white">
@@ -134,14 +109,6 @@
       '220KV': ['220KV PARIGI-1', '220KV PARIGI-2', '220KV TANDUR', '220KV GACHIBOWLI-1', '220KV GACHIBOWLI-2', '220KV KETHIREDDYPALLY', '220KV YEDDUMAILARAM-1', '220KV YEDDUMAILARAM-2', '220KV SADASIVAPET-1', '220KV SADASIVAPET-2'],
       'ICTS': ['315MVA ICT-1', '315MVA ICT-2', '315MVA ICT-3', '500MVA ICT-4']
     };
-
-    const voltageLevels = ['400KV', '220KV', 'ICTS'];
-    const allFeeders = Object.values(feederOptions).flat();
-    const monthMap = {
-      'january': '01', 'february': '02', 'march': '03', 'april': '04', 'may': '05', 'june': '06',
-      'july': '07', 'august': '08', 'september': '09', 'october': '10', 'november': '11', 'december': '12'
-    };
-    const months = Object.keys(monthMap);
 
     function toggleWhatsAppOptions(show) {
       const options = document.getElementById('whatsappOptions');
@@ -172,142 +139,6 @@
         whatsappFloat.style.display = 'none';
         toggleWhatsAppOptions(false);
       }
-    }
-
-    function levenshteinDistance(a, b) {
-      const matrix = Array(b.length + 1).fill(null).map(() => Array(a.length + 1).fill(null));
-      for (let i = 0; i <= a.length; i++) matrix[0][i] = i;
-      for (let j = 0; j <= b.length; j++) matrix[j][0] = j;
-      for (let j = 1; j <= b.length; j++) {
-        for (let i = 1; i <= a.length; i++) {
-          const indicator = a[i - 1] === b[j - 1] ? 0 : 1;
-          matrix[j][i] = Math.min(
-            matrix[j][i - 1] + 1,
-            matrix[j - 1][i] + 1,
-            matrix[j - 1][i - 1] + indicator
-          );
-        }
-      }
-      return matrix[b.length][a.length];
-    }
-
-    function findClosestMatch(input, options) {
-      if (!input) return null;
-      const inputUpper = input.toUpperCase();
-      if (options.includes(inputUpper)) return inputUpper;
-
-      let minDistance = Infinity;
-      let closestMatch = null;
-      options.forEach(option => {
-        const distance = levenshteinDistance(inputUpper, option.toUpperCase());
-        if (distance < minDistance) {
-          minDistance = distance;
-          closestMatch = option;
-        }
-      });
-      return minDistance <= Math.min(3, Math.floor(input.length / 2)) ? closestMatch : null;
-    }
-
-    function addMessage(message, className) {
-      const chatMessages = document.getElementById('chatMessages');
-      const msgDiv = document.createElement('div');
-      msgDiv.className = `message ${className}`;
-      msgDiv.textContent = message;
-      chatMessages.appendChild(msgDiv);
-      chatMessages.scrollTop = chatMessages.scrollHeight;
-    }
-
-    function addUserMessage(message) {
-      addMessage(message, 'user-message');
-    }
-
-    function addBotMessage(message) {
-      addMessage(message, 'bot-message');
-    }
-
-    function parseGetDataCommand(command) {
-      const pattern = /get data for (.+?) from (\d{2}-\d{2}-\d{4}) to (\d{2}-\d{2}-\d{4})/i;
-      const match = command.match(pattern);
-      if (match) {
-        const feederInput = match[1].trim();
-        const fromDateDDMMYYYY = match[2];
-        const toDateDDMMYYYY = match[3];
-        const feeder = findClosestMatch(feederInput, allFeeders);
-        if (!feeder) return null;
-        const fromDate = convertDDMMYYYYtoYYYYMMDD(fromDateDDMMYYYY);
-        const toDate = convertDDMMYYYYtoYYYYMMDD(toDateDDMMYYYY);
-        return { type: 'getData', feeder, fromDate, toDate, originalFeeder: feederInput };
-      }
-      return null;
-    }
-
-    function parseMaxMWCommand(command) {
-      const pattern = /what is the maximum MW value for (.+?) from ([A-Za-z]+ \d{4}) to ([A-Za-z]+ \d{4})/i;
-      const match = command.match(pattern);
-      if (match) {
-        const feederInput = match[1].trim();
-        const fromMonthYear = match[2].split(' ');
-        const toMonthYear = match[3].split(' ');
-        const feeder = findClosestMatch(feederInput, allFeeders);
-        if (!feeder) return null;
-        const fromMonth = findClosestMatch(fromMonthYear[0], months);
-        const toMonth = findClosestMatch(toMonthYear[0], months);
-        if (!fromMonth || !toMonth) return null;
-        const fromDate = convertMonthYearToDate(`${fromMonth} ${fromMonthYear[1]}`);
-        const toDate = convertMonthYearToDate(`${toMonth} ${toMonthYear[1]}`, true);
-        return { type: 'maxMW', feeder, fromDate, toDate, originalFeeder: feederInput, originalFrom: match[2], originalTo: match[3] };
-      }
-      return null;
-    }
-
-    function parseShortMaxCommand(command) {
-      const pattern = /max (.+?) ([A-Za-z]+ \d{4}) ([A-Za-z]+ \d{4})/i;
-      const match = command.match(pattern);
-      if (match) {
-        const feederInput = match[1].trim();
-        const fromMonthYear = match[2].split(' ');
-        const toMonthYear = match[3].split(' ');
-        const feeder = findClosestMatch(feederInput, allFeeders);
-        if (!feeder) return null;
-        const fromMonth = findClosestMatch(fromMonthYear[0], months);
-        const toMonth = findClosestMatch(toMonthYear[0], months);
-        if (!fromMonth || !toMonth) return null;
-        const fromDate = convertMonthYearToDate(`${fromMonth} ${fromMonthYear[1]}`);
-        const toDate = convertMonthYearToDate(`${toMonth} ${toMonthYear[1]}`, true);
-        return { type: 'maxMW', feeder, fromDate, toDate, originalFeeder: feederInput, originalFrom: match[2], originalTo: match[3] };
-      }
-      return null;
-    }
-
-    function parseShortMinCommand(command) {
-      const pattern = /min (.+?) ([A-Za-z]+ \d{4}) ([A-Za-z]+ \d{4})/i;
-      const match = command.match(pattern);
-      if (match) {
-        const feederInput = match[1].trim();
-        const fromMonthYear = match[2].split(' ');
-        const toMonthYear = match[3].split(' ');
-        const feeder = findClosestMatch(feederInput, allFeeders);
-        if (!feeder) return null;
-        const fromMonth = findClosestMatch(fromMonthYear[0], months);
-        const toMonth = findClosestMatch(toMonthYear[0], months);
-        if (!fromMonth || !toMonth) return null;
-        const fromDate = convertMonthYearToDate(`${fromMonth} ${fromMonthYear[1]}`);
-        const toDate = convertMonthYearToDate(`${toMonth} ${toMonthYear[1]}`, true);
-        return { type: 'minMW', feeder, fromDate, toDate, originalFeeder: feederInput, originalFrom: match[2], originalTo: match[3] };
-      }
-      return null;
-    }
-
-    function convertMonthYearToDate(monthYear, endOfMonth = false) {
-      const [monthStr, year] = monthYear.split(' ');
-      const month = monthMap[monthStr.toLowerCase()];
-      if (!month) return null;
-      return endOfMonth ? `${year}-${month}-31` : `${year}-${month}-01`;
-    }
-
-    function convertDDMMYYYYtoYYYYMMDD(dateStr) {
-      const [day, month, year] = dateStr.split('-');
-      return `${year}-${month}-${day}`;
     }
 
     function displayData(data) {
@@ -420,94 +251,6 @@
       document.getElementById('feeder').innerHTML = '<option value="">Select Feeder</option>';
     }
 
-    function sendMessage() {
-      const input = document.getElementById('chatInput');
-      const command = input.value.trim();
-      if (!command) return;
-
-      addUserMessage(command);
-      input.value = '';
-
-      const parsed = parseShortMaxCommand(command) || parseShortMinCommand(command) || parseMaxMWCommand(command) || parseGetDataCommand(command);
-
-      if (!parsed) {
-        addBotMessage('Invalid command. Click the "?" button for a list of valid commands.');
-        return;
-      }
-
-      const { type, feeder, fromDate, toDate, originalFeeder, originalFrom, originalTo } = parsed;
-
-      if (!fromDate || !toDate) {
-        addBotMessage('Error: Invalid date format. Use "DD-MM-YYYY" for "get data" or "Month Year" for max/min.');
-        return;
-      }
-
-      if (!feeder) {
-        addBotMessage(`Error: Could not find a match for feeder "${originalFeeder}". Please check your input.`);
-        return;
-      }
-
-      if (new Date(fromDate) > new Date(toDate)) {
-        addBotMessage('Error: From Date cannot be later than To Date.');
-        return;
-      }
-
-      let correctionMessage = '';
-      if (originalFeeder && originalFeeder.toUpperCase() !== feeder) {
-        correctionMessage += `Corrected feeder from "${originalFeeder}" to "${feeder}". `;
-      }
-      if (originalFrom && originalFrom !== `${Object.keys(monthMap).find(key => monthMap[key] === fromDate.split('-')[1])} ${fromDate.split('-')[0]}`) {
-        correctionMessage += `Corrected from "${originalFrom}" to "${Object.keys(monthMap).find(key => monthMap[key] === fromDate.split('-')[1])} ${fromDate.split('-')[0]}". `;
-      }
-      if (originalTo && originalTo !== `${Object.keys(monthMap).find(key => monthMap[key] === toDate.split('-')[1])} ${toDate.split('-')[0]}`) {
-        correctionMessage += `Corrected to "${originalTo}" to "${Object.keys(monthMap).find(key => monthMap[key] === toDate.split('-')[1])} ${toDate.split('-')[0]}". `;
-      }
-      if (correctionMessage) {
-        addBotMessage(correctionMessage);
-      }
-
-      addBotMessage(`Fetching ${type === 'minMW' ? 'minimum' : type === 'maxMW' ? 'maximum' : 'data'} for ${feeder} from ${fromDate} to ${toDate}...`);
-      document.getElementById('fullScreenSpinner').style.display = 'flex';
-
-      if (type === 'getData') {
-        selectedFeeder = feeder;
-        selectedFromDate = fromDate;
-        selectedToDate = toDate;
-
-        fetchDataByDateRange(feeder, fromDate, toDate)
-          .then(data => {
-            displayData(data);
-            document.getElementById('downloadPDFButton').style.display = 'inline-block';
-            document.getElementById('downloadExcelButton').style.display = 'inline-block';
-            addBotMessage(`Data retrieved successfully! Showing ${data.length} records.`);
-          })
-          .catch(error => {
-            addBotMessage('Failed to fetch data. Please try again.');
-          })
-          .finally(() => {
-            document.getElementById('fullScreenSpinner').style.display = 'none';
-          });
-      } else if (type === 'maxMW' || type === 'minMW') {
-        fetchDataByDateRange(feeder, fromDate, toDate)
-          .then(data => {
-            if (data.length === 0) {
-              addBotMessage(`No data found for ${feeder} from ${fromDate} to ${toDate}.`);
-            } else {
-              const mwValues = data.map(item => Number(item.MW));
-              const value = type === 'maxMW' ? Math.max(...mwValues) : Math.min(...mwValues);
-              const entry = data.find(item => Number(item.MW) === value);
-              addBotMessage(`${type === 'maxMW' ? 'Maximum' : 'Minimum'} MW for ${feeder}: ${Math.round(value)} MW on ${formatDate(entry.date)} at ${entry.time}`);
-            }
-          })
-          .catch(error => {
-            addBotMessage('Failed to fetch data. Please try again.');
-          })
-          .finally(() => {
-            document.getElementById('fullScreenSpinner').style.display = 'none';
-          });
-      }
-    }
-
     function generateAndSharePDF() {
       const { jsPDF } = window.jspdf;
       const doc = new jsPDF();
@@ -591,11 +334,6 @@
       const voltageSelect = document.getElementById('voltage');
       const feederSelect = document.getElementById('feeder');
       const form = document.getElementById('dataForm');
-      const chatToggleBtn = document.getElementById('chatToggleBtn');
-      const chatCloseBtn = document.getElementById('chatCloseBtn');
-      const chatHintBtn = document.getElementById('chatHintBtn');
-      const chatContainer = document.getElementById('chatContainer');
-      const chatHints = document.getElementById('chatHints');
       const hamburgerBtn = document.getElementById('hamburgerBtn');
       const navbarMenu = document.getElementById('navbarMenu');
       const downloadPDFButton = document.getElementById('downloadPDFButton');
@@ -605,10 +343,6 @@
       const whatsappOptions = document.getElementById('whatsappOptions');
       const sharePdf = document.getElementById('sharePdf');
       const shareExcel = document.getElementById('shareExcel');
-      const chatInput = document.getElementById('chatInput');
-
-      let isChatOpen = false;
-      let isHintsOpen = false;
 
       voltageSelect.addEventListener('change', function() {
         const voltage = this.value;
@@ -664,40 +398,6 @@
           .finally(() => {
             spinner.style.display = 'none';
           });
-      });
-
-      function toggleChatbot(open) {
-        isChatOpen = open;
-        if (isChatOpen) {
-          chatContainer.style.display = 'flex';
-          chatToggleBtn.textContent = 'Close Chatbot';
-          if (!chatContainer.dataset.welcomeShown) {
-            addBotMessage('Welcome Sir! Click the "?" button for command hints.');
-            chatContainer.dataset.welcomeShown = 'true';
-          }
-        } else {
-          chatContainer.style.display = 'none';
-          chatToggleBtn.textContent = 'Open Chatbot';
-          chatHints.style.display = 'none';
-          isHintsOpen = false;
-        }
-      }
-
-      function toggleHints() {
-        isHintsOpen = !isHintsOpen;
-        chatHints.style.display = isHintsOpen ? 'block' : 'none';
-      }
-
-      chatToggleBtn.addEventListener('click', function() {
-        toggleChatbot(!isChatOpen);
-      });
-
-      chatCloseBtn.addEventListener('click', function() {
-        toggleChatbot(false);
-      });
-
-      chatHintBtn.addEventListener('click', function() {
-        toggleHints();
       });
 
       hamburgerBtn.addEventListener('click', function() {
@@ -793,10 +493,6 @@
       shareExcel.addEventListener('click', function(e) {
         e.preventDefault();
         generateAndShareExcel();
-      });
-
-      chatInput.addEventListener('keypress', function(e) {
-        if (e.key === 'Enter') sendMessage();
       });
     });
 
