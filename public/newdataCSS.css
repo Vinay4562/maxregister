@@ -541,7 +541,7 @@ body {
   bottom: 20px;
   right: 20px;
   z-index: 1000;
-  display: none; /* Hidden by default, shown via JS for mobile */
+  display: none; /* Hidden by default, shown via JS */
 }
 
 .whatsapp-btn {
@@ -555,8 +555,7 @@ body {
   box-shadow: 0 2px 5px rgba(0,0,0,0.3);
   cursor: pointer;
   animation: zoomInOut 2s infinite ease-in-out;
-  line-height: 0; /* Prevents extra spacing */
-  overflow: hidden; /* Ensures icon stays within bounds */
+  overflow: hidden; /* Ensures no overflow */
 }
 
 @keyframes zoomInOut {
@@ -572,7 +571,7 @@ body {
   background-color: white;
   border-radius: 5px;
   box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-  display: none; /* Hidden by default, toggled via JS */
+  display: none;
   flex-direction: column;
   padding: 5px;
 }
@@ -591,6 +590,6 @@ body {
 
 @media (min-width: 769px) {
   .whatsapp-float {
-    display: none !important; /* Always hidden on desktop */
+    display: none !important;
   }
 }
