@@ -236,6 +236,108 @@ button:disabled {
   margin-bottom: 15px;
 }
 
+    /* Add these styles to your CSS or here */
+    .hamburger {
+      display: none;
+      font-size: 24px;
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 10px;
+    }
+
+    .navbar {
+      display: block;
+    }
+
+    .navbar ul {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+      display: flex;
+    }
+
+    .navbar-overlay {
+      position: fixed;
+      top: 0;
+      right: -250px;
+      width: 250px;
+      height: 100%;
+      background: #fff;
+      box-shadow: -2px 0 5px rgba(0,0,0,0.3);
+      transition: right 0.3s ease-in-out;
+      z-index: 1000;
+    }
+
+    .navbar-overlay.active {
+      right: 0;
+    }
+
+    .navbar-overlay ul {
+      flex-direction: column;
+      padding: 20px;
+    }
+
+    .navbar-overlay li {
+      margin: 15px 0;
+    }
+
+    .overlay-bg {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.5);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s ease;
+      z-index: 999;
+    }
+
+    .overlay-bg.active {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    @media (max-width: 768px) {
+      .header-content h1.desktop-title {
+        display: none;
+      }
+
+      .header-content h1.mobile-title {
+        display: block;
+        font-size: 20px;
+        margin: 0;
+      }
+
+      .hamburger {
+        display: block;
+      }
+
+      .navbar {
+        display: none;
+      }
+
+      .navbar.mobile-active {
+        display: block;
+      }
+    }
+
+    @media (min-width: 769px) {
+      .header-content h1.desktop-title {
+        display: block;
+      }
+
+      .header-content h1.mobile-title {
+        display: none;
+      }
+
+      .navbar-overlay {
+        display: none;
+      }
+    }
+
 /* Tablet (≤768px) */
 @media screen and (max-width: 768px) {
   .header-content {

@@ -10,12 +10,15 @@
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" integrity="sha512-1ycn6IcaQQ40/MKBW2W4Rhis/DbILU74C1vSrLJxCq57o941Ym01SwNsOMqvEBFlcgUa6xLiPY/NS5R+E6ztJQ==" crossorigin="anonymous" referrerpolicy="no-referrer" />
   <link rel="stylesheet" href="newdataICTSCSS.css">
+
 </head>
 <body>
   <div class="header">
     <div class="header-content">
       <img src="logo_new.png" alt="Logo" width="60px" height="60px">
-      <h1>𝐓𝐑𝐀𝐍𝐒𝐌𝐈𝐒𝐒𝐈𝐎𝐍 𝐂𝐎𝐑𝐏𝐎𝐑𝐀𝐓𝐈𝐎𝐍 𝐎𝐅 𝐓𝐄𝐋𝐀𝐍𝐆𝐀𝐍𝐀 𝐋𝐈𝐌𝐈𝐓𝐄𝐃</h1>
+      <h1 class="desktop-title">𝐓𝐑𝐀𝐍𝐒𝐌𝐈𝐒𝐒𝐈𝐎𝐍 𝐂𝐎𝐑𝐏𝐎𝐑𝐀𝐓𝐈𝐎𝐍 𝐎𝐅 𝐓𝐄𝐋𝐀𝐍𝐆𝐀𝐍𝐀 𝐋𝐈𝐌𝐈𝐓𝐄𝐃</h1>
+      <h1 class="mobile-title">TG TRANSCO</h1>
+      <button class="hamburger" id="hamburgerBtn">☰</button>
     </div>
     <nav class="navbar">
       <ul>
@@ -23,6 +26,13 @@
         <li><a href="https://mrt-register-git-main-vinay-kumars-projects-f1559f4a.vercel.app/LCbox_retrieve.html">MRT Schedules</a></li>
       </ul>
     </nav>
+    <nav class="navbar-overlay" id="navbarOverlay">
+      <ul>
+        <li><a href="https://400kvssshankarpally.free.nf/">Home</a></li>
+        <li><a href="https://mrt-register-git-main-vinay-kumars-projects-f1559f4a.vercel.app/LCbox_retrieve.html">MRT Schedules</a></li>
+      </ul>
+    </nav>
+    <div class="overlay-bg" id="overlayBg"></div>
   </div>
 
   <div class="container">
@@ -163,6 +173,27 @@
       const feeder3Select = document.getElementById('feeder3');
       const feeder4Select = document.getElementById('feeder4');
       const form = document.getElementById('dataForm');
+      const hamburgerBtn = document.getElementById('hamburgerBtn');
+      const navbarOverlay = document.getElementById('navbarOverlay');
+      const overlayBg = document.getElementById('overlayBg');
+
+      // Hamburger Menu Functionality
+      hamburgerBtn.addEventListener('click', function() {
+        navbarOverlay.classList.toggle('active');
+        overlayBg.classList.toggle('active');
+      });
+
+      overlayBg.addEventListener('click', function() {
+        navbarOverlay.classList.remove('active');
+        overlayBg.classList.remove('active');
+      });
+
+      navbarOverlay.querySelectorAll('a').forEach(link => {
+        link.addEventListener('click', function() {
+          navbarOverlay.classList.remove('active');
+          overlayBg.classList.remove('active');
+        });
+      });
 
       voltageSelect.addEventListener('change', function() {
         const voltage = this.value;
@@ -693,6 +724,8 @@
       window.addEventListener('resize', function() {
         if (!isMobileView()) {
           hideWhatsAppButton();
+          navbarOverlay.classList.remove('active');
+          overlayBg.classList.remove('active');
         } else if (allRows.length > 0) {
           showWhatsAppButton();
         }
