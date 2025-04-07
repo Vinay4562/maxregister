@@ -360,44 +360,61 @@ button:disabled {
   }
 }
 
+/* WhatsApp Floating Button Styles with Animation */
 .whatsapp-float {
   position: fixed;
   bottom: 20px;
   right: 20px;
   z-index: 1000;
-  display: none;
+  display: none; /* Hidden by default, shown via JS */
 }
 
 .whatsapp-btn {
-  background-color: #25D366;
+  background-color: #25D366; /* WhatsApp green */
+  border-radius: 50%;
   width: 60px;
   height: 60px;
-  border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.3);
   cursor: pointer;
-  box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+  animation: zoomInOut 2s infinite ease-in-out;
+  overflow: hidden; /* Ensures no overflow */
+}
+
+@keyframes zoomInOut {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.1); }
+  100% { transform: scale(1); }
 }
 
 .whatsapp-options {
-  display: none;
-  flex-direction: column;
   position: absolute;
   bottom: 70px;
   right: 0;
   background-color: white;
   border-radius: 5px;
   box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+  display: none;
+  flex-direction: column;
+  padding: 5px;
 }
 
 .whatsapp-option {
-  padding: 10px 20px;
+  padding: 8px 15px;
+  cursor: pointer;
   color: #333;
   text-decoration: none;
-  white-space: nowrap;
+  font-size: 14px;
 }
 
 .whatsapp-option:hover {
   background-color: #f0f0f0;
+}
+
+@media (min-width: 769px) {
+  .whatsapp-float {
+    display: none !important;
+  }
 }
