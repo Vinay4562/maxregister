@@ -535,55 +535,62 @@ body {
     }
   }
 
-      /* WhatsApp Floating Button Styles with Animation */
-      .whatsapp-float {
-        position: fixed;
-        bottom: 20px;
-        right: 20px;
-        z-index: 1000;
-        display: none;
-      }
-      .whatsapp-btn {
-        background-color: #25D366; /* WhatsApp green */
-        border-radius: 50%;
-        width: 60px;
-        height: 60px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        box-shadow: 0 2px 5px rgba(0,0,0,0.3);
-        cursor: pointer;
-        animation: zoomInOut 2s infinite ease-in-out;
-        line-height: 0; /* Ensures no extra spacing around the icon */
-      }
-      @keyframes zoomInOut {
-        0% { transform: scale(1); }
-        50% { transform: scale(1.1); }
-        100% { transform: scale(1); }
-      }
-      .whatsapp-options {
-        position: absolute;
-        bottom: 70px;
-        right: 0;
-        background-color: white;
-        border-radius: 5px;
-        box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-        display: none;
-        flex-direction: column;
-        padding: 5px;
-      }
-      .whatsapp-option {
-        padding: 8px 15px;
-        cursor: pointer;
-        color: #333;
-        text-decoration: none;
-        font-size: 14px;
-      }
-      .whatsapp-option:hover {
-        background-color: #f0f0f0;
-      }
-      @media (min-width: 769px) {
-        .whatsapp-float {
-          display: none !important;
-        }
-      }
+/* WhatsApp Floating Button Styles with Animation */
+.whatsapp-float {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  z-index: 1000;
+  display: none; /* Hidden by default, shown via JS for mobile */
+}
+
+.whatsapp-btn {
+  background-color: #25D366; /* WhatsApp green */
+  border-radius: 50%;
+  width: 60px;
+  height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+  cursor: pointer;
+  animation: zoomInOut 2s infinite ease-in-out;
+  line-height: 0; /* Prevents extra spacing */
+  overflow: hidden; /* Ensures icon stays within bounds */
+}
+
+@keyframes zoomInOut {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.1); }
+  100% { transform: scale(1); }
+}
+
+.whatsapp-options {
+  position: absolute;
+  bottom: 70px;
+  right: 0;
+  background-color: white;
+  border-radius: 5px;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+  display: none; /* Hidden by default, toggled via JS */
+  flex-direction: column;
+  padding: 5px;
+}
+
+.whatsapp-option {
+  padding: 8px 15px;
+  cursor: pointer;
+  color: #333;
+  text-decoration: none;
+  font-size: 14px;
+}
+
+.whatsapp-option:hover {
+  background-color: #f0f0f0;
+}
+
+@media (min-width: 769px) {
+  .whatsapp-float {
+    display: none !important; /* Always hidden on desktop */
+  }
+}
